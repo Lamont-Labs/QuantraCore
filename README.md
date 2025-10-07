@@ -1,6 +1,6 @@
 # QuantraCore™ — Institutional-grade Reproducible Trading Demo
 **Owner:** Jesse J. Lamont • **Org:** Lamont-Labs • **Version:** v3.7u • **Date:** 2025-10-05
-
+[![QuantraCore CI](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml/badge.svg)](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml)
 [![Demo Status](https://img.shields.io/badge/demo-ready-blue)](https://github.com/Lamont-Labs/QuantraCore)
 
 ## Overview
