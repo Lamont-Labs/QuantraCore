@@ -1,16 +1,17 @@
 .PHONY: demo verify sbom test clean
 
 demo:
-\tpython -m cli.main run --ticker AAPL --seed 42
+	@echo "Running QuantraCore deterministic demo (no subcommand)..."
+	python -m cli.main
 
 verify:
-\tbash verify.sh
+	bash verify.sh
 
 sbom:
-\tpython3 -c "import json;print(json.dumps({'sbom':'CycloneDX placeholder'},indent=2))" > SBOM/sbom.cdx.json
+	python3 -c "import json; print(json.dumps({'sbom':'CycloneDX placeholder'}, indent=2))" > SBOM/sbom.cdx.json
 
 test:
-\tpytest -q
+	pytest -q
 
 clean:
-\trm -rf dist/* SBOM/*.json SBOM/*.csv
+	rm -rf dist/* SBOM/*.json SBOM/*.csv
