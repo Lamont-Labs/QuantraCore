@@ -20,6 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          # safety net to avoid env drift
           pip install numpy httpx
 
       - name: Run deterministic demo (no subcommand)
