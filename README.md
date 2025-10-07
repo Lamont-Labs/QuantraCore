@@ -1,8 +1,6 @@
 # QuantraCore™ — Institutional-grade Reproducible Trading Demo
 **Owner:** Jesse J. Lamont • **Org:** Lamont-Labs • **Version:** v3.7u • **Date:** 2025-10-05
 [![QuantraCore CI](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml/badge.svg)](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml)
-
-
 ## Overview
 Deterministic AI trading demo with reproducible scoring (QuantraScore), fail-closed risk filters (ASP-01..20), HUD payloads, and provenance.
 
