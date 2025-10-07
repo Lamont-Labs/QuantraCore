@@ -3,6 +3,7 @@
 **Owner:** Jesse J. Lamont  
 **Org:** Lamont-Labs  
 **Version:** v3.7u  
+[![QuantraCore CI](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml/badge.svg)](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml)
 **Date:** 2025-10-07  
 **Status:** Demo-ready, deterministic handoff seed  
 **Repo:** https://github.com/Lamont-Labs/QuantraCore
