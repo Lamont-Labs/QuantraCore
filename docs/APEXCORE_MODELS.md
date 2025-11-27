@@ -2,135 +2,115 @@
 
 **Version:** 8.0  
 **Components:** ApexCore Full, ApexCore Mini  
-**Role:** Neural Approximation of the Apex Deterministic Engine
+**Role:** On-device neural assistant models
 
 ---
 
 ## 1. Overview
 
-ApexCore is a **model family** within the QuantraCore Apex ecosystem. These neural network models are trained to approximate the behavior of the deterministic Apex core engine, enabling efficient inference in scenarios where running the full engine is impractical.
+ApexCore is the **on-device neural assistant model** within the QuantraCore Apex ecosystem. These neural network models are trained to approximate the behavior of the deterministic Apex core engine, enabling efficient inference in scenarios where running the full engine is impractical.
 
-The family consists of two members:
-- **ApexCore Full** — Desktop-class model for high-accuracy analysis
-- **ApexCore Mini** — Mobile-optimized model for on-device inference
-
-Both models share the same output contract and are derived through a teacher-student training pipeline where Apex is the ultimate authority.
+The family consists of two versions:
+- **ApexCore Full** — Desktop-class model for K6 workstation
+- **ApexCore Mini** — Mobile-optimized model for Android/QuantraVision
 
 ---
 
-## 2. ApexCore Full (Desktop)
+## 2. Core Principles
 
-### 2.1 Role
+All ApexCore models adhere to these fundamental principles:
 
-ApexCore Full serves as the primary neural model for desktop deployments. It provides:
-- Near-Apex accuracy for structural analysis
-- Faster inference than running the full deterministic pipeline
-- Suitable for scanning large universes in real-time
+1. **Apex is always the teacher** — Models learn exclusively from the deterministic core
+2. **ApexCore never overrides Apex** — When both are available, Apex is authoritative
+3. **Fails closed if uncertain** — Conservative behavior under ambiguity
 
-### 2.2 Specifications
+---
+
+## 3. ApexCore Full (Desktop)
+
+### 3.1 Target Platform
 
 | Property | Value |
 |----------|-------|
-| Size | 4–20MB |
-| Format | TFLite |
-| Inference | 50–200ms per sample |
-| Training | Direct from ApexLab |
-| Accuracy Target | >95% alignment with Apex |
-
-### 2.3 Outputs
-
-ApexCore Full produces the complete Apex output contract:
-
-```yaml
-outputs:
-  - regime           # trending, ranging, volatile, suppressed
-  - risk_tier        # low, medium, high, extreme
-  - chart_quality    # structural clarity score
-  - entropy_band     # disorder level classification
-  - volatility_band  # volatility regime
-  - suppression_state # activity suppression detection
-  - score_band       # discretized QuantraScore range
-  - quantrascore_numeric # 0.0–1.0 composite score
-```
-
-### 2.4 Guarantees
-
-- **Apex Alignment** — Outputs are validated against Apex ground truth
-- **Fail-Closed** — Uncertain predictions trigger abstention
-- **Teacher Priority** — When Apex is available, it takes precedence
-
----
-
-## 3. ApexCore Mini (Mobile)
-
-### 3.1 Role
-
-ApexCore Mini enables structural analysis on mobile devices and resource-constrained environments. It powers:
-- QuantraVision Apex mobile overlays
-- Edge device deployments
-- Real-time scanning on lightweight hardware
+| Target | Desktop (K6) |
+| Hardware | GMKtec NucBox K6 |
 
 ### 3.2 Specifications
 
 | Property | Value |
 |----------|-------|
-| Size | 0.5–3MB |
+| Size | 3–20 MB |
 | Format | TFLite |
-| Inference | <30ms on mobile |
-| Training | Distilled from ApexCore Full |
-| Accuracy Target | >90% alignment with Apex |
+| Training | Direct from ApexLab |
 
-### 3.3 Outputs
+### 3.3 Capabilities
 
-ApexCore Mini produces the same output contract as Full:
+ApexCore Full provides:
 
-```yaml
-outputs:
-  - regime
-  - risk_tier
-  - chart_quality
-  - entropy_band
-  - volatility_band
-  - suppression_state
-  - score_band
-  - quantrascore_numeric
-```
-
-### 3.4 Restrictions
-
-- **Cannot Override Apex** — When both are available, Apex is authoritative
-- **Offline Only** — No cloud inference path
-- **Fail-Closed on Uncertainty** — Conservative behavior under ambiguity
+- High-resolution structural classification
+- Regime detection
+- Chart quality score
+- Volatility banding
+- Entropy states
+- Suppression detection
+- Score band
+- **Mandatory QuantraScore** (0–100)
 
 ---
 
-## 4. Shared Output Contract
+## 4. ApexCore Mini (Mobile)
 
-Both ApexCore Full and Mini adhere to a strict output contract that mirrors the Apex engine:
+### 4.1 Target Platform
 
-### 4.1 Output Dimensions
+| Property | Value |
+|----------|-------|
+| Target | Android (QuantraVision) |
+| Use Case | Mobile overlay analysis |
 
-| Output | Type | Description |
-|--------|------|-------------|
-| `regime` | enum | Market regime classification |
-| `risk_tier` | enum | Risk level assessment |
-| `chart_quality` | float | Structural clarity (0.0–1.0) |
-| `entropy_band` | enum | Disorder classification |
-| `volatility_band` | enum | Volatility regime |
-| `suppression_state` | bool | Low-activity zone flag |
-| `score_band` | enum | Discretized score range |
-| `quantrascore_numeric` | float | Composite score (0.0–1.0) |
+### 4.2 Specifications
 
-### 4.2 Contract Guarantees
+| Property | Value |
+|----------|-------|
+| Size | 0.5–3 MB |
+| Format | TFLite |
+| Inference | <30ms |
+| Training | Distilled from Full |
 
-1. **Type Stability** — Output types never change between versions
-2. **Range Validity** — All values fall within documented ranges
-3. **Determinism** — Same input always produces same output
-4. **Graceful Degradation** — Uncertainty is explicit, not hidden
+### 4.3 Constraints
+
+- Reduced heads (optimized architecture)
+- Optimized for speed
+- Same teacher labels as Full
 
 ---
 
-## 5. Distillation Relationship
+## 5. Shared Output Contract
+
+Both ApexCore Full and Mini produce outputs aligned with the QuantraScore system:
+
+### 5.1 QuantraScore Range
+
+| Property | Value |
+|----------|-------|
+| Range | 0–100 |
+| Buckets | fail, wait, pass, strong_pass |
+
+### 5.2 Output Dimensions
+
+| Output | Description |
+|--------|-------------|
+| Regime | Market regime classification |
+| Risk tier | Risk level assessment |
+| Chart quality | Structural clarity score |
+| Volatility band | Volatility regime |
+| Entropy states | Disorder classification |
+| Suppression detection | Low-activity zone flag |
+| Score band | Discretized QuantraScore range |
+| QuantraScore | Composite score (0–100) |
+
+---
+
+## 6. Distillation Relationship
 
 The ApexCore models form a knowledge distillation chain:
 
@@ -142,104 +122,81 @@ ApexCore Full (Desktop Model)
 ApexCore Mini (Mobile Model)
 ```
 
-### 5.1 Apex → Full
+### 6.1 Apex → Full
 
-- ApexLab runs historical data through the Apex engine
+- ApexLab runs 100-bar windows through the Apex engine
 - Apex outputs become training labels for Full
 - Full learns to approximate Apex behavior
 - Validation ensures alignment within tolerance
 
-### 5.2 Full → Mini
+### 6.2 Full → Mini
 
 - Full's predictions become "soft labels" for Mini
 - Mini learns to approximate Full's behavior
 - Distillation compresses knowledge into smaller architecture
 - Validation ensures Mini meets accuracy thresholds
 
-### 5.3 Distillation Constraints
-
-- **No Shortcutting** — Mini is never trained directly from Apex
-- **Cascade Validation** — Each step validates against its teacher
-- **Version Coupling** — Mini version tied to Full version
-
 ---
 
-## 6. Versioning and MODEL_MANIFEST
+## 7. MODEL_MANIFEST.json
 
-### 6.1 Version Scheme
-
-Models follow semantic versioning: `MAJOR.MINOR.PATCH`
-
-- **MAJOR** — Breaking changes to output contract
-- **MINOR** — Accuracy improvements, architecture changes
-- **PATCH** — Bug fixes, retraining with same data
-
-### 6.2 MODEL_MANIFEST.json
-
-Every exported model includes a manifest file:
+Every exported model includes a manifest file documenting:
 
 ```json
 {
   "model_name": "apexcore_full",
   "version": "8.0.0",
-  "training_timestamp": "2025-10-15T14:30:00Z",
+  "training_timestamp": "2025-10-15T10:00:00Z",
   "apex_version": "8.0",
   "training_data_hash": "sha256:abc123...",
+  "deterministic_hash": "sha256:def456...",
   "validation_metrics": {
-    "regime_accuracy": 0.967,
-    "risk_tier_accuracy": 0.954,
-    "quantrascore_mae": 0.023
+    "quantrascore_accuracy": 0.95,
+    "regime_accuracy": 0.97
   },
-  "hyperparameters": {
-    "learning_rate": 0.001,
-    "batch_size": 64,
-    "epochs": 100
-  },
-  "output_contract_version": "1.0"
+  "training_windows": "100-bar OHLCV"
 }
 ```
 
-### 6.3 Manifest Requirements
-
-- **Immutable** — Once exported, manifest is never modified
-- **Signed** — Cryptographic hash of model weights included
-- **Traceable** — Links to training run proof logs
-
 ---
 
-## 7. Deployment Scenarios
+## 8. Deployment Scenarios
 
-### 7.1 Desktop Only (Full)
+### 8.1 Desktop Only (Full)
 
-For desktop applications with sufficient resources:
+For K6 workstation deployments:
 - Use ApexCore Full for primary analysis
 - Fall back to Apex engine for validation
 - Best accuracy, higher resource usage
 
-### 7.2 Mobile Only (Mini)
+### 8.2 Mobile Only (Mini)
 
-For mobile/edge deployments:
+For Android/QuantraVision deployments:
 - Use ApexCore Mini for all analysis
-- Accept slightly lower accuracy for speed
+- <30ms inference for real-time overlays
 - Fail-closed behavior on uncertainty
 
-### 7.3 Hybrid (Full + Mini)
+### 8.3 Hybrid (Full + Mini)
 
-For connected mobile applications:
+For connected deployments:
 - Mini provides immediate on-device results
-- Full (via QuantraVision Remote) provides validation
+- Full (via remote connection) provides validation
 - Discrepancies flagged for review
-
-### 7.4 Full Stack (Apex + Full + Mini)
-
-For institutional deployments:
-- Apex is authoritative for all decisions
-- Full handles high-throughput scanning
-- Mini enables mobile analyst tools
-- Complete audit trail across all levels
 
 ---
 
-## 8. Summary
+## 9. Test Coverage
 
-The ApexCore model family provides efficient neural approximations of the deterministic Apex engine. Through careful training and distillation, Full and Mini models deliver structural analysis at varying resource profiles while maintaining alignment with the authoritative Apex core. The shared output contract, strict versioning, and comprehensive manifests ensure that these models remain trustworthy, auditable, and compliant with institutional requirements.
+ApexCore models undergo rigorous testing:
+
+| Test Category | Tests |
+|---------------|-------|
+| Inference | Speed validation (<30ms for Mini) |
+| Consistency | Alignment with Apex outputs |
+| Safety | Fail-closed path verification |
+
+---
+
+## 10. Summary
+
+The ApexCore model family provides efficient neural approximations of the deterministic Apex engine. Through careful training and distillation from 100-bar OHLCV windows, Full and Mini models deliver structural analysis at varying resource profiles while maintaining alignment with the authoritative Apex core. The shared QuantraScore (0–100) output contract ensures consistency across all deployment scenarios.

@@ -1,59 +1,48 @@
 # QuantraCore Apex™ — Hybrid AI Trading Intelligence Engine
 
-**Owner:** Jesse J. Lamont  
-**Org:** Lamont Labs  
+**Owner:** Lamont Labs — Jesse J. Lamont  
 **Version:** v8.0  
 [![QuantraCore CI](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml/badge.svg)](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml)  
-**Status:** Production-ready, acquisition-grade architecture  
+**Status:** Active — Core Engine  
 **Repo:** https://github.com/Lamont-Labs/QuantraCore
 
 ---
 
 ## Overview
 
-QuantraCore Apex™ is an institution-grade hybrid AI trading intelligence system that combines deterministic rule-based engines with neural network models in a unified, fail-closed architecture. The system is designed from the ground up for transparency, reproducibility, and regulatory compliance. Every output is hashed, logged, and replayable—ensuring that analysts, auditors, and acquirers can verify provenance at any step. The platform operates offline-first with zero cloud dependency for core logic, making it suitable for high-security institutional environments.
+QuantraCore Apex™ is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). The system represents a unified deterministic + neural hybrid stack designed for transparency, reproducibility, and regulatory compliance.
+
+**Core Principles:**
+- Determinism first
+- Fail-closed always
+- No cloud dependencies
+- Local-only learning
+- QuantraScore mandatory everywhere
+- Rule engine overrides AI always
 
 ---
 
 ## Major Components
 
-- **QuantraCore Apex** — The deterministic core engine that serves as the "teacher" for all downstream neural models
-- **ApexLab** — Offline training and distillation lab for building and validating ApexCore models
-- **ApexCore Full** — Desktop-class structural neural model (4–20MB) trained by ApexLab
-- **ApexCore Mini** — Mobile-optimized neural model (0.5–3MB) distilled from ApexCore Full
-- **MonsterRunner** — Rare-event detection engine for identifying high-impact market conditions
-- **QuantraVision Apex v4.2** — Mobile overlay copilot for real-time chart analysis
-- **QuantraVision Remote** — Desktop-to-mobile structural overlay streaming
-- **Apex Dashboard** — React-based visualization console for signals, entropy, drift, and proof logs
-- **Signal System** — Universe scanning, watchlist routing, and candidate building
-- **Prediction System** — Regime-aware predictors for volatility and expected move estimation
+- **QuantraCore Apex Engine** — Deterministic core with ZDE Engine, QuantraScore (0–100), and 80 Tier Protocols
+- **ApexLab** — Self-contained offline local training environment for model development
+- **ApexCore Full** — Desktop neural model (3–20MB) for K6 workstation
+- **ApexCore Mini** — Mobile neural model (0.5–3MB) for Android/QuantraVision
+- **MonsterRunner Engine** — Extreme move detection (phase-compression, volume ignition, entropy collapse)
+- **QuantraVision v2** — Mobile overlay copilot with HUD and ApexCore Mini integration
+- **Universe Scanner** — Fast scan (1-5s), deep scan (30-90s), and bulk scan modes
+- **Broker Layer** — Paper/Sim/Live modes with Alpaca, Interactive Brokers, Custom OMS support
 
 ---
 
-## Why QuantraCore Apex Exists
+## Hardware Targets
 
-Traditional AI trading systems suffer from opacity, non-reproducibility, and regulatory uncertainty. QuantraCore Apex solves these problems by:
+| Platform | Target |
+|----------|--------|
+| Workstation | GMKtec NucBox K6 |
+| Mobile | Android (QuantraVision only) |
 
-1. **Deterministic Core as Teacher** — The Apex engine generates reproducible outputs that train neural models, ensuring alignment and auditability
-2. **Offline-First, Zero Cloud Dependency** — Core logic never requires internet connectivity; all learning happens locally
-3. **Fail-Closed Safety** — When uncertainty is high, the system restricts rather than guesses
-4. **Proof Logging Everywhere** — Every pipeline step is hashed and logged for complete provenance
-5. **Acquisition-Ready Design** — Clean modular architecture suitable for institutional due diligence
-
----
-
-## Repository Structure
-
-```
-/src/                    — Core engine, protocols, prediction, signal, and vision modules
-/cli/                    — Typer CLI for demo and testing
-/tests/                  — Reproducibility and filter tests
-/docs/                   — Architecture, specs, guides, and compliance documentation
-/assets/                 — Branding and screenshots
-/SBOM/                   — CycloneDX metadata, provenance JSON, checksums
-/proof_logs/             — Determinism verification logs
-/archives/               — Raw API cache and transformed data
-```
+**Recommended:** 8-core CPU, 16GB RAM, GPU optional (CPU-optimized)
 
 ---
 
@@ -75,9 +64,9 @@ Traditional AI trading systems suffer from opacity, non-reproducibility, and reg
    python -m cli.main
    ```
 
-4. **Verify checksums**
+4. **Start the API server**
    ```bash
-   bash verify.sh
+   uvicorn src.api.main:app --host 0.0.0.0 --port 5000
    ```
 
 ---
@@ -86,18 +75,29 @@ Traditional AI trading systems suffer from opacity, non-reproducibility, and reg
 
 | Document | Description |
 |----------|-------------|
-| [Overview](docs/OVERVIEW_QUANTRACORE_APEX.md) | Full narrative overview of the Apex ecosystem |
+| [Overview](docs/OVERVIEW_QUANTRACORE_APEX.md) | Full narrative of the Apex ecosystem |
 | [Master Spec v8.0](docs/QUANTRACORE_APEX_MASTER_SPEC_v8_0.yml) | Canonical YAML specification |
-| [ApexLab Overview](docs/APEXLAB_OVERVIEW.md) | Offline training and distillation lab |
-| [ApexCore Models](docs/APEXCORE_MODELS.md) | Model family documentation (Full/Mini) |
-| [QuantraVision Apex v4.2](docs/QUANTRAVISION_APEX_v4_2.md) | Mobile overlay copilot |
-| [QuantraVision Remote](docs/QUANTRAVISION_REMOTE.md) | Desktop-to-mobile streaming |
-| [Prediction & MonsterRunner](docs/PREDICTION_AND_MONSTERRUNNER.md) | Prediction system and rare-event detection |
-| [API Integration](docs/API_INTEGRATION_FOR_LEARNING_AND_PREDICTION.md) | Adapter layer and data contracts |
-| [Compliance Policy](docs/COMPLIANCE_POLICY.md) | Institutional compliance and audit |
-| [Security & Hardening](docs/SECURITY_AND_HARDENING.md) | Hash verification, encryption, config guards |
-| [Developer Guide](docs/DEVELOPER_GUIDE.md) | Onboarding for engineers |
-| [Release Notes v8.0](docs/RELEASE_NOTES_v8_0.md) | What changed in this version |
+| [ApexLab Overview](docs/APEXLAB_OVERVIEW.md) | Offline training lab (100-bar windows) |
+| [ApexCore Models](docs/APEXCORE_MODELS.md) | Model family (Full 3–20MB / Mini 0.5–3MB) |
+| [QuantraVision](docs/QUANTRAVISION_APEX_v4_2.md) | Mobile overlay (v2_apex / v1_legacy) |
+| [MonsterRunner](docs/PREDICTION_AND_MONSTERRUNNER.md) | Extreme move detection |
+| [API Integration](docs/API_INTEGRATION_FOR_LEARNING_AND_PREDICTION.md) | Polygon, Tiingo, Alpaca, Intrinio, Finnhub |
+| [Compliance Policy](docs/COMPLIANCE_POLICY.md) | Omega directives (Ω1–Ω4) |
+| [Security](docs/SECURITY_AND_HARDENING.md) | Defense in depth |
+| [Developer Guide](docs/DEVELOPER_GUIDE.md) | Engineer onboarding |
+
+---
+
+## API Connections
+
+**Market Data Providers:**
+- Polygon
+- Tiingo
+- Alpaca Market Data
+- Intrinio
+- Finnhub
+
+**Compliance Note:** Only data ingestion — no trade recommendations.
 
 ---
 
