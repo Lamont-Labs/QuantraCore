@@ -41,6 +41,8 @@ All ApexCore models adhere to these fundamental principles:
 |----------|-------|
 | Size | 3–20 MB |
 | Format | TFLite |
+| Inference Speed | <20ms |
+| Architecture | Multi-head neural network (8–12 heads) |
 | Training | Direct from ApexLab |
 
 ### 3.3 Capabilities
