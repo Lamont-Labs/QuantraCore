@@ -5,10 +5,13 @@ Fetches real OHLCV data from Polygon.io API.
 """
 
 import os
+import time
 from typing import List, Optional
 from datetime import datetime, timedelta
 from polygon import RESTClient
 from src.quantracore_apex.core.schemas import OhlcvBar
+
+DEFAULT_RATE_LIMIT_DELAY = 12.5
 
 
 class PolygonAdapter:
@@ -18,11 +21,21 @@ class PolygonAdapter:
     Requires POLYGON_API_KEY environment variable.
     """
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, rate_limit: bool = True):
         self.api_key = api_key or os.getenv("POLYGON_API_KEY")
         if not self.api_key:
             raise ValueError("POLYGON_API_KEY not found in environment")
         self.client = RESTClient(api_key=self.api_key)
+        self.rate_limit = rate_limit
+        self.last_request_time = 0
+    
+    def _rate_limit_wait(self):
+        """Wait to respect rate limits (5 calls/min on free tier)."""
+        if self.rate_limit:
+            elapsed = time.time() - self.last_request_time
+            if elapsed < DEFAULT_RATE_LIMIT_DELAY:
+                time.sleep(DEFAULT_RATE_LIMIT_DELAY - elapsed)
+            self.last_request_time = time.time()
     
     def fetch(
         self,
@@ -57,6 +70,7 @@ class PolygonAdapter:
         span = timeframe
         
         try:
+            self._rate_limit_wait()
             aggs = self.client.get_aggs(
                 ticker=symbol,
                 multiplier=multiplier,
@@ -107,6 +121,7 @@ class PolygonAdapter:
         span = timeframe
         
         try:
+            self._rate_limit_wait()
             aggs = self.client.get_aggs(
                 ticker=symbol,
                 multiplier=multiplier,
