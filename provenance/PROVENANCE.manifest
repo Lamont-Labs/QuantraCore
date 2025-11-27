@@ -1,0 +1,47 @@
+# QuantraCore Apex — Provenance Manifest
+# Version: 8.0.0
+# Generated: [TO BE FILLED BY BUILD PIPELINE]
+
+## Build Information
+git_commit_hash: [TO BE FILLED BY BUILD PIPELINE]
+build_timestamp: [TO BE FILLED BY BUILD PIPELINE]
+build_environment: "Replit / NixOS"
+python_version: "3.11"
+
+## Protocol Versions
+tier_protocols:
+  - T01-T20: "1.0.0 (implemented)"
+  - T21-T80: "0.1.0 (stub)"
+
+learning_protocols:
+  - LP01-LP10: "1.0.0 (implemented)"
+  - LP11-LP25: "0.1.0 (stub)"
+
+omega_directives:
+  - Omega1-4: "1.0.0 (implemented)"
+
+## Model Artifacts
+apexcore_demo:
+  format: "pickle"
+  training_date: [TO BE FILLED BY TRAINING PIPELINE]
+  dataset_hash: [TO BE FILLED BY TRAINING PIPELINE]
+  validation_metrics: [TO BE FILLED BY VALIDATION PIPELINE]
+
+## Dataset References
+training_datasets:
+  - name: [TO BE FILLED BY DATA PIPELINE]
+    hash: [TO BE FILLED BY DATA PIPELINE]
+    bar_count: [TO BE FILLED BY DATA PIPELINE]
+
+## Verification
+sbom_hash: [TO BE FILLED BY BUILD PIPELINE]
+manifest_version: "1.0.0"
+
+## Compliance
+compliance_mode: "enabled"
+execution_mode: "disabled_by_default"
+output_framing: "structural_probabilities"
+
+## Notes
+# This manifest is a template. Actual values are filled by the build pipeline.
+# No sensitive data or API keys should ever appear in this file.
