@@ -33,9 +33,20 @@ class ApexEngine:
     Provides deterministic, reproducible analysis of OHLCV data.
     """
     
-    def __init__(self, enable_logging: bool = True):
+    def __init__(self, enable_logging: bool = True, auto_load_protocols: bool = True):
         self.enable_logging = enable_logging
         self._protocol_runner = None
+        
+        if auto_load_protocols:
+            self._init_protocol_runner()
+    
+    def _init_protocol_runner(self) -> None:
+        """Initialize the tier protocol runner."""
+        try:
+            from src.quantracore_apex.protocols.tier.tier_loader import TierProtocolRunner
+            self._protocol_runner = TierProtocolRunner()
+        except ImportError:
+            pass
     
     def set_protocol_runner(self, runner) -> None:
         """Set the protocol runner for tier protocol execution."""

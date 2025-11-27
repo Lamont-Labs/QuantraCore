@@ -30,11 +30,11 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     sma50 = np.mean(closes[-50:])
     current = closes[-1]
     
-    above_20 = current > sma20
-    above_50 = current > sma50
-    sma20_above_50 = sma20 > sma50
+    above_20 = bool(current > sma20)
+    above_50 = bool(current > sma50)
+    sma20_above_50 = bool(sma20 > sma50)
     
-    trend_strength = microtraits.trend_consistency
+    trend_strength = float(microtraits.trend_consistency)
     
     if above_20 and above_50 and sma20_above_50 and trend_strength > 0.3:
         signal_type = "uptrend_confirmed"
@@ -51,7 +51,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     
     return ProtocolResult(
         protocol_id="T01",
-        fired=fired,
+        fired=bool(fired),
         confidence=confidence,
         signal_type=signal_type,
         details={

@@ -134,6 +134,15 @@ def scan_symbol(symbol: str, seed: int = 42, lookback: int = 150):
                 "compliance_note": result.verdict.compliance_note
             },
             "protocol_fired_count": protocol_fired,
+            "protocol_results": [
+                {
+                    "protocol_id": p.protocol_id,
+                    "fired": bool(p.fired),
+                    "confidence": float(p.confidence),
+                    "signal_type": p.signal_type
+                }
+                for p in result.protocol_results if p.fired
+            ],
             "window_hash": result.window_hash,
             "timestamp": result.timestamp.isoformat()
         }
@@ -144,6 +153,23 @@ def scan_symbol(symbol: str, seed: int = 42, lookback: int = 150):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def sanitize_dict(d):
+    """Convert numpy types to native Python types."""
+    import numpy as np
+    if isinstance(d, dict):
+        return {k: sanitize_dict(v) for k, v in d.items()}
+    elif isinstance(d, list):
+        return [sanitize_dict(v) for v in d]
+    elif isinstance(d, np.bool_):
+        return bool(d)
+    elif isinstance(d, np.integer):
+        return int(d)
+    elif isinstance(d, np.floating):
+        return float(d)
+    elif isinstance(d, np.ndarray):
+        return d.tolist()
+    return d
+
 @app.get("/trace/{window_hash}")
 def get_trace(window_hash: str):
     """Get detailed protocol trace for a scan."""
@@ -152,7 +178,7 @@ def get_trace(window_hash: str):
     
     result = scan_cache[window_hash]
     
-    return {
+    return sanitize_dict({
         "window_hash": window_hash,
         "symbol": result.symbol,
         "microtraits": result.microtraits.model_dump(),
@@ -163,7 +189,7 @@ def get_trace(window_hash: str):
         "volume_metrics": result.volume_metrics.model_dump(),
         "protocol_results": [p.model_dump() for p in result.protocol_results[:20]],
         "verdict": result.verdict.model_dump()
-    }
+    })
 
 
 @app.get("/monster_runner/{symbol}")

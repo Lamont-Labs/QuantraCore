@@ -9,7 +9,23 @@ import hashlib
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
+import numpy as np
 from .schemas import ApexResult
+
+
+def numpy_serializer(obj):
+    """Custom JSON serializer for numpy types."""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, datetime):
+        return obj.isoformat()
+    return str(obj)
 
 
 class ProofLogger:
@@ -50,10 +66,15 @@ class ProofLogger:
         proof_hash = self.compute_proof_hash(result)
         result.proof_hash = proof_hash
         
+        try:
+            result_dict = result.model_dump(mode="json")
+        except Exception:
+            result_dict = json.loads(json.dumps(result.model_dump(), default=numpy_serializer))
+        
         log_entry = {
             "proof_hash": proof_hash,
             "timestamp": datetime.utcnow().isoformat(),
-            "result": result.model_dump(mode="json"),
+            "result": result_dict,
             "context": context or {},
         }
         
@@ -61,7 +82,7 @@ class ProofLogger:
         filepath = self.log_dir / filename
         
         with open(filepath, "w") as f:
-            json.dump(log_entry, f, indent=2, default=str)
+            json.dump(log_entry, f, indent=2, default=numpy_serializer)
         
         return str(filepath)
     
