@@ -7,7 +7,7 @@ This is the primary entry point for deterministic analysis.
 import hashlib
 import json
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, TYPE_CHECKING
 
 from .schemas import (
     OhlcvWindow, ApexContext, ApexResult, ProtocolResult,
@@ -51,6 +51,37 @@ class ApexEngine:
     def set_protocol_runner(self, runner) -> None:
         """Set the protocol runner for tier protocol execution."""
         self._protocol_runner = runner
+    
+    @property
+    def protocol_runner(self):
+        """Get the protocol runner instance."""
+        return self._protocol_runner
+    
+    def run_scan(
+        self,
+        bars: List,
+        symbol: str,
+        seed: int = 42,
+        timeframe: str = "1d"
+    ) -> "ApexResult":
+        """
+        Convenience method to run scan from raw bars.
+        
+        Args:
+            bars: List of OhlcvBar objects
+            symbol: Symbol name
+            seed: Random seed for reproducibility
+            timeframe: Timeframe string (default: "1d")
+            
+        Returns:
+            ApexResult with complete analysis
+        """
+        from .schemas import OhlcvWindow
+        import numpy as np
+        np.random.seed(seed)
+        
+        window = OhlcvWindow(symbol=symbol, timeframe=timeframe, bars=bars)
+        return self.run(window)
     
     def run(
         self,

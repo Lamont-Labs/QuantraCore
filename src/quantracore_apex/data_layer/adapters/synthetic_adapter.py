@@ -6,7 +6,7 @@ No API key required.
 """
 
 import numpy as np
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timedelta
 import hashlib
 
@@ -101,3 +101,24 @@ class SyntheticAdapter(DataAdapter):
             current += delta
         
         return bars
+    
+    def fetch(self, symbol: str, num_bars: int = 100, seed: Optional[int] = None) -> List[OhlcvBar]:
+        """
+        Convenience wrapper for fetching OHLCV data.
+        
+        Args:
+            symbol: Stock symbol
+            num_bars: Number of bars to generate
+            seed: Optional seed for reproducibility
+            
+        Returns:
+            List of OhlcvBar objects
+        """
+        if seed is not None:
+            self.seed = seed
+        
+        end = datetime.now()
+        start = end - timedelta(days=num_bars * 2)
+        
+        bars = self.fetch_ohlcv(symbol, start, end)
+        return bars[-num_bars:] if len(bars) >= num_bars else bars

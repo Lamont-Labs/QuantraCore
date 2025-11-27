@@ -274,3 +274,6 @@ class MonsterRunnerEngine:
         
         with open(filepath, "w") as f:
             json.dump(log_entry, f, indent=2)
+
+
+MonsterRunner = MonsterRunnerEngine

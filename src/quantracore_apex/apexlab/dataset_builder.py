@@ -156,3 +156,42 @@ class DatasetBuilder:
         }
         
         return train_dataset, val_dataset
+
+
+_default_builder = None
+
+def build_dataset(
+    bars: List, 
+    window_size: int = 20, 
+    step: int = 5
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Module-level convenience function to build dataset from bars.
+    
+    Args:
+        bars: List of OhlcvBar objects
+        window_size: Size of each window
+        step: Steps between windows
+        
+    Returns:
+        Tuple of (features, labels) as numpy arrays
+    """
+    global _default_builder
+    if _default_builder is None:
+        _default_builder = DatasetBuilder(enable_logging=False)
+    
+    from src.quantracore_apex.data_layer.normalization import build_windows
+    
+    windows = build_windows(bars, symbol="DATASET", window_size=window_size, step=step)
+    
+    if not windows:
+        return np.array([]), np.array([])
+    
+    features = _default_builder.feature_extractor.extract_batch(windows)
+    
+    labels = []
+    for window in windows:
+        label_dict = _default_builder.label_generator.generate(window)
+        labels.append(label_dict.get("quantrascore_numeric", 50.0))
+    
+    return features, np.array(labels)

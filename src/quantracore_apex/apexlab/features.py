@@ -147,3 +147,21 @@ class FeatureExtractor:
     def get_feature_names(self) -> List[str]:
         """Get list of feature names."""
         return self.FEATURE_NAMES.copy()
+
+
+_default_extractor = None
+
+def extract_features(windows: List[OhlcvWindow]) -> np.ndarray:
+    """
+    Module-level function to extract features from windows.
+    
+    Args:
+        windows: List of OhlcvWindow objects
+        
+    Returns:
+        numpy array of shape (n_windows, feature_dim)
+    """
+    global _default_extractor
+    if _default_extractor is None:
+        _default_extractor = FeatureExtractor()
+    return _default_extractor.extract_batch(windows)
