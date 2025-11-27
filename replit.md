@@ -2,11 +2,11 @@
 
 ## Overview
 
-QuantraCore Apex™ v8.0 is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). Unified deterministic + neural hybrid stack.
+QuantraCore Apex v8.0 is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). Unified deterministic + neural hybrid stack.
 
 **Owner:** Lamont Labs — Jesse J. Lamont  
 **Version:** 8.0  
-**Status:** Active — Core Engine  
+**Status:** Active — Core Engine (MVP+ Desktop-Only)
 **Repository:** https://github.com/Lamont-Labs/QuantraCore
 
 ---
@@ -19,47 +19,98 @@ QuantraCore Apex™ v8.0 is an institutional-grade deterministic AI trading inte
 - Local-only learning
 - QuantraScore mandatory everywhere (0–100 range)
 - Rule engine overrides AI always
+- Desktop-only (STRICT NO Android/mobile builds)
 
 ---
 
 ## Hardware Targets
 
 - **Workstation:** GMKtec NucBox K6 (8-core, 16GB RAM recommended)
-- **Mobile:** Android (for QuantraVision only)
+- **Note:** Mobile/Android builds are prohibited per project requirements
 
 ---
 
 ## Project Architecture
 
-### Core Components
+### Directory Structure
 
-- **Apex Engine** (`src/core/`) — Deterministic core with ZDE Engine, QuantraScore, 80 Tier Protocols
-- **API Layer** (`src/api/`) — FastAPI endpoints for integration
-- **CLI** (`cli/`) — Typer-based command-line interface
-- **Tests** (`tests/`) — Reproducibility and filter tests
-- **Documentation** (`docs/`) — Comprehensive v8.0 documentation
+```
+src/quantracore_apex/
+├── core/                    # Deterministic core engine
+│   ├── engine.py           # Main ApexEngine class
+│   ├── schemas.py          # Pydantic data models
+│   ├── microtraits.py      # Microtrait computation
+│   ├── entropy.py          # Entropy analysis
+│   ├── suppression.py      # Suppression detection
+│   ├── drift.py            # Drift analysis
+│   ├── continuation.py     # Continuation analysis
+│   ├── volume_spike.py     # Volume metrics
+│   ├── regime.py           # Regime classification
+│   ├── quantrascore.py     # QuantraScore computation
+│   ├── verdict.py          # Verdict building
+│   ├── sector_context.py   # Sector-aware adjustments
+│   └── proof_logger.py     # Proof logging
+├── protocols/
+│   ├── tier/               # T01-T80 Tier Protocols
+│   │   ├── T01-T20.py     # Fully implemented
+│   │   └── T21-T80.py     # Stubs
+│   ├── learning/           # LP01-LP25 Learning Protocols
+│   │   ├── LP01-LP10.py   # Fully implemented
+│   │   └── LP11-LP25.py   # Stubs
+│   └── omega/             # Omega Directives Ω1-Ω4
+├── data_layer/
+│   ├── adapters/          # Data provider adapters
+│   │   ├── alpha_vantage_adapter.py
+│   │   └── synthetic_adapter.py
+│   ├── normalization.py   # Data normalization
+│   ├── caching.py         # Disk caching
+│   └── hashing.py         # SHA-256 verification
+├── apexlab/               # Offline training environment
+│   ├── windows.py         # Window building
+│   ├── features.py        # Feature extraction (30-dim)
+│   ├── labels.py          # Label generation
+│   ├── dataset_builder.py # Dataset building
+│   ├── train_apexcore_demo.py # Demo training
+│   └── validation.py      # Model alignment validation
+├── apexcore/              # Neural model interface
+│   └── interface.py       # ApexCoreFull, ApexCoreMini
+├── prediction/            # Prediction engines
+│   ├── expected_move.py   # Expected move predictor
+│   └── monster_runner.py  # MonsterRunner rare-event detection
+├── server/                # API server
+│   └── app.py             # FastAPI application
+└── tests/                 # Test suite
+    ├── test_determinism_golden_set.py
+    ├── test_protocol_signatures.py
+    ├── test_data_layer.py
+    └── test_apexlab_pipeline.py
+```
 
 ### Key Technologies
 
 - **Language:** Python 3.11
 - **Web Framework:** FastAPI with Uvicorn
-- **CLI Framework:** Typer
+- **ML:** scikit-learn (no PyTorch for disk space)
 - **Testing:** Pytest
 - **HTTP Client:** HTTPX
-- **Numerical:** NumPy
+- **Numerical:** NumPy, Pandas
 
 ---
 
-## API Connections
+## API Endpoints
 
-**Market Data Providers:**
-- Polygon
-- Tiingo
-- Alpaca Market Data
-- Intrinio
-- Finnhub
+**Server runs on port 5000:**
 
-**Compliance Note:** Only data ingestion — no trade recommendations.
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API info and compliance note |
+| `/health` | GET | Health check |
+| `/score?ticker=AAPL` | GET | Legacy QuantraScore endpoint |
+| `/scan/{symbol}` | GET | Full Apex analysis scan |
+| `/trace/{window_hash}` | GET | Detailed protocol trace |
+| `/monster_runner/{symbol}` | GET | MonsterRunner rare-event check |
+| `/risk/hud` | GET | Risk HUD data (legacy) |
+| `/audit/export` | GET | Audit export (legacy) |
 
 ---
 
@@ -71,66 +122,61 @@ QuantraCore Apex™ v8.0 is an institutional-grade deterministic AI trading inte
 uvicorn src.api.main:app --host 0.0.0.0 --port 5000
 ```
 
-The FastAPI server runs on port 5000 with endpoints:
-- `GET /health` — Health check
-- `GET /score?ticker=AAPL&seed=42` — Deterministic score computation
-- `GET /risk/hud` — Risk HUD data
-- `GET /audit/export` — Export audit data
-
-### CLI Demo
+### Demo Scripts
 
 ```bash
-python -m cli.main
+python scripts/fetch_and_scan_demo.py   # Full scan demo
+python scripts/run_apexlab_demo.py      # ApexLab training demo
+python scripts/validate_apexcore.py     # ApexCore validation
 ```
 
 ### Tests
 
 ```bash
-pytest -q
+pytest src/quantracore_apex/tests/ -v
 ```
+
+---
+
+## Compliance
+
+All outputs are framed as **structural probabilities**, NOT trading advice.
+
+- Outputs include mandatory `compliance_note` field
+- Omega Ω4 directive enforces compliance mode
+- No trade execution or order placement functionality
 
 ---
 
 ## Omega Directives
 
-- **Ω1:** Hard safety lock
-- **Ω2:** Entropy override
-- **Ω3:** Drift override
-- **Ω4:** Compliance override
+- **Ω1:** Hard safety lock (extreme risk tier)
+- **Ω2:** Entropy override (chaotic entropy state)
+- **Ω3:** Drift override (critical drift state)
+- **Ω4:** Compliance override (always active)
 
 ---
 
 ## Recent Changes
 
-### 2025-11-27 — Full 8-Part Spec Documentation Update
+### 2025-11-27 — MVP+ Desktop Codebase Build
 
-Applied comprehensive 8-part specification to documentation:
+**Full MVP+ Implementation:**
+- Complete core engine with 10+ analysis modules
+- T01-T20 tier protocols fully implemented (T21-T80 stubs)
+- LP01-LP10 learning protocols implemented (LP11-LP25 stubs)
+- Omega Ω1-Ω4 directives implemented
+- Data layer with Alpha Vantage + Synthetic adapters
+- ApexLab training pipeline with sklearn
+- ApexCore model interface (Full/Mini)
+- MonsterRunner rare-event detection (Stage 1)
+- FastAPI server with scan endpoints
+- 28 passing tests (determinism, protocols, data layer, pipeline)
 
-**New Documentation Files Created:**
-- `docs/ARCHITECTURE.md` — System architecture and component relationships
-- `docs/CORE_ENGINE.md` — Deterministic signal engine specification
-- `docs/PROTOCOLS_TIER.md` — T01–T80 protocol specifications
-- `docs/PROTOCOLS_LEARNING.md` — LP01–LP25 learning protocols
-- `docs/OMEGA_DIRECTIVES.md` — Ω1–Ω4 system safety locks
-- `docs/APEXLAB_TRAINING.md` — Offline training environment
-- `docs/PREDICTION_STACK.md` — 7 prediction engines
-- `docs/MONSTERRUNNER.md` — Rare-event detection engine
-- `docs/DATA_LAYER.md` — Data providers and pipeline
-- `docs/BROKER_OMS.md` — Execution envelope
-- `docs/RISK_ENGINE.md` — Final gatekeeper with kill switches
-- `docs/PORTFOLIO_SYSTEM.md` — Position and exposure tracking
-- `docs/QUANTRAVISION_V1.md` — Legacy thin-client viewer
-- `docs/QUANTRAVISION_V2.md` — On-device copilot with ApexCore Mini
-- `docs/SECURITY_COMPLIANCE.md` — Compliance center and security layer
-- `docs/DETERMINISM_TESTS.md` — Reproducibility verification suite
-- `docs/SBOM_PROVENANCE.md` — Software bill of materials
-- `docs/ROADMAP.md` — Development trajectory
-
-**Key Updates:**
-- README.md updated with new documentation structure
-- ApexCore Models updated with inference specs (<20ms Full, <30ms Mini)
-- All docs aligned with 8-part institutional spec
-- No code changes (DOCS_ONLY mode)
+**Design Decisions:**
+- scikit-learn instead of PyTorch (disk space)
+- Synthetic adapter for testing without API keys
+- Desktop-only (NO Android/mobile per requirements)
 
 ---
 
