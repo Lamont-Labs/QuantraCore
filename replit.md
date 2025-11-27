@@ -61,6 +61,7 @@ src/quantracore_apex/
 ├── data_layer/
 │   ├── adapters/          # Data provider adapters
 │   │   ├── alpha_vantage_adapter.py
+│   │   ├── polygon_adapter.py     # Polygon.io real market data
 │   │   └── synthetic_adapter.py
 │   ├── normalization.py   # Data normalization
 │   ├── caching.py         # Disk caching
@@ -130,6 +131,13 @@ python scripts/run_apexlab_demo.py      # ApexLab training demo
 python scripts/validate_apexcore.py     # ApexCore validation
 ```
 
+### Backtest & Stress Testing (Requires POLYGON_API_KEY)
+
+```bash
+python scripts/backtest_and_prove.py    # 1-year backtest on 500 symbols
+python scripts/live_stress_test.py      # 24h live stress test
+```
+
 ### Tests
 
 ```bash
@@ -166,12 +174,17 @@ All outputs are framed as **structural probabilities**, NOT trading advice.
 - T01-T20 tier protocols fully implemented (T21-T80 stubs)
 - LP01-LP10 learning protocols implemented (LP11-LP25 stubs)
 - Omega Ω1-Ω4 directives implemented
-- Data layer with Alpha Vantage + Synthetic adapters
+- Data layer with Alpha Vantage + Synthetic + Polygon adapters
 - ApexLab training pipeline with sklearn
 - ApexCore model interface (Full/Mini)
 - MonsterRunner rare-event detection (Stage 1)
 - FastAPI server with scan endpoints
 - 28 passing tests (determinism, protocols, data layer, pipeline)
+
+**Backtest & Stress Testing Added:**
+- `scripts/backtest_and_prove.py` - 1-year backtest on 500 symbols with SHA-256 proof logging
+- `scripts/live_stress_test.py` - 24h continuous stress test with real-time data
+- Polygon.io adapter for real market data (requires POLYGON_API_KEY secret)
 
 **Design Decisions:**
 - scikit-learn instead of PyTorch (disk space)

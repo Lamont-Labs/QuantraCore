@@ -15,15 +15,11 @@ import signal
 import asyncio
 from datetime import datetime, timedelta
 from collections import deque
-from dotenv import load_dotenv
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.data_layer.adapters.polygon_adapter import PolygonAdapter
 from src.quantracore_apex.core.schemas import OhlcvBar
-
-load_dotenv()
 
 TEST_DURATION_HOURS = 24
 ANALYSIS_INTERVAL_SECONDS = 60

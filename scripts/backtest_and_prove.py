@@ -12,14 +12,10 @@ import json
 import hashlib
 from datetime import datetime
 from tqdm import tqdm
-from dotenv import load_dotenv
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.data_layer.adapters.polygon_adapter import PolygonAdapter
-
-load_dotenv()
 
 SYMBOLS_COUNT = 500
 START_DATE = "2023-11-01"
