@@ -73,18 +73,45 @@ QuantraCore Apex™ is an institutional-grade deterministic AI trading intellige
 
 ## Documentation
 
+### Architecture & Core
 | Document | Description |
 |----------|-------------|
-| [Overview](docs/OVERVIEW_QUANTRACORE_APEX.md) | Full narrative of the Apex ecosystem |
-| [Master Spec v8.0](docs/QUANTRACORE_APEX_MASTER_SPEC_v8_0.yml) | Canonical YAML specification |
-| [ApexLab Overview](docs/APEXLAB_OVERVIEW.md) | Offline training lab (100-bar windows) |
+| [Architecture](docs/ARCHITECTURE.md) | System architecture and component relationships |
+| [Core Engine](docs/CORE_ENGINE.md) | Deterministic signal engine (ZDE, microtraits, QuantraScore) |
+| [Protocols: Tier](docs/PROTOCOLS_TIER.md) | T01–T80 protocol specifications |
+| [Protocols: Learning](docs/PROTOCOLS_LEARNING.md) | LP01–LP25 learning protocols |
+| [Omega Directives](docs/OMEGA_DIRECTIVES.md) | Ω1–Ω4 system safety locks |
+
+### Intelligence Ecosystem
+| Document | Description |
+|----------|-------------|
+| [ApexLab Training](docs/APEXLAB_TRAINING.md) | Offline training environment (100-bar windows) |
 | [ApexCore Models](docs/APEXCORE_MODELS.md) | Model family (Full 3–20MB / Mini 0.5–3MB) |
-| [QuantraVision](docs/QUANTRAVISION_APEX_v4_2.md) | Mobile overlay (v2_apex / v1_legacy) |
-| [MonsterRunner](docs/PREDICTION_AND_MONSTERRUNNER.md) | Extreme move detection |
-| [API Integration](docs/API_INTEGRATION_FOR_LEARNING_AND_PREDICTION.md) | Polygon, Tiingo, Alpaca, Intrinio, Finnhub |
-| [Compliance Policy](docs/COMPLIANCE_POLICY.md) | Omega directives (Ω1–Ω4) |
-| [Security](docs/SECURITY_AND_HARDENING.md) | Defense in depth |
-| [Developer Guide](docs/DEVELOPER_GUIDE.md) | Engineer onboarding |
+| [Prediction Stack](docs/PREDICTION_STACK.md) | 7 prediction engines |
+| [MonsterRunner](docs/MONSTERRUNNER.md) | Rare-event detection engine |
+
+### Data & Execution
+| Document | Description |
+|----------|-------------|
+| [Data Layer](docs/DATA_LAYER.md) | Polygon, Tiingo, Alpaca, Intrinio, Finnhub |
+| [Broker/OMS](docs/BROKER_OMS.md) | Execution envelope (disabled by default) |
+| [Risk Engine](docs/RISK_ENGINE.md) | Final gatekeeper with kill switches |
+| [Portfolio System](docs/PORTFOLIO_SYSTEM.md) | Position and exposure tracking |
+
+### Vision & Mobile
+| Document | Description |
+|----------|-------------|
+| [QuantraVision v1](docs/QUANTRAVISION_V1.md) | Legacy thin-client viewer |
+| [QuantraVision v2](docs/QUANTRAVISION_V2.md) | On-device copilot with ApexCore Mini |
+| [QuantraVision Remote](docs/QUANTRAVISION_REMOTE.md) | Desktop-powered mobile overlay |
+
+### Security & Compliance
+| Document | Description |
+|----------|-------------|
+| [Security & Compliance](docs/SECURITY_COMPLIANCE.md) | Compliance center and security layer |
+| [Determinism Tests](docs/DETERMINISM_TESTS.md) | Reproducibility verification suite |
+| [SBOM & Provenance](docs/SBOM_PROVENANCE.md) | Software bill of materials |
+| [Roadmap](docs/ROADMAP.md) | Development trajectory |
 
 ---
 

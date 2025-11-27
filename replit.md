@@ -102,17 +102,35 @@ pytest -q
 
 ## Recent Changes
 
-### 2025-11-27 — Documentation Alignment to Corrected Master Spec v8.0
+### 2025-11-27 — Full 8-Part Spec Documentation Update
 
-Updated all documentation to align with the corrected master spec:
+Applied comprehensive 8-part specification to documentation:
 
-- **Master Spec:** Updated with correct Omega directives, QuantraScore (0–100), hardware targets
-- **API Providers:** Polygon, Tiingo, Alpaca, Intrinio, Finnhub
-- **ApexCore Full:** 3–20 MB (corrected from 4–20 MB)
-- **Training Windows:** 100-bar OHLCV
-- **MonsterRunner Signals:** Phase-compression, volume ignition, range flipping, entropy collapse, sector moves
-- **QuantraVision:** v2_apex and v1_legacy versions documented
-- **Broker Layer:** Alpaca, Interactive Brokers, Custom OMS API
+**New Documentation Files Created:**
+- `docs/ARCHITECTURE.md` — System architecture and component relationships
+- `docs/CORE_ENGINE.md` — Deterministic signal engine specification
+- `docs/PROTOCOLS_TIER.md` — T01–T80 protocol specifications
+- `docs/PROTOCOLS_LEARNING.md` — LP01–LP25 learning protocols
+- `docs/OMEGA_DIRECTIVES.md` — Ω1–Ω4 system safety locks
+- `docs/APEXLAB_TRAINING.md` — Offline training environment
+- `docs/PREDICTION_STACK.md` — 7 prediction engines
+- `docs/MONSTERRUNNER.md` — Rare-event detection engine
+- `docs/DATA_LAYER.md` — Data providers and pipeline
+- `docs/BROKER_OMS.md` — Execution envelope
+- `docs/RISK_ENGINE.md` — Final gatekeeper with kill switches
+- `docs/PORTFOLIO_SYSTEM.md` — Position and exposure tracking
+- `docs/QUANTRAVISION_V1.md` — Legacy thin-client viewer
+- `docs/QUANTRAVISION_V2.md` — On-device copilot with ApexCore Mini
+- `docs/SECURITY_COMPLIANCE.md` — Compliance center and security layer
+- `docs/DETERMINISM_TESTS.md` — Reproducibility verification suite
+- `docs/SBOM_PROVENANCE.md` — Software bill of materials
+- `docs/ROADMAP.md` — Development trajectory
+
+**Key Updates:**
+- README.md updated with new documentation structure
+- ApexCore Models updated with inference specs (<20ms Full, <30ms Mini)
+- All docs aligned with 8-part institutional spec
+- No code changes (DOCS_ONLY mode)
 
 ---
 
