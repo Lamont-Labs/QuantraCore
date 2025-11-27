@@ -2,196 +2,293 @@
 
 **Version:** 8.0  
 **Owner:** Lamont Labs — Jesse J. Lamont  
-**Architecture:** Deterministic → Neural → Hybrid Intelligence
+**Status:** Active — Core Engine
 
 ---
 
 ## 1. What is QuantraCore Apex?
 
-QuantraCore Apex™ is a next-generation hybrid AI trading intelligence system designed for institutional-grade analysis, research, and decision support. Unlike traditional black-box AI trading systems, Apex combines a fully deterministic rule-based core engine with trainable neural network models in a unified architecture that prioritizes:
+QuantraCore Apex™ is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). It represents a unified deterministic + neural hybrid stack designed for transparency, reproducibility, and regulatory compliance.
 
-- **Transparency** — Every output can be traced back through the pipeline
-- **Reproducibility** — Identical inputs always produce identical outputs
-- **Compliance** — Built-in proof logging satisfies regulatory audit requirements
-- **Safety** — Fail-closed design prevents dangerous outputs under uncertainty
+The system operates on these core principles:
 
-The system is architected for offline-first operation, meaning all core logic runs without cloud dependencies. This makes Apex suitable for high-security environments where data sovereignty and air-gapped operation are requirements.
-
----
-
-## 2. The Deterministic vs Neural Hybrid Design
-
-QuantraCore Apex employs a unique "teacher-student" architecture where the deterministic core engine (Apex) acts as the authoritative source of truth, while neural models (ApexCore Full and ApexCore Mini) learn to approximate its behavior for deployment scenarios where the full engine cannot run.
-
-### 2.1 The Deterministic Core (Apex)
-
-The Apex core engine processes market data through a rigorous pipeline:
-
-```
-Market Data → Normalization → Validation → Trait Extraction →
-Microtrait Analysis → Entropy/Suppression/Drift Detection →
-Tier Protocols (T01–T80) → Learning Protocols (LP01–LP25) →
-Omega Safety Directives (Ω1–Ω4) → QuantraScore → Proof Log
-```
-
-Every step in this pipeline is:
-- **Deterministic** — No randomness or external API calls
-- **Logged** — Hashed and recorded for later verification
-- **Reproducible** — Can be replayed to confirm outputs
-
-The core engine produces structured outputs including:
-- Regime classification (trending, ranging, volatile, suppressed)
-- Risk tier assignment
-- Entropy and volatility bands
-- Suppression state detection
-- Continuation signals
-- QuantraScore (composite structural quality metric)
-
-### 2.2 The Neural Models (ApexCore)
-
-While the deterministic engine is authoritative, it may be too resource-intensive for certain deployment scenarios (e.g., mobile devices, real-time scanning of large universes). The ApexCore model family addresses this:
-
-- **ApexCore Full** (4–20MB) — Desktop-class model trained directly by ApexLab
-- **ApexCore Mini** (0.5–3MB) — Mobile-optimized model distilled from Full
-
-Both models produce the same output contract as the core engine, but with:
-- Faster inference times
-- Lower resource requirements
-- Slight accuracy trade-offs (validated against tolerance thresholds)
-
-**Critical Constraint:** Neural models can never override the deterministic core. When both are available, Apex is authoritative. Models are students, not masters.
+- **Determinism first** — Every output can be traced and reproduced
+- **Fail-closed always** — System restricts rather than guesses under uncertainty
+- **No cloud dependencies** — All core logic runs locally
+- **Local-only learning** — Training happens offline in ApexLab
+- **QuantraScore mandatory everywhere** — Unified scoring across all outputs
+- **Rule engine overrides AI always** — Apex is authoritative over neural models
 
 ---
 
-## 3. How the Components Cooperate
+## 2. Hardware Targets
 
-### 3.1 ApexLab — The Training Laboratory
+QuantraCore Apex is optimized for specific hardware configurations:
 
-ApexLab is the offline training facility responsible for:
+| Platform | Target | Notes |
+|----------|--------|-------|
+| Workstation | GMKtec NucBox K6 | Primary development/analysis platform |
+| Mobile | Android | For QuantraVision only |
 
-1. **Data Ingestion** — Pulling historical market data via adapters
-2. **Window Generation** — Building OHLCV windows for training
-3. **Feature Extraction** — Computing Apex features (entropy, suppression, drift, etc.)
-4. **Teacher Labeling** — Running data through Apex to generate ground-truth labels
-5. **Model Training** — Training ApexCore Full on labeled data
-6. **Distillation** — Compressing Full into Mini via knowledge distillation
-7. **Validation** — Ensuring models meet alignment thresholds
-8. **Export** — Producing TFLite models and manifests for deployment
-
-ApexLab runs on dedicated hardware (K6) in a completely offline environment. No training data or model weights ever leave the secure perimeter.
-
-### 3.2 Signal and Prediction Systems
-
-The **Signal System** handles:
-- Universe scanning (which instruments to analyze)
-- Watchlist routing (prioritizing candidates)
-- Candidate building (assembling analysis packages)
-
-The **Prediction System** provides:
-- Regime-aware price movement predictions
-- Volatility forecasting
-- Expected move estimation
-
-These systems consume Apex outputs and add forward-looking estimates while maintaining the same deterministic, logged, fail-closed principles.
-
-### 3.3 MonsterRunner — Rare Event Detection
-
-MonsterRunner is a specialized engine for identifying rare, high-impact market conditions ("monster moves"). It uses:
-- High-resolution volatility analysis
-- Apex trait signatures
-- Sector momentum
-- Options skew
-- Short interest
-- Macro regime indicators
-
-Outputs include a MonsterScore, expected move percentile, and feature importance rankings.
+**Recommended Constraints:**
+- CPU: 8-core max recommended
+- RAM: 16GB recommended
+- GPU: Optional — CPU-optimized
+- Storage: Local logs + model store
 
 ---
 
-## 4. QuantraVision — Visual Intelligence
+## 3. The Deterministic vs Neural Hybrid Design
 
-### 4.1 QuantraVision Apex v4.2 (Mobile)
+QuantraCore Apex employs a unique "teacher-student" architecture where the deterministic core engine (Apex) acts as the authoritative source of truth, while neural models (ApexCore Full and ApexCore Mini) learn to approximate its behavior.
 
-QuantraVision Apex is a mobile overlay copilot that provides real-time chart analysis. The pipeline:
+### 3.1 The Deterministic Core (Apex)
 
-```
-Screen Capture → Bounding Box Detection → VisionLite (chart parsing) →
-CandleLite (candle extraction) → Visual Primitives →
-ApexLite (structural scoring) → QuantraScore Light → HUD Overlay
-```
+The Apex core engine includes these major components:
 
-When available, QuantraVision uses ApexCore Mini for enhanced structural analysis. The system operates under strict safety constraints:
-- **Narration only** — Text overlays, no trade execution
-- **Forbidden phrases** — Certain language patterns are blocked
-- **No trading features** — Read-only analysis
+- **ZDE Engine** — Zero-Drift Engine for baseline stability
+- **Continuation Validator** — Trend persistence validation
+- **Entry Timing Optimizer** — Optimal entry point analysis
+- **Volume Spike Mapper** — Unusual volume detection
+- **QuantraScore Engine** — Final fused scoring (0–100)
+- **Signal Classifier** — Signal categorization
+- **Trend/Regime Engine** — Market regime detection
+- **Microtrait Generator** — Fine-grained pattern extraction
+- **Suppression & Clash Engine** — Low-activity and conflict detection
+- **Entropy Range Engine** — Disorder measurement
+- **Risk Tier Classifier** — Risk level assignment
+- **Drift Engine** — Directional bias tracking
+- **Sector Context Engine** — Sector-aware analysis
+- **Score Fusion Engine** — Multi-factor score combination
 
-### 4.2 QuantraVision Remote
+### 3.2 The Neural Models (ApexCore)
 
-QuantraVision Remote enables a desktop Apex engine to stream structural overlays to a mobile device in real-time. This provides:
-- Full Apex engine accuracy on mobile
-- Read-only operation (no execution path)
-- Zero trade execution capability
+The ApexCore model family addresses deployment scenarios where the full engine is impractical:
 
----
+- **ApexCore Full** (3–20MB) — Desktop-class model for K6 workstation
+- **ApexCore Mini** (0.5–3MB) — Mobile-optimized for Android/QuantraVision
 
-## 5. Design Principles
-
-### 5.1 Deterministic by Default
-
-All core logic produces identical outputs for identical inputs. Random number generators are seeded deterministically. External API responses are cached and replayed.
-
-### 5.2 Offline-First
-
-The system can operate indefinitely without internet connectivity. Cloud services are optional enhancements, not dependencies.
-
-### 5.3 Fail-Closed Safety
-
-When uncertainty exceeds thresholds, the system restricts outputs rather than guessing. The Omega directives enforce:
-- **Ω1 — Integrity Lock** — Blocks operation if system integrity is compromised
-- **Ω2 — Risk Kill Switch** — Halts activity if risk limits are breached
-- **Ω3 — Config Guard** — Prevents unauthorized configuration changes
-- **Ω4 — Compliance Gate** — Enforces regulatory constraints
-
-### 5.4 Acquisition-Ready Design
-
-The architecture is modular, well-documented, and suitable for institutional due diligence:
-- Clean separation of concerns
-- Comprehensive proof logging
-- Version-controlled model manifests
-- SBOM and provenance tracking
-
-### 5.5 Zero Cloud Dependency for Logic
-
-Business logic never requires cloud connectivity. Only optional features (e.g., QuantraVision cloud narration) use external services, and these are clearly separated.
-
-### 5.6 Apex Teaches; Models Never Override
-
-Neural models learn from the deterministic core. They can approximate but never contradict. When discrepancies arise, Apex is authoritative.
+**Critical Constraint:** Neural models can never override the deterministic core. Apex is always the teacher; ApexCore never overrides Apex.
 
 ---
 
-## 6. End-to-End Pipeline Summary
+## 4. QuantraScore
+
+QuantraScore is the final fused scoring system at the heart of all analysis:
+
+| Property | Value |
+|----------|-------|
+| Range | 0–100 |
+| Buckets | fail, wait, pass, strong_pass |
+
+**Construction factors:**
+- Trend alignment
+- Regime classification
+- Strength distribution
+- Volume/volatility factors
+- Structural density
+- Compression/noise
+- Sector coupling
+- Microtraits
+- Suppression/entropy
+- Omega gates
+
+---
+
+## 5. Protocols
+
+### 5.1 Tier Protocols (T01–T80)
+
+80 tier protocols organized by category:
+
+- Trend
+- Continuation
+- Reversal
+- Microstructure
+- Volume
+- Volatility
+- Compression/Expansion
+- Momentum/Slope
+- Outlier Detection
+- Multi-frame Consensus
+- Sector/Correlation
+- State Rejection
+
+Each protocol resides in its own .py file, is auto-registered by loader, and executes in deterministic order.
+
+### 5.2 Learning Protocols (LP01–LP25)
+
+25 learning protocols handling:
+- Adaptive decay correction
+- Sample bias balancing
+- Rare pattern bookmarking
+- Continuation reinforcement
+- Regime stability training
+- Entropy boundary reinforcement
+
+### 5.3 Omega Directives
+
+Four safety override directives:
+
+| Directive | Purpose |
+|-----------|---------|
+| **Ω1** | Hard safety lock |
+| **Ω2** | Entropy override |
+| **Ω3** | Drift override |
+| **Ω4** | Compliance override |
+
+---
+
+## 6. ApexLab — The Training Laboratory
+
+ApexLab is the self-contained offline local training environment:
+
+**Capabilities:**
+- Continuous data ingestion
+- Apex-labeled dataset construction
+- Feature generation (Apex-native)
+- ApexCore model training
+- Model evaluation + rejection
+- Automated scheduled learning
+
+**Training Data:**
+- Windows: 100-bar OHLCV
+- Features: All microtraits, entropy packet, suppression vectors, drift signature, sector context, regime/volatility labels
+
+**Outputs:**
+- ApexCore.tflite
+- MODEL_MANIFEST.json
+- Deterministic hash
+- Training metrics
+
+---
+
+## 7. MonsterRunner Engine
+
+MonsterRunner detects early signatures of extreme moves ("monster moves"):
+
+**Signals:**
+- Phase-compression pre-break
+- Volume-engine ignition
+- Range flipping
+- Entropy collapse
+- Sector-wide sympathetic moves
+
+**Outputs:**
+- runner_probability_0_1
+- runner_state
+
+**Compliance:** Not a trading signal — informational only.
+
+---
+
+## 8. QuantraVision Integration
+
+QuantraVision provides mobile visual intelligence in two versions:
+
+### 8.1 v2_apex (Current)
+- On-device scan
+- ApexLite processing
+- ApexCore Mini integration
+- HUD overlays
+- Cloud narration optional
+
+### 8.2 v1_legacy
+- Signal viewer only
+- Thin client for retail
+- Upstream Apex signals
+
+**Safety:** No trading, no recommendations.
+
+---
+
+## 9. Broker Layer
+
+Institutional-grade execution capability (optional):
+
+**Modes:**
+- Paper
+- Sim
+- Live (locked behind compliance gates)
+
+**Supported Brokers:**
+- Alpaca
+- Interactive Brokers
+- Custom OMS API
+
+**Fail-Closed Triggers:**
+- Risk model rejection
+- High drift
+- High entropy
+- Compliance failure
+
+---
+
+## 10. API Connections
+
+### Market Data Providers:
+- Polygon
+- Tiingo
+- Alpaca Market Data
+- Intrinio
+- Finnhub
+
+**Capabilities:**
+- Historical OHLCV
+- Realtime OHLCV
+- Full universe scanning
+- High-frequency optional
+
+**Optional Enhancements:**
+- Corporate actions
+- Sector metadata
+- Volatility indexes
+- Macro indexes
+- Alternative data (news/feeds)
+
+**Compliance Note:** Only data ingestion — no trade recommendations.
+
+---
+
+## 11. Universe Scanner
+
+Three scanning modes:
+
+| Mode | Speed | Use Case |
+|------|-------|----------|
+| Fast Scan | 1-5 sec/symbol | Quick screening |
+| Deep Scan | 30-90 sec/symbol | Detailed analysis |
+| Bulk Scan | Variable | Full universe sweeps |
+
+**Optimization:**
+- Segmented symbol batching
+- Priority queue
+- Volatility-aware scheduling
+
+---
+
+## 12. End-to-End Pipeline Summary
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         QUANTRACORE APEX v8.0                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Market Data → Normalization → Apex Core Engine → Tier Protocols (T01–T80) │
+│  Market Data → Core Engine Components → Tier Protocols (T01–T80)           │
 │       ↓                                                                     │
-│  Learning Protocols (LP01–LP25) → Omega Safety (Ω1–Ω4) → QuantraScore      │
+│  Learning Protocols (LP01–LP25) → Omega Directives (Ω1–Ω4)                 │
 │       ↓                                                                     │
-│  Prediction Engines → Proof Logs → ApexLab Distillation                    │
+│  QuantraScore (0–100) → Proof Logs → ApexLab Training                      │
 │       ↓                                                                     │
-│  ApexCore Full/Mini → Dashboard + QuantraVision                            │
+│  ApexCore Full/Mini → QuantraVision + Dashboard                            │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 7. Conclusion
+## 13. Conclusion
 
-QuantraCore Apex™ v8.0 represents a mature, institution-ready hybrid AI trading intelligence system. By combining deterministic rule engines with distilled neural models, Apex achieves the transparency of classical systems with the efficiency of modern machine learning—all while maintaining rigorous safety, compliance, and reproducibility standards.
+QuantraCore Apex™ v8.0 represents a mature, institution-ready hybrid AI trading intelligence system. By combining a deterministic rule engine with distilled neural models, Apex achieves transparency and reproducibility while providing efficient on-device inference. The rule engine always overrides AI, ensuring safety and compliance.
 
 For detailed specifications, see the [Master Spec v8.0](QUANTRACORE_APEX_MASTER_SPEC_v8_0.yml).

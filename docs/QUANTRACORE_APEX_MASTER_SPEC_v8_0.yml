@@ -1,355 +1,371 @@
 ###################################################################################################
-# QUANTRACORE APEX™ — MASTER SYSTEM SPECIFICATION v8.0 (COMPACT EDITION)
+# QUANTRACORE APEX™ — MASTER SYSTEM SPECIFICATION v8.0
 ###################################################################################################
 
 quantracore_apex_v8_0:
 
   meta:
-    name: "QuantraCore Apex™"
-    version: "8.0"
+    system_name: "QuantraCore Apex™"
     owner: "Lamont Labs — Jesse J. Lamont"
-    architecture: "Deterministic → Neural → Hybrid Intelligence"
-    pillars:
-      - deterministic_core_as_teacher
-      - offline_private_learning
-      - fail_closed_safety_everywhere
-      - reproducibility_and_proof_logging
-      - full_modularity_with_fused_operation
-      - acquisition_ready_design
-      - zero_cloud_dependency_for_logic
-      - apex_teaches_models; models_never_override_rules
+    description: >
+      Institutional-grade deterministic AI trading intelligence engine with
+      a complete offline learning ecosystem (ApexLab) and on-device neural
+      assistant model (ApexCore). Unified deterministic + neural hybrid stack.
+    version: "8.0"
+    status: "Active — Core Engine"
+    principles:
+      - "Determinism first"
+      - "Fail-closed always"
+      - "No cloud dependencies"
+      - "Local-only learning"
+      - "QuantraScore mandatory everywhere"
+      - "Rule engine overrides AI always"
 
-  ecosystem:
-    components:
-      - quantracore_apex
-      - apexlab
-      - apexcore_full
-      - apexcore_mini
-      - signal_system
-      - prediction_system
-      - monster_runner
-      - market_data_layer
-      - api_adapters
-      - broker_layer
-      - oms_risk_portfolio
-      - vision_engine
-      - quantravision_apex_mobile
-      - quantravision_remote_overlay
-      - apex_dashboard_desktop
-      - compliance_stack
-      - hardening_stack
-      - proof_log_system
-      - determinism_tests
-    end_to_end_pipeline: |
-      Market Data → Normalization → Apex Core Engine → Tier Protocols (T01–T80) →
-      Learning Protocols (LP01–LP25) → Omega Safety (Ω1–Ω4) → QuantraScore →
-      Prediction Engines → Proof Logs → ApexLab Distillation →
-      ApexCore Full/Mini → Dashboard + QuantraVision.
+  hardware_targets:
+    workstation: "GMKtec NucBox K6"
+    mobile: "Android (for QuantraVision only)"
+    constraints:
+      cpu: "8-core max recommended"
+      ram: "16GB recommended"
+      gpu: "Optional — CPU-optimized"
+      storage: "Local logs + model store"
 
-  directory_structure:
+  file_structure:
     root:
-      - README.md
-      - INSTALL.md
-      - CHANGELOG.md
-      - Makefile
-      - requirements.txt
-      - SBOM.json
-      - PROVENANCE.manifest
-      - .gitignore
-      - .github/workflows/ci.yml
-    src:
-      core: "src/quantracore_apex/core/*"
-      tier_protocols: "src/quantracore_apex/protocols/tier/T01–T80"
-      learning_protocols: "src/quantracore_apex/protocols/learning/LP01–LP25"
-      omega: "src/quantracore_apex/protocols/omega/Ω1–Ω4"
-      prediction: "src/quantracore_apex/prediction/*"
-      signal: "src/quantracore_apex/signal/*"
-      trading: "src/quantracore_apex/trading/*"
-      interfaces: "src/quantracore_apex/interfaces/*"
-      vision: "src/quantracore_apex/vision/*"
-    intelligence:
-      - apexlab/
-      - apexcore_models/full/
-      - apexcore_models/mini/
-    frontend:
-      - frontend/dashboard/
-      - frontend/vision_mobile/
-    docs: "docs/*"
-    logs:
-      - proof_logs/
-      - error/
-      - audit/
-    archives:
-      - raw_api_cache/
-      - api_transformed/
+      - "core/"
+      - "apexlab/"
+      - "apexcore/"
+      - "protocols/"
+      - "learning_protocols/"
+      - "models/"
+      - "data_ingest/"
+      - "broker/"
+      - "risk/"
+      - "api_adapters/"
+      - "docs/"
+      - "tests/"
+      - "logs/"
+      - "sbom/"
+    core:
+      - "engine.py"
+      - "quant_score.py"
+      - "microtraits.py"
+      - "entropy.py"
+      - "suppression.py"
+      - "drift.py"
+      - "continuation.py"
+      - "volume_spike.py"
+      - "entry_timing.py"
+      - "pattern_index.py"
+      - "universe_scanner.py"
+      - "proof_logger.py"
+      - "restart_logger.py"
 
-  core_engine:
-    modules:
-      - engine.py
-      - context.py
-      - quantrascore.py
-      - traits.py
-      - microtraits.py
-      - entropy.py
-      - suppression.py
-      - drift.py
-      - continuation.py
-      - sector.py
-      - proof_logger.py
-      - safety_flags.py
-      - restart_logger.py
-    invariants:
-      - deterministic_only
-      - no_external_calls
-      - reproducible_outputs
-      - proof_logging_mandatory
-    pipeline:
-      - validation
-      - traits
-      - microtraits
-      - entropy_suppression_drift
-      - tier_protocols (T01–T80)
-      - learning_protocols (LP01–LP25)
-      - omega_directives (Ω1–Ω4)
-      - quantrascore
-      - reasoning_trace
-      - health_check
+  api_connections:
+    market_data:
+      supported:
+        - "Polygon"
+        - "Tiingo"
+        - "Alpaca Market Data"
+        - "Intrinio"
+        - "Finnhub"
+      capabilities:
+        - "Historical OHLCV"
+        - "Realtime OHLCV"
+        - "Full universe scanning"
+        - "High-frequency optional"
+    optional_enhancements:
+      - "Corporate actions"
+      - "Sector metadata"
+      - "Volatility indexes"
+      - "Macro indexes"
+      - "Alternative data (news/feeds)"
+    compliance_note: "Only data ingestion — no trade recommendations."
+
+  modules:
+    core_engine:
+      description: "Deterministic rule engine controlling all logic."
+      components:
+        - "ZDE Engine"
+        - "Continuation Validator"
+        - "Entry Timing Optimizer"
+        - "Volume Spike Mapper"
+        - "QuantraScore Engine"
+        - "Signal Classifier"
+        - "Trend/Regime Engine"
+        - "Microtrait Generator"
+        - "Suppression & Clash Engine"
+        - "Entropy Range Engine"
+        - "Risk Tier Classifier"
+        - "Drift Engine"
+        - "Sector Context Engine"
+        - "Score Fusion Engine"
+
+    universe_scanner:
+      modes:
+        fast_scan: "1-5 sec per symbol"
+        deep_scan: "30-90 sec per symbol"
+        bulk_scan: "Full universe sweeps"
+      optimization:
+        - "Segmented symbol batching"
+        - "Priority queue"
+        - "Volatility-aware scheduling"
+
+    proof_logging:
+      files:
+        - "proof/*.json"
+        - "restarts/*.json"
+      data:
+        - "Timestamp"
+        - "All indicators"
+        - "All protocols fired"
+        - "QuantraScore"
+        - "Final verdict"
+        - "Omega overrides"
+        - "Drift state"
+        - "Entropy signature"
+      visualization:
+        - "Timeline viewer"
+        - "Protocol firing map"
+
+  quantrascore:
+    description: "Final fused scoring system."
+    range: "0–100"
+    buckets:
+      - fail
+      - wait
+      - pass
+      - strong_pass
+    construction:
+      - "Trend alignment"
+      - "Regime classification"
+      - "Strength distribution"
+      - "Volume/volatility factors"
+      - "Structural density"
+      - "Compression/noise"
+      - "Sector coupling"
+      - "Microtraits"
+      - "Suppression/entropy"
+      - "Omega gates"
 
   protocols:
     tier_protocols:
       count: 80
-      groups:
-        structural: "T01–T10"
-        trait_entropy: "T11–T30"
-        continuation_drift: "T31–T45"
-        suppression_time: "T46–T60"
-        conflict_edge: "T61–T65"
-        apex_ultra: "T66–T80"
+      range: "T01–T80"
+      categories:
+        - "Trend"
+        - "Continuation"
+        - "Reversal"
+        - "Microstructure"
+        - "Volume"
+        - "Volatility"
+        - "Compression/Expansion"
+        - "Momentum/Slope"
+        - "Outlier Detection"
+        - "Multi-frame Consensus"
+        - "Sector/Correlation"
+        - "State Rejection"
+      notes:
+        - "Each protocol in its own .py file."
+        - "Auto-registered by loader."
+        - "Deterministic execution order."
+
     learning_protocols:
       count: 25
-      functions:
-        - trait_reinforcement
-        - entropy_fine_tuning
-        - suppression_memory
-        - rare_pattern_bookmarking
-        - shadow_trait_experiments
-    omega_directives:
-      - Ω1_integrity_lock
-      - Ω2_risk_kill_switch
-      - Ω3_config_guard
-      - Ω4_compliance_gate
-
-  apex_intelligence:
-    quantracore_teacher:
-      outputs:
-        - regime
-        - risk_tier
-        - entropy_band
-        - volatility_band
-        - suppression_state
-        - continuation_signals
-        - quantrascore_numeric
-        - structural_confidence
-    apexlab:
+      range: "LP01–LP25"
       responsibilities:
-        - local_data_ingest
-        - ohlcv_window_generation
-        - apex_feature_builder
-        - teacher_label_generation
-        - model_training_full
-        - distillation_to_mini
-        - validation_tests
-        - tflite_export
-        - manifest_export
-      constraints:
-        - offline_only
-        - reproducible_training
-        - fail_closed_on_degradation
-    apexcore_model_family:
-      full:
-        role: "Desktop structural model"
-        size: "4–20MB"
-        outputs: &apex_outputs
-          - regime
-          - risk_tier
-          - chart_quality
-          - entropy_band
-          - volatility_band
-          - suppression_state
-          - score_band
-          - quantrascore_numeric
-        guarantees:
-          - apex_alignment
-          - fail_closed
-          - teacher_priority
-      mini:
-        role: "Mobile structural model"
-        size: "0.5–3MB"
-        inference: "<30ms"
-        training: "Distilled from Full"
-        outputs: *apex_outputs
-        restrictions:
-          - cannot_override_apex
-          - offline_only
-          - fail_closed_on_uncertainty
+        - "Adaptive decay correction"
+        - "Sample bias balancing"
+        - "Rare pattern bookmarking"
+        - "Continuation reinforcement"
+        - "Regime stability training"
+        - "Entropy boundary reinforcement"
+      apexcore_labeling:
+        - "Teacher labels"
+        - "QuantraScore target"
+        - "Multi-head outputs"
 
-  prediction_system:
-    components:
-      - feature_builder
-      - regime_aware_predictor
-      - volatility_predictor
-      - expected_move_model
-    features:
-      intraday:
-        - volume_spikes
-        - microvolatility
-        - intraday_range
-      swing:
-        - multi_day_momentum
-        - atr_cycles
-        - gap_stats
-      apex_features:
-        - entropy
-        - suppression
-        - drift
-        - continuation_tags
+    omega_directives:
+      - "Ω1: Hard safety lock"
+      - "Ω2: Entropy override"
+      - "Ω3: Drift override"
+      - "Ω4: Compliance override"
 
-  monster_runner:
-    features:
-      - high_resolution_volatility
-      - apex_trait_signatures
-      - sector_momentum
-      - options_skew
-      - short_interest
-      - macro_regime
-    outputs:
-      - monster_score
-      - expected_move_percentile
-      - feature_importance
-
-  signal_system:
-    responsibilities:
-      - universe_scanning
-      - watchlist_routing
-      - candidate_building
-    modes:
-      - research_only
-      - simulation
-      - paper
-      - live_ready
-
-  market_data_layer:
-    providers: [iex, polygon, alpaca]
+  apexlab:
+    purpose: "Self-contained offline local training environment."
     capabilities:
-      - live_streaming
-      - historical_ohlcv
-      - multi_timeframe_aggregation
-      - local_archival
-      - timestamp_harmonization
+      - "Continuous data ingestion"
+      - "Apex-labeled dataset construction"
+      - "Feature generation (Apex-native)"
+      - "ApexCore model training"
+      - "Model evaluation + rejection"
+      - "Automated scheduled learning"
+    data:
+      windows: "100-bar OHLCV"
+      features:
+        - "All microtraits"
+        - "Entropy packet"
+        - "Suppression vectors"
+        - "Drift signature"
+        - "Sector context"
+        - "Regime/volatility labels"
+    output:
+      - "ApexCore.tflite"
+      - "MODEL_MANIFEST.json"
+      - "Deterministic hash"
+      - "Training metrics"
 
-  api_adapters:
-    deterministic_contract:
-      - must_cache_raw_payloads
-      - must_transform_deterministically
-      - must_log_hashes
-      - must_fail_closed_on_schema_drift
-    adapter_types:
-      market_data: [iex, polygon, alpaca]
-      fundamentals: [financials_api, earnings_calendar]
-      volatility: [options_chain_api, volatility_index_api]
-      macro: [macro_api, sector_index_api]
-      alternatives: [short_interest_api, insider_trades_api]
-      news_text_only: [text_news_feed]
+  apexcore:
+    description: "On-device neural assistant model."
+    versions:
+      apexcore_full:
+        target: "Desktop (K6)"
+        size: "3–20 MB"
+        capabilities:
+          - "High-resolution structural classification"
+          - "Regime detection"
+          - "Chart quality score"
+          - "Volatility banding"
+          - "Entropy states"
+          - "Suppression detection"
+          - "Score band"
+          - "Mandatory QuantraScore"
+      apexcore_mini:
+        target: "Android (QuantraVision)"
+        size: "0.5–3 MB"
+        inference: "<30ms"
+        constraints:
+          - "Reduced heads"
+          - "Optimized for speed"
+          - "Same teacher labels"
+    principles:
+      - "Apex is always the teacher"
+      - "ApexCore never overrides Apex"
+      - "Fails closed if uncertain"
+
+  monster_runner_engine:
+    purpose: "Detect early signatures of extreme moves."
+    signals:
+      - "Phase-compression pre-break"
+      - "Volume-engine ignition"
+      - "Range flipping"
+      - "Entropy collapse"
+      - "Sector-wide sympathetic moves"
+    outputs:
+      - "runner_probability_0_1"
+      - "runner_state"
+    compliance:
+      - "Not a trading signal"
 
   broker_layer:
-    modes: [disabled, simulation, paper, live_ready]
-    default:
-      execution_enabled: false
+    description: "Institutional-grade execution but optional."
+    modes:
+      - "Paper"
+      - "Sim"
+      - "Live (locked behind compliance gates)"
+    supported_brokers:
+      - "Alpaca"
+      - "Interactive Brokers"
+      - "Custom OMS API"
+    fail_closed:
+      - "If risk model rejects"
+      - "If drift is high"
+      - "If entropy high"
+      - "If compliance fails"
+    logging:
+      - "All orders"
+      - "All rejections"
+      - "All risk overrides"
 
-  trading_system:
-    oms: "state_machine_orders"
-    risk:
-      - max_daily_loss
-      - position_limits
-      - exposure_limits
-      - Ω2_kill_switch
-    portfolio:
-      - pnl_tracking
-      - position_state
-    scheduler:
-      - premarket_scans
-      - intraday_loops
-      - nightly_apexlab_runs
+  risk_engine:
+    checks:
+      - "Drawdown threshold"
+      - "Volatility band"
+      - "Slippage estimate"
+      - "Spread constraints"
+      - "Regime mismatch"
+      - "Sector instability"
+      - "Microtrait imbalance"
+    output:
+      - "risk_level"
+      - "final_permission (allow/deny)"
+      - "override_code"
 
-  vision_engine:
-    modules:
-      - pattern_scanner
-      - multiframe_validator
-      - visual_primitives
-      - vision_bridge
-    outputs:
-      - primitives
-      - overlays
-      - structural_quality
+  data_ingest:
+    inputs:
+      - "Realtime OHLCV"
+      - "Daily OHLCV"
+      - "Corporate actions"
+      - "Sector metadata"
+    queues:
+      - "Fast ingest"
+      - "Historical batch ingest"
+    rules:
+      - "Local only"
+      - "Encrypted store"
 
-  quantravision_apex:
-    pipeline:
-      - capture
-      - bbox_model
-      - visionlite
-      - candlelite
-      - primitives
-      - apexlite
-      - quantrascore_light
-      - overlays
-    uses:
-      - apexcore_mini_if_available
+  quantravision_integration:
+    versions:
+      v2_apex:
+        features:
+          - "On-device scan"
+          - "ApexLite"
+          - "ApexCore Mini"
+          - "HUD"
+          - "Overlays"
+          - "Cloud narration optional"
+      v1_legacy:
+        features:
+          - "Signal viewer only"
+          - "Thin client for retail"
+          - "Upstream Apex signals"
     safety:
-      - narration_text_only
-      - forbidden_phrases_validation
-      - no_trading_features
-
-  quantravision_remote:
-    description: "Real-time structural overlay using desktop Apex engine"
-    guarantees:
-      - read_only
-      - zero_execution_path
-
-  apex_dashboard:
-    stack: [React, Vite, Tailwind, shadcn/ui]
-    views:
-      - signal_table
-      - score_breakdown
-      - entropy_heatmap
-      - drift_timeline
-      - suppression_map
-      - prediction_view
-      - monster_runner_console
-      - prooflog_explorer
+      - "No trading"
+      - "No recommendations"
 
   compliance:
-    policies:
-      - data_retention
-      - risk_compliance
-      - integrity_checks
+    modules:
+      - "GDPR/CCPA readiness"
+      - "FINRA/SEC safe behavior"
+      - "No advice engine"
+      - "Fail-closed trade layer"
+      - "On-device privacy"
     logs:
-      - proof_logs
-      - configuration_changes
-      - model_manifests
+      - "Model hashes"
+      - "Deterministic outputs"
+      - "Versioned protocol maps"
 
-  security:
-    features:
-      - hash_verification
-      - outbound_allowlist
-      - encryption
-      - config_guard (Ω3)
-      - integrity_lock (Ω1)
+  sbom:
+    required:
+      - "Full package manifest"
+      - "Dependency lockfiles"
+      - "Model hashes"
+      - "Protocol version list"
 
-  determinism_tests:
-    rules:
-      - identical_inputs → identical_outputs
-      - golden_hashes_must_match
-      - model_updates_require_stability
+  tests:
+    engine:
+      - "Protocol firing"
+      - "Regression baseline"
+      - "Score stability"
+      - "Failure rate"
+      - "Drift/entropy detection"
+    apexlab:
+      - "Dataset integrity"
+      - "Label reproducibility"
+      - "Model accuracy gates"
+    apexcore:
+      - "Inference speed"
+      - "Consistency with Apex"
+      - "Fail-closed paths"
+
+  build_targets:
+    desktop:
+      - "QuantraCore Engine"
+      - "ApexLab Training Environment"
+      - "ApexCore Full Model"
+    mobile:
+      - "ApexCore Mini"
+      - "QuantraVision v2"
 
 ###################################################################################################
 # END QUANTRACORE APEX v8.0 SPEC

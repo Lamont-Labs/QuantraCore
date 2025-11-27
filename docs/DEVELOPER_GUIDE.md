@@ -7,321 +7,263 @@
 
 ## 1. Welcome
 
-This guide provides engineers with the essential information needed to understand, navigate, and contribute to the QuantraCore Apex codebase. It covers architecture, directory structure, development workflows, and conventions.
+This guide provides engineers with the essential information needed to understand, navigate, and contribute to the QuantraCore Apex codebase.
 
 ---
 
-## 2. High-Level Architecture
+## 2. System Description
 
-QuantraCore Apex is a hybrid AI trading intelligence system with three main architectural layers:
+From the master spec:
 
-### 2.1 Deterministic Core (Apex Engine)
-
-The heart of the system—a fully deterministic rule-based engine that:
-- Processes market data through a defined pipeline
-- Produces reproducible outputs for any given input
-- Serves as the "teacher" for neural models
-- Enforces safety through Omega directives
-
-### 2.2 Neural Intelligence (ApexCore Models)
-
-Trainable models that approximate the Apex engine:
-- **ApexCore Full** — Desktop-class model (4–20MB)
-- **ApexCore Mini** — Mobile-optimized model (0.5–3MB)
-- Trained offline by ApexLab
-- Aligned with Apex through distillation
-
-### 2.3 Application Layer
-
-User-facing components:
-- **Apex Dashboard** — React-based visualization console
-- **QuantraVision Apex** — Mobile overlay copilot
-- **CLI** — Command-line interface for testing and demos
-- **API** — FastAPI endpoints for integration
+> QuantraCore Apex™ is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). Unified deterministic + neural hybrid stack.
 
 ---
 
-## 3. Directory Map
+## 3. Core Principles
+
+All development must adhere to these principles:
+
+1. **Determinism first** — All outputs must be reproducible
+2. **Fail-closed always** — System restricts on uncertainty
+3. **No cloud dependencies** — Core logic runs locally
+4. **Local-only learning** — Training happens in ApexLab
+5. **QuantraScore mandatory everywhere** — Unified scoring (0–100)
+6. **Rule engine overrides AI always** — Apex is authoritative
+
+---
+
+## 4. Hardware Targets
+
+| Platform | Target | Use Case |
+|----------|--------|----------|
+| Workstation | GMKtec NucBox K6 | Development, analysis |
+| Mobile | Android | QuantraVision only |
+
+**Recommended Constraints:**
+- CPU: 8-core max recommended
+- RAM: 16GB recommended
+- GPU: Optional — CPU-optimized
+- Storage: Local logs + model store
+
+---
+
+## 5. Directory Structure
 
 ```
 QuantraCore/
-├── README.md                 # Project overview
-├── INSTALL.md                # Installation instructions
-├── CHANGELOG.md              # Version history
-├── Makefile                  # Build and run commands
-├── requirements.txt          # Python dependencies
-├── pyproject.toml            # Python project configuration
-├── verify.sh                 # Determinism verification script
+├── core/                    # Core engine modules
+│   ├── engine.py            # Main engine logic
+│   ├── quant_score.py       # QuantraScore computation
+│   ├── microtraits.py       # Microtrait extraction
+│   ├── entropy.py           # Entropy analysis
+│   ├── suppression.py       # Suppression detection
+│   ├── drift.py             # Drift tracking
+│   ├── continuation.py      # Continuation validation
+│   ├── volume_spike.py      # Volume spike mapping
+│   ├── entry_timing.py      # Entry timing optimization
+│   ├── pattern_index.py     # Pattern indexing
+│   ├── universe_scanner.py  # Universe scanning
+│   ├── proof_logger.py      # Proof logging
+│   └── restart_logger.py    # Restart tracking
 │
-├── src/                      # Source code
-│   ├── api/                  # FastAPI application
-│   │   ├── __init__.py
-│   │   ├── asgi.py           # ASGI entry point
-│   │   └── main.py           # API routes
-│   │
-│   └── core/                 # Apex core engine
-│       ├── __init__.py
-│       ├── engine.py         # Main engine logic
-│       ├── protocols.py      # Tier and learning protocols
-│       ├── risk_filters.py   # Risk management
-│       ├── failsafes.py      # Omega directives
-│       ├── learning.py       # Learning protocol implementation
-│       ├── quantum.py        # Advanced analysis modules
-│       └── zde.py            # Zero-drift engine
-│
-├── cli/                      # Command-line interface
-│   └── main.py               # Typer CLI application
-│
-├── tests/                    # Test suite
-│   ├── test_api.py
-│   ├── test_cli.py
-│   ├── test_engine.py
-│   ├── test_protocols.py
-│   ├── test_risk_filters.py
-│   └── test_zde.py
-│
-├── docs/                     # Documentation
-│   ├── OVERVIEW_QUANTRACORE_APEX.md
-│   ├── QUANTRACORE_APEX_MASTER_SPEC_v8_0.yml
-│   ├── APEXLAB_OVERVIEW.md
-│   ├── APEXCORE_MODELS.md
-│   └── ...
-│
-├── SBOM/                     # Software Bill of Materials
-│   ├── sbom.cdx.json
-│   ├── provenance.json
-│   └── checksums.csv
-│
-├── assets/                   # Branding and media
-│   ├── logo.txt
-│   └── screenshots.txt
-│
-├── scripts/                  # Utility scripts
-│   ├── generate_checksums.py
-│   └── verify_provenance.py
-│
-└── archives/                 # Data archives (not in git)
-    ├── raw_api_cache/
-    └── api_transformed/
+├── apexlab/                 # Offline training environment
+├── apexcore/                # Neural model artifacts
+├── protocols/               # Tier protocols (T01–T80)
+├── learning_protocols/      # Learning protocols (LP01–LP25)
+├── models/                  # Trained models
+├── data_ingest/             # Data ingestion adapters
+├── broker/                  # Broker integration
+├── risk/                    # Risk engine
+├── api_adapters/            # External API adapters
+├── docs/                    # Documentation
+├── tests/                   # Test suite
+├── logs/                    # Proof logs and restarts
+│   ├── proof/               # Proof log JSON files
+│   └── restarts/            # Restart log JSON files
+└── sbom/                    # Software Bill of Materials
 ```
 
 ---
 
-## 4. Getting Started
+## 6. Core Engine Components
 
-### 4.1 Prerequisites
+The deterministic rule engine includes:
 
-- Python 3.10+
-- pip or uv package manager
-- Git
-
-### 4.2 Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/Lamont-Labs/QuantraCore.git
-cd QuantraCore
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### 4.3 Verify Installation
-
-```bash
-# Run tests
-pytest -q
-
-# Run determinism verification
-bash verify.sh
-```
+| Component | Purpose |
+|-----------|---------|
+| ZDE Engine | Zero-Drift Engine for baseline |
+| Continuation Validator | Trend persistence validation |
+| Entry Timing Optimizer | Optimal entry analysis |
+| Volume Spike Mapper | Unusual volume detection |
+| QuantraScore Engine | Final scoring (0–100) |
+| Signal Classifier | Signal categorization |
+| Trend/Regime Engine | Market regime detection |
+| Microtrait Generator | Fine-grained patterns |
+| Suppression & Clash Engine | Low-activity/conflict detection |
+| Entropy Range Engine | Disorder measurement |
+| Risk Tier Classifier | Risk level assignment |
+| Drift Engine | Directional bias tracking |
+| Sector Context Engine | Sector-aware analysis |
+| Score Fusion Engine | Multi-factor combination |
 
 ---
 
-## 5. Running Tests
+## 7. QuantraScore
 
-### 5.1 Full Test Suite
+The unified scoring system:
 
-```bash
-pytest
-```
+| Property | Value |
+|----------|-------|
+| Range | 0–100 |
+| Buckets | fail, wait, pass, strong_pass |
 
-### 5.2 Specific Test Files
+**Construction factors:**
+- Trend alignment
+- Regime classification
+- Strength distribution
+- Volume/volatility factors
+- Structural density
+- Compression/noise
+- Sector coupling
+- Microtraits
+- Suppression/entropy
+- Omega gates
+
+---
+
+## 8. Protocols
+
+### 8.1 Tier Protocols (T01–T80)
+
+80 protocols with categories:
+- Trend, Continuation, Reversal
+- Microstructure, Volume, Volatility
+- Compression/Expansion, Momentum/Slope
+- Outlier Detection, Multi-frame Consensus
+- Sector/Correlation, State Rejection
+
+**Development rules:**
+- Each protocol in its own .py file
+- Auto-registered by loader
+- Deterministic execution order
+
+### 8.2 Learning Protocols (LP01–LP25)
+
+25 protocols handling:
+- Adaptive decay correction
+- Sample bias balancing
+- Rare pattern bookmarking
+- Continuation reinforcement
+- Regime stability training
+- Entropy boundary reinforcement
+
+### 8.3 Omega Directives
+
+| Directive | Purpose |
+|-----------|---------|
+| Ω1 | Hard safety lock |
+| Ω2 | Entropy override |
+| Ω3 | Drift override |
+| Ω4 | Compliance override |
+
+---
+
+## 9. Running Tests
+
+### 9.1 Engine Tests
 
 ```bash
 pytest tests/test_engine.py
-pytest tests/test_protocols.py
 ```
 
-### 5.3 Verbose Output
+Test categories:
+- Protocol firing
+- Regression baseline
+- Score stability
+- Failure rate
+- Drift/entropy detection
 
-```bash
-pytest -v
-```
+### 9.2 ApexLab Tests
 
-### 5.4 Test Coverage
+- Dataset integrity
+- Label reproducibility
+- Model accuracy gates
 
-```bash
-pytest --cov=src
-```
+### 9.3 ApexCore Tests
 
----
-
-## 6. Running Apex in Research/Simulation Mode
-
-### 6.1 CLI Demo
-
-The CLI provides a quick way to run the Apex engine:
-
-```bash
-python -m cli.main
-```
-
-This runs the deterministic demo and outputs results to `dist/golden_demo_outputs/`.
-
-### 6.2 API Server
-
-Start the FastAPI server for integration testing:
-
-```bash
-uvicorn src.api.main:app --host 0.0.0.0 --port 5000
-```
-
-Available endpoints:
-- `GET /health` — Health check
-- `GET /score` — QuantraScore computation
-- `GET /risk/hud` — Risk HUD data
-- `GET /audit/export` — Audit log export
-
-### 6.3 Simulation Mode
-
-The system runs in research/simulation mode by default. No live trading is possible without explicitly enabling execution envelopes (which requires code changes and approvals).
+- Inference speed
+- Consistency with Apex
+- Fail-closed paths
 
 ---
 
-## 7. ApexLab Scripts
+## 10. Universe Scanner
 
-ApexLab training scripts are located in the `intelligence/apexlab/` directory (when present). These scripts handle:
+Three scanning modes:
 
-- Data ingestion and caching
-- Feature extraction
-- Model training
-- Distillation
-- Validation
-- Export
+| Mode | Speed | Use Case |
+|------|-------|----------|
+| Fast scan | 1-5 sec/symbol | Quick screening |
+| Deep scan | 30-90 sec/symbol | Detailed analysis |
+| Bulk scan | Variable | Full universe sweeps |
 
-**Note:** ApexLab requires significant computational resources and is typically run on dedicated hardware (K6). For development purposes, you can review the scripts without running full training.
-
----
-
-## 8. Style and Naming Conventions
-
-### 8.1 Python Style
-
-- Follow PEP 8
-- Use type hints for function signatures
-- Docstrings for public functions and classes
-- Maximum line length: 100 characters
-
-### 8.2 Naming Conventions
-
-| Type | Convention | Example |
-|------|------------|---------|
-| Modules | snake_case | `risk_filters.py` |
-| Classes | PascalCase | `ApexEngine` |
-| Functions | snake_case | `compute_quantrascore` |
-| Constants | UPPER_SNAKE | `MAX_ENTROPY_BAND` |
-| Variables | snake_case | `current_regime` |
-
-### 8.3 File Organization
-
-- One primary class per module
-- Related utilities in the same module
-- Tests mirror source structure
-
-### 8.4 Documentation
-
-- All public APIs documented
-- Complex logic explained in comments
-- README in each major directory
+**Optimization features:**
+- Segmented symbol batching
+- Priority queue
+- Volatility-aware scheduling
 
 ---
 
-## 9. Key Concepts
+## 11. Build Targets
 
-### 9.1 Determinism
+### 11.1 Desktop
 
-All core logic must be deterministic:
-- No random operations without seeding
-- No current-time dependencies in logic
-- No floating-point instability
-- Reproducible outputs for identical inputs
+- QuantraCore Engine
+- ApexLab Training Environment
+- ApexCore Full Model
 
-### 9.2 Proof Logging
+### 11.2 Mobile
 
-All significant operations must be logged:
-- Input/output hashes
-- Timestamps
-- Parameters
-- Status
-
-### 9.3 Fail-Closed
-
-When uncertain, restrict rather than guess:
-- Validation failures halt processing
-- Model uncertainty triggers abstention
-- Missing data causes explicit errors
-
-### 9.4 Omega Directives
-
-Understand the four Omega directives:
-- **Ω1** — Integrity Lock
-- **Ω2** — Risk Kill Switch
-- **Ω3** — Config Guard
-- **Ω4** — Compliance Gate
+- ApexCore Mini
+- QuantraVision v2
 
 ---
 
-## 10. Contributing
+## 12. Proof Logging
 
-### 10.1 Branch Strategy
+All operations must be logged:
 
-- `main` — Stable, production-ready
-- `develop` — Integration branch
-- `feature/*` — New features
-- `fix/*` — Bug fixes
+**Log locations:**
+- `logs/proof/*.json` — Proof logs
+- `logs/restarts/*.json` — Restart logs
 
-### 10.2 Pull Request Process
-
-1. Create feature/fix branch
-2. Implement changes
-3. Add/update tests
-4. Ensure all tests pass
-5. Update documentation
-6. Submit PR for review
-
-### 10.3 Code Review
-
-All changes require:
-- At least one approving review
-- Passing CI checks
-- Documentation updates (if applicable)
+**Required data:**
+- Timestamp
+- All indicators
+- All protocols fired
+- QuantraScore
+- Final verdict
+- Omega overrides
+- Drift state
+- Entropy signature
 
 ---
 
-## 11. Resources
+## 13. API Connections
 
-- [System Overview](OVERVIEW_QUANTRACORE_APEX.md)
-- [Master Spec v8.0](QUANTRACORE_APEX_MASTER_SPEC_v8_0.yml)
-- [API Reference](API_REFERENCE.md)
-- [Compliance Policy](COMPLIANCE_POLICY.md)
-- [Security Guide](SECURITY_AND_HARDENING.md)
+Supported market data providers:
+- Polygon
+- Tiingo
+- Alpaca Market Data
+- Intrinio
+- Finnhub
+
+**Compliance:** Only data ingestion — no trade recommendations.
 
 ---
 
-## 12. Getting Help
+## 14. Getting Help
 
-- Review existing documentation
-- Check GitHub issues for similar questions
-- Contact the development team
-- Refer to the master spec for authoritative definitions
+- Review the [Master Spec v8.0](QUANTRACORE_APEX_MASTER_SPEC_v8_0.yml)
+- Check the [Overview](OVERVIEW_QUANTRACORE_APEX.md)
+- Review component-specific documentation

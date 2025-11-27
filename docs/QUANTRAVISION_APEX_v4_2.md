@@ -1,30 +1,51 @@
-# QuantraVision Apex v4.2 — Mobile Overlay Copilot
+# QuantraVision Integration — Mobile Visual Intelligence
 
-**Version:** 4.2  
-**Component:** QuantraVision Apex (Mobile)  
-**Role:** Real-time chart analysis overlay for mobile devices
+**Version:** 8.0  
+**Component:** QuantraVision  
+**Role:** Mobile overlay copilot for chart analysis
 
 ---
 
 ## 1. Overview
 
-QuantraVision Apex v4.2 is the mobile overlay copilot within the QuantraCore Apex ecosystem. It provides real-time structural analysis of trading charts directly on a user's mobile device, presenting insights as unobtrusive visual overlays.
+QuantraVision provides mobile visual intelligence within the QuantraCore Apex ecosystem. It delivers real-time structural analysis of trading charts directly on mobile devices through visual overlays.
 
-Key characteristics:
-- **On-Device Processing** — All analysis runs locally on the mobile device
-- **Overlay-Based UX** — Results appear as HUD elements over existing apps
-- **Read-Only** — No trading or execution capabilities
-- **Safety-First** — Strict content filtering and forbidden phrase validation
+The system exists in two versions:
+- **v2_apex** — Current version with full ApexCore integration
+- **v1_legacy** — Legacy version for basic signal viewing
 
 ---
 
-## 2. Full Pipeline
+## 2. Version Comparison
 
-QuantraVision Apex processes chart images through a multi-stage pipeline:
+| Feature | v2_apex (Current) | v1_legacy |
+|---------|-------------------|-----------|
+| On-device scan | Yes | No |
+| ApexLite | Yes | No |
+| ApexCore Mini | Yes | No |
+| HUD | Yes | Basic |
+| Overlays | Full | Limited |
+| Cloud narration | Optional | No |
+| Target audience | Pro/Enterprise | Retail |
+
+---
+
+## 3. v2_apex (Current Version)
+
+### 3.1 Features
+
+- **On-device scan** — Local chart analysis without network
+- **ApexLite** — Lightweight Apex processing
+- **ApexCore Mini** — Full neural model integration
+- **HUD** — Heads-up display overlays
+- **Overlays** — Visual chart annotations
+- **Cloud narration optional** — Text commentary when enabled
+
+### 3.2 Processing Pipeline
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│                    QUANTRAVISION APEX v4.2 PIPELINE                      │
+│                    QUANTRAVISION v2_apex PIPELINE                        │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
 │  1. CAPTURE        Screen capture of trading chart                       │
@@ -37,64 +58,57 @@ QuantraVision Apex processes chart images through a multi-stage pipeline:
 │        ↓                                                                 │
 │  5. PRIMITIVES     Visual primitive detection (support, resistance, etc) │
 │        ↓                                                                 │
-│  6. APEXLITE       Structural scoring using ApexCore Mini (if available) │
+│  6. APEXLITE       Structural scoring using ApexCore Mini                │
 │        ↓                                                                 │
-│  7. QUANTRASCORE   Composite quality score computation                   │
+│  7. QUANTRASCORE   Composite quality score (0–100)                       │
 │        ↓                                                                 │
 │  8. HUD OVERLAY    Visual overlay rendering on screen                    │
 │                                                                          │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.1 Stage Details
+### 3.3 ApexCore Mini Integration
 
-| Stage | Input | Output | Model/Logic |
-|-------|-------|--------|-------------|
-| Capture | Screen | Image buffer | System API |
-| Bbox | Image | Chart coordinates | BboxModel (TFLite) |
-| VisionLite | Cropped chart | Parsed structure | VisionLite model |
-| CandleLite | Parsed structure | OHLC data | CandleLite model |
-| Primitives | OHLC + structure | Visual primitives | Rule-based + ML |
-| ApexLite | Features | Structural scores | ApexCore Mini |
-| QuantraScore | All inputs | Composite score | Weighted formula |
-| HUD | Scores + primitives | Visual overlay | Rendering engine |
-
----
-
-## 3. Use of ApexCore Mini
-
-When ApexCore Mini is available on the device, QuantraVision leverages it for enhanced structural analysis:
-
-### 3.1 Integration Point
-
-ApexCore Mini is invoked at the ApexLite stage:
+When ApexCore Mini is available:
 
 ```
 CandleLite Output → Feature Extraction → ApexCore Mini → Structural Scores
 ```
 
-### 3.2 Outputs Used
-
-From ApexCore Mini, QuantraVision uses:
-- `regime` — To contextualize analysis
-- `risk_tier` — For risk indicator display
-- `chart_quality` — For confidence calibration
-- `quantrascore_numeric` — For composite overlay
-
-### 3.3 Fallback Behavior
-
-If ApexCore Mini is not available:
-- ApexLite uses a simplified rule-based fallback
-- Overlays are flagged as "reduced confidence"
-- Users are prompted to install ApexCore Mini
+**Outputs used from ApexCore Mini:**
+- Regime classification
+- Risk tier
+- Chart quality score
+- QuantraScore (0–100)
+- Volatility banding
+- Entropy states
+- Suppression detection
 
 ---
 
-## 4. Safety Constraints
+## 4. v1_legacy (Legacy Version)
 
-QuantraVision Apex operates under strict safety rules:
+### 4.1 Features
 
-### 4.1 No Trading Features
+- **Signal viewer only** — Displays upstream signals
+- **Thin client for retail** — Minimal local processing
+- **Upstream Apex signals** — Receives analysis from server
+
+### 4.2 Use Case
+
+v1_legacy serves as a lightweight viewer for users who:
+- Don't need on-device processing
+- Have reliable network connectivity
+- Prefer server-side analysis
+- Are in the retail tier
+
+---
+
+## 5. Safety Constraints
+
+Both versions operate under strict safety rules:
+
+### 5.1 No Trading
 
 The system has **zero execution capability**:
 - No order placement
@@ -102,19 +116,17 @@ The system has **zero execution capability**:
 - No broker connections
 - No portfolio modifications
 
-Analysis is strictly read-only.
+### 5.2 No Recommendations
 
-### 4.2 Narration-Only Cloud (Optional)
+All output is strictly informational:
+- No "buy" or "sell" signals
+- No price targets
+- No financial advice
+- Educational content only
 
-If cloud narration is enabled:
-- Only text-based commentary is sent/received
-- No trading signals or recommendations
-- No personal data transmission
-- All narration passes through content filters
+### 5.3 Forbidden Phrases
 
-### 4.3 Forbidden Phrases
-
-The system validates all generated text against a forbidden phrase list:
+Generated text is validated against forbidden patterns:
 
 ```yaml
 forbidden_patterns:
@@ -125,57 +137,25 @@ forbidden_patterns:
   - "you should"
   - "financial advice"
   - "recommendation"
-  - "sure thing"
-  - "can't lose"
 ```
-
-Any output containing forbidden phrases is blocked before display.
-
-### 4.4 Disclaimer Injection
-
-All overlays include visible disclaimers:
-- "For educational purposes only"
-- "Not financial advice"
-- "Past performance is not indicative of future results"
-
----
-
-## 5. Tier and Quota System
-
-QuantraVision uses a tiered access model:
-
-### 5.1 Tiers
-
-| Tier | Analyses/Day | Cloud Narration | ApexCore Mini |
-|------|--------------|-----------------|---------------|
-| Free | 10 | No | No |
-| Basic | 50 | Limited | Yes |
-| Pro | Unlimited | Full | Yes |
-| Enterprise | Unlimited | Full + Custom | Yes + Full |
-
-### 5.2 Quota Enforcement
-
-- Quotas are enforced locally on-device
-- Quota state syncs with account server daily
-- Exceeded quotas result in graceful degradation (not crashes)
-- Enterprise tier supports offline quota grants
 
 ---
 
 ## 6. HUD Overlay Elements
 
-The overlay presents information through several HUD components:
+### 6.1 QuantraScore Badge
 
-### 6.1 Score Badge
+Displays the QuantraScore (0–100) with color coding:
 
-Displays the QuantraScore as a color-coded badge:
-- Green (0.7–1.0): High structural quality
-- Yellow (0.4–0.7): Moderate quality
-- Red (0.0–0.4): Low quality / caution
+| Score Range | Color | Meaning |
+|-------------|-------|---------|
+| 70–100 | Green | Strong pass |
+| 50–69 | Yellow | Pass/Wait |
+| 0–49 | Red | Fail/Caution |
 
 ### 6.2 Regime Indicator
 
-Shows the detected market regime:
+Shows detected market regime:
 - Trending (directional arrow)
 - Ranging (horizontal bars)
 - Volatile (lightning bolt)
@@ -183,34 +163,38 @@ Shows the detected market regime:
 
 ### 6.3 Risk Level
 
-Displays risk tier with color coding:
+Displays risk tier with visual indicators:
 - Low: Green shield
 - Medium: Yellow triangle
 - High: Orange warning
 - Extreme: Red stop sign
 
-### 6.4 Primitive Overlays
+---
 
-Draws detected chart structures:
-- Support/resistance lines
-- Trend channels
-- Pattern boundaries
-- Key price levels
+## 7. Target Platform
+
+| Platform | Support |
+|----------|---------|
+| Android | Primary target |
+| iOS | Planned |
+
+**Hardware Requirements:**
+- Android device with camera/screen capture
+- Sufficient processing power for ApexCore Mini (<30ms inference)
 
 ---
 
-## 7. Performance Targets
+## 8. Performance Targets
 
-| Metric | Target | Notes |
-|--------|--------|-------|
-| End-to-end latency | <500ms | Capture to overlay |
-| ApexCore Mini inference | <30ms | Model only |
-| Battery impact | <5% per hour | Active use |
-| Memory usage | <150MB | Peak |
-| Crash rate | <0.1% | Per session |
+| Metric | v2_apex | v1_legacy |
+|--------|---------|-----------|
+| End-to-end latency | <500ms | <200ms |
+| ApexCore Mini inference | <30ms | N/A |
+| Battery impact | <5%/hr | <2%/hr |
+| Memory usage | <150MB | <50MB |
 
 ---
 
-## 8. Summary
+## 9. Summary
 
-QuantraVision Apex v4.2 brings real-time structural chart analysis to mobile devices through an efficient, safety-constrained pipeline. By leveraging ApexCore Mini for on-device inference and enforcing strict content filtering, the system delivers valuable insights while maintaining compliance with regulatory requirements and platform safety standards.
+QuantraVision provides mobile visual intelligence through two versions: v2_apex with full ApexCore integration for professional users, and v1_legacy as a lightweight signal viewer for retail users. Both versions maintain strict safety constraints—no trading, no recommendations—while delivering valuable structural analysis through intuitive HUD overlays.

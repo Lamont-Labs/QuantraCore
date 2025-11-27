@@ -8,55 +8,84 @@
 
 ## 1. Overview
 
-QuantraCore Apex is designed from the ground up for institutional compliance. Every aspect of the system—from data ingestion to model training to analysis output—is built with regulatory requirements in mind. This document outlines the compliance policies and mechanisms that make Apex audit-ready and acquisition-safe.
+QuantraCore Apex is designed from the ground up for institutional compliance. Every aspect of the system—from data ingestion to model training to analysis output—is built with regulatory requirements in mind.
 
 ---
 
 ## 2. Core Compliance Principles
 
+From the master spec:
+
+> "Determinism first. Fail-closed always. No cloud dependencies. Local-only learning. QuantraScore mandatory everywhere. Rule engine overrides AI always."
+
 ### 2.1 Research and Analysis by Default
 
 QuantraCore Apex operates as a **research and analysis system by default**:
-
 - No trade execution capability is enabled initially
 - All outputs are informational, not actionable
 - Users must explicitly enable execution envelopes
-- Default mode satisfies "research tool" classification
 
-### 2.2 Execution Disabled by Default
+### 2.2 No Advice Engine
 
-The broker layer is configured with execution disabled:
-
-```yaml
-broker_layer:
-  default:
-    execution_enabled: false
-  modes:
-    - disabled      # Default: no execution path
-    - simulation    # Paper trading with fake orders
-    - paper         # Paper trading with broker connection
-    - live_ready    # Production execution (requires approval)
-```
-
-Transitioning from `disabled` to any other mode requires:
-- Explicit configuration change
-- Compliance gate approval (Ω4)
-- Audit log entry
-- Human authorization
-
-### 2.3 Transparency Over Opacity
-
-All system behavior is transparent:
-- Deterministic algorithms produce reproducible outputs
-- No hidden model behaviors or "black box" decisions
-- Complete audit trail for all operations
-- Source code available for review
+The system explicitly does not provide financial advice:
+- No "buy" or "sell" recommendations
+- No price targets or profit projections
+- Educational and analytical output only
 
 ---
 
-## 3. Proof Logging
+## 3. Compliance Modules
 
-### 3.1 What is Logged
+The compliance stack includes:
+
+| Module | Purpose |
+|--------|---------|
+| GDPR/CCPA readiness | Data privacy compliance |
+| FINRA/SEC safe behavior | Regulatory-safe operation |
+| No advice engine | Prevents recommendation generation |
+| Fail-closed trade layer | Safe execution controls |
+| On-device privacy | Local data processing |
+
+---
+
+## 4. Omega Directives
+
+The Omega directives are system-level safety overrides:
+
+### 4.1 Ω1 — Hard Safety Lock
+
+The primary safety mechanism that blocks system operation when safety conditions are not met:
+- System integrity verification
+- Critical failure detection
+- Emergency shutdown capability
+
+### 4.2 Ω2 — Entropy Override
+
+Overrides normal operation when entropy levels indicate dangerous market conditions:
+- High entropy detection
+- Chaos state recognition
+- Protective mode activation
+
+### 4.3 Ω3 — Drift Override
+
+Overrides normal operation when drift levels indicate regime instability:
+- High drift detection
+- Regime transition uncertainty
+- Conservative mode activation
+
+### 4.4 Ω4 — Compliance Override
+
+Enforces regulatory and compliance constraints:
+- Mode transition approvals
+- Data usage verification
+- Output filtering
+- Forbidden action blocking
+
+---
+
+## 5. Proof Logging
+
+### 5.1 What is Logged
 
 Every significant operation produces a proof log entry:
 
@@ -68,202 +97,103 @@ Every significant operation produces a proof log entry:
 | Predictions | All forecasts with inputs/outputs |
 | Configuration | Any setting changes |
 | Errors | All failures with context |
+| Omega overrides | All directive activations |
 
-### 3.2 Log Structure
+### 5.2 Log Data Elements
 
-```yaml
-proof_log_entry:
-  id: "uuid-v4"
-  timestamp: "2025-10-15T14:30:00.123Z"
-  component: "apex_engine"
-  operation: "quantrascore_compute"
-  input_hash: "sha256:abc123..."
-  output_hash: "sha256:def456..."
-  parameters:
-    symbol: "AAPL"
-    timeframe: "1D"
-  duration_ms: 45
-  status: "success"
-```
+From the master spec, proof logs include:
+- Timestamp
+- All indicators
+- All protocols fired
+- QuantraScore
+- Final verdict
+- Omega overrides
+- Drift state
+- Entropy signature
 
-### 3.3 Log Integrity
+### 5.3 Visualization
 
-Proof logs are protected by:
-- Append-only storage (no modifications)
-- Cryptographic chaining (each entry references previous)
-- Periodic integrity verification
-- Secure backup to separate storage
+Proof logs support:
+- Timeline viewer
+- Protocol firing map
 
 ---
 
-## 4. Data Retention
+## 6. Broker Layer Compliance
 
-### 4.1 Retention Periods
+### 6.1 Modes
 
-| Data Type | Retention | Justification |
-|-----------|-----------|---------------|
-| Raw API cache | 7 years | Regulatory minimum |
-| Proof logs | 7 years | Audit requirements |
-| Model artifacts | Indefinite | Reproducibility |
-| Configuration history | 7 years | Change tracking |
-| Analysis outputs | 3 years | Research reference |
+| Mode | Description |
+|------|-------------|
+| Paper | Simulated trading, no real orders |
+| Sim | Simulation environment |
+| Live | Locked behind compliance gates |
 
-### 4.2 Retention Enforcement
+### 6.2 Supported Brokers
 
-- Automated retention monitoring
-- Alerts before expiration
-- Secure deletion procedures
-- Deletion audit logging
+- Alpaca
+- Interactive Brokers
+- Custom OMS API
 
----
+### 6.3 Fail-Closed Conditions
 
-## 5. Model Manifests
+The broker layer fails closed when:
+- Risk model rejects
+- Drift is high
+- Entropy is high
+- Compliance fails
 
-### 5.1 Manifest Contents
+### 6.4 Logging
 
-Every trained model includes a manifest documenting:
-
-```yaml
-model_manifest:
-  model_id: "apexcore_full_v8.0.0"
-  training_timestamp: "2025-10-15T10:00:00Z"
-  apex_version: "8.0"
-  training_data:
-    start_date: "2020-01-01"
-    end_date: "2025-09-30"
-    hash: "sha256:abc123..."
-  validation_metrics:
-    regime_accuracy: 0.967
-    quantrascore_mae: 0.023
-  hyperparameters:
-    architecture: "transformer_small"
-    learning_rate: 0.001
-  approvals:
-    - approver: "training_lead"
-      timestamp: "2025-10-15T12:00:00Z"
-      signature: "..."
-```
-
-### 5.2 Manifest Requirements
-
-- **Immutable** — Cannot be modified after creation
-- **Signed** — Cryptographically signed by approvers
-- **Versioned** — Linked to specific code and data versions
-- **Auditable** — Referenced in all model usage logs
+All broker activity is logged:
+- All orders
+- All rejections
+- All risk overrides
 
 ---
 
-## 6. Omega Directives
+## 7. Risk Engine
 
-The Omega directives are system-level safety controls:
+The risk engine performs these compliance-related checks:
 
-### 6.1 Ω1 — Integrity Lock
+| Check | Purpose |
+|-------|---------|
+| Drawdown threshold | Portfolio protection |
+| Volatility band | Market condition safety |
+| Slippage estimate | Execution quality |
+| Spread constraints | Cost control |
+| Regime mismatch | Strategy alignment |
+| Sector instability | Diversification safety |
+| Microtrait imbalance | Pattern safety |
 
-Blocks system operation if integrity is compromised:
-- File hash verification on startup
-- Configuration tampering detection
-- Model weight validation
-- Code signing verification
+### 7.1 Output
 
-### 6.2 Ω2 — Risk Kill Switch
-
-Halts all activity if risk limits are breached:
-- Daily loss limits
-- Position concentration limits
-- Exposure limits
-- Volatility thresholds
-
-### 6.3 Ω3 — Config Guard
-
-Prevents unauthorized configuration changes:
-- Change approval workflow
-- Dual authorization for critical settings
-- Rollback capability
-- Change audit logging
-
-### 6.4 Ω4 — Compliance Gate
-
-Enforces regulatory constraints:
-- Mode transition approvals
-- Data usage verification
-- Output filtering
-- Forbidden action blocking
+| Field | Description |
+|-------|-------------|
+| `risk_level` | Current risk assessment |
+| `final_permission` | allow/deny |
+| `override_code` | Reason for override |
 
 ---
 
-## 7. Deterministic Pipeline
+## 8. Compliance Logs
 
-### 7.1 Reproducibility Guarantees
+The system maintains:
 
-For any given input, the system produces identical output:
-
-```
-Input (data + config + model version) → Deterministic Pipeline → Output
-```
-
-Reproducibility enables:
-- Audit verification
-- Dispute resolution
-- Regulatory demonstration
-- Quality assurance
-
-### 7.2 Reproducibility Testing
-
-Automated tests verify determinism:
-- Golden hash comparison
-- Cross-environment testing
-- Version migration testing
-- Regression detection
+- **Model hashes** — Cryptographic verification
+- **Deterministic outputs** — Reproducibility proof
+- **Versioned protocol maps** — Configuration tracking
 
 ---
 
-## 8. Offline Training
+## 9. SBOM Requirements
 
-### 8.1 Security Benefits
+The Software Bill of Materials includes:
 
-Training occurs in an air-gapped environment:
-- No network access during training
-- No data exfiltration risk
-- No external influence on model weights
-- Complete training provenance
-
-### 8.2 Compliance Benefits
-
-Offline training ensures:
-- Data sovereignty (data never leaves secure perimeter)
-- Training reproducibility (no external dependencies)
-- Audit simplicity (contained environment)
-- Regulatory clarity (no cloud processing questions)
-
----
-
-## 9. Execution Envelopes
-
-### 9.1 Envelope Definition
-
-An execution envelope defines the boundaries of permitted trading activity:
-
-```yaml
-execution_envelope:
-  enabled: false  # Must be explicitly enabled
-  mode: "simulation"
-  constraints:
-    max_position_size: 1000
-    max_daily_orders: 100
-    allowed_symbols: ["AAPL", "GOOGL", "MSFT"]
-    allowed_order_types: ["market", "limit"]
-    max_daily_loss: 10000
-  approvals:
-    - approver: "risk_manager"
-      timestamp: "..."
-```
-
-### 9.2 Envelope Controls
-
-- Envelopes are locked by default
-- Unlocking requires Ω4 approval
-- All envelope changes are logged
-- Automatic re-lock on anomalies
+- Full package manifest
+- Dependency lockfiles
+- Model hashes
+- Protocol version list
 
 ---
 
@@ -278,16 +208,15 @@ For any audit, the system can produce:
 - Data lineage documentation
 - Reproducibility demonstration
 
-### 10.2 Audit Queries
+### 10.2 Deterministic Verification
 
-Common audit queries are pre-built:
-- "Show all predictions for symbol X on date Y"
-- "Reproduce analysis output Z"
-- "List all configuration changes in period"
-- "Verify model M was used for output O"
+All outputs can be reproduced by providing:
+- Same input data
+- Same configuration
+- Same model version
 
 ---
 
 ## 11. Summary
 
-QuantraCore Apex's compliance architecture ensures that the system meets institutional requirements for transparency, auditability, and regulatory safety. Through proof logging, model manifests, Omega directives, and execution envelope controls, Apex provides the documentation and safeguards that institutions, regulators, and acquirers require. The default-disabled execution mode and research-first design further reinforce that Apex is a safe, compliant analysis platform.
+QuantraCore Apex's compliance architecture ensures that the system meets institutional requirements for transparency, auditability, and regulatory safety. Through the Omega directives (Ω1 hard safety lock, Ω2 entropy override, Ω3 drift override, Ω4 compliance override), proof logging, and fail-closed broker controls, Apex provides the documentation and safeguards that institutions and regulators require.

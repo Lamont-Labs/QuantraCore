@@ -2,13 +2,13 @@
 
 **Version:** 8.0  
 **Component:** ApexLab  
-**Role:** Model Training Facility for ApexCore Full and Mini
+**Role:** Self-contained offline local training environment
 
 ---
 
 ## 1. Overview
 
-ApexLab is the offline training and distillation laboratory within the QuantraCore Apex ecosystem. It is responsible for transforming historical market data into trained neural network models (ApexCore Full and ApexCore Mini) that can approximate the behavior of the deterministic Apex core engine.
+ApexLab is the self-contained offline local training environment within the QuantraCore Apex ecosystem. It is responsible for transforming historical market data into trained neural network models (ApexCore Full and ApexCore Mini) that can approximate the behavior of the deterministic Apex core engine.
 
 ApexLab operates under strict constraints:
 - **Offline Only** — No internet connectivity during training
@@ -19,12 +19,14 @@ ApexLab operates under strict constraints:
 
 ## 2. Where ApexLab Runs
 
-ApexLab is designed to run on dedicated hardware, designated as **K6** in the system architecture. This hardware provides:
+ApexLab is designed to run on the **GMKtec NucBox K6** workstation with these specifications:
 
-- Sufficient GPU/CPU resources for model training
-- Air-gapped network isolation
-- Secure storage for training data and model artifacts
-- Controlled access for authorized personnel only
+| Resource | Recommendation |
+|----------|----------------|
+| CPU | 8-core max recommended |
+| RAM | 16GB recommended |
+| GPU | Optional — CPU-optimized |
+| Storage | Local logs + model store |
 
 The K6 environment ensures that:
 - Training data never leaves the secure perimeter
@@ -33,184 +35,185 @@ The K6 environment ensures that:
 
 ---
 
-## 3. Data Ingestion via Adapters
+## 3. Capabilities
 
-ApexLab pulls historical market data through a standardized **adapter layer**. Adapters must comply with the deterministic contract:
+ApexLab provides these core capabilities:
 
-1. **Cache Raw Payloads** — All API responses are stored in `archives/raw_api_cache/`
-2. **Transform Deterministically** — Data normalization produces identical outputs for identical inputs
-3. **Log Hashes** — Every transformation step is hashed and logged
-4. **Fail Closed on Schema Drift** — If the data schema changes unexpectedly, ingestion halts
-
-Supported adapter types include:
-- Market data (IEX, Polygon, Alpaca)
-- Fundamentals (financials, earnings calendars)
-- Volatility (options chains, volatility indices)
-- Macro (macro indicators, sector indices)
-- Alternatives (short interest, insider trades)
-- News (text-only feeds)
+1. **Continuous data ingestion** — Ongoing market data collection
+2. **Apex-labeled dataset construction** — Building training sets with Apex labels
+3. **Feature generation (Apex-native)** — Computing native Apex features
+4. **ApexCore model training** — Training Full and Mini models
+5. **Model evaluation + rejection** — Quality gates for model promotion
+6. **Automated scheduled learning** — Scheduled retraining cycles
 
 ---
 
-## 4. Window and Feature Building
+## 4. Data Ingestion via Adapters
 
-### 4.1 OHLCV Window Generation
+ApexLab pulls historical market data through standardized adapters supporting:
 
-ApexLab constructs training windows from historical OHLCV (Open, High, Low, Close, Volume) data:
+**Supported Providers:**
+- Polygon
+- Tiingo
+- Alpaca Market Data
+- Intrinio
+- Finnhub
+
+**Data Types:**
+- Historical OHLCV
+- Realtime OHLCV
+- Corporate actions
+- Sector metadata
+- Volatility indexes
+- Macro indexes
+- Alternative data (news/feeds)
+
+**Compliance Note:** Only data ingestion — no trade recommendations.
+
+---
+
+## 5. Training Windows and Features
+
+### 5.1 OHLCV Windows
+
+ApexLab constructs training windows using **100-bar OHLCV** data:
 
 ```
 Raw OHLCV Data → Timestamp Alignment → Gap Handling →
-Window Slicing → Normalization → Training-Ready Tensors
+Window Slicing (100 bars) → Normalization → Training-Ready Tensors
 ```
 
-Windows are typically configured as:
-- Fixed-length sequences (e.g., 60 bars)
-- Multiple timeframes (1m, 5m, 15m, 1h, 1D)
-- Overlapping or non-overlapping depending on training mode
-
-### 4.2 Apex Feature Building
+### 5.2 Apex Feature Building
 
 For each window, ApexLab computes the full suite of Apex features:
 
-- **Traits** — Structural pattern classifications
-- **Microtraits** — Fine-grained pattern details
-- **Entropy** — Disorder and unpredictability metrics
-- **Suppression** — Low-activity zone detection
-- **Drift** — Gradual directional bias
-- **Continuation** — Trend persistence signals
-
-These features become the input representation for model training.
+- **All microtraits** — Fine-grained pattern details
+- **Entropy packet** — Disorder and unpredictability metrics
+- **Suppression vectors** — Low-activity zone detection
+- **Drift signature** — Gradual directional bias
+- **Sector context** — Sector-aware features
+- **Regime/volatility labels** — Market regime classification
 
 ---
 
-## 5. Teacher Label Generation
+## 6. Teacher Label Generation
 
 ApexLab runs each training window through the full Apex deterministic engine to generate ground-truth labels:
 
 ```
-Training Window → Apex Core Engine → Teacher Labels
+100-bar Window → Apex Core Engine → Teacher Labels
 ```
 
 Teacher labels include:
+- QuantraScore target (0–100)
 - Regime classification
 - Risk tier
-- Entropy band
+- Chart quality score
 - Volatility band
-- Suppression state
-- Continuation signals
-- QuantraScore (numeric)
-- Structural confidence
-
-These labels represent "what Apex would output" for each window, serving as the training target for ApexCore models.
+- Entropy states
+- Suppression detection
+- Score band
 
 ---
 
-## 6. Model Training: ApexCore Full
+## 7. Model Training: ApexCore Full
 
 ApexCore Full is the desktop-class structural model trained directly by ApexLab:
 
-### 6.1 Training Process
-
-```
-Apex Features + Teacher Labels → Neural Network Training →
-Validation Against Apex Outputs → Model Checkpoint →
-Stability Testing → TFLite Export → Manifest Generation
-```
-
-### 6.2 Model Specifications
-
-- **Size:** 4–20MB depending on architecture
-- **Inputs:** Apex feature tensors
-- **Outputs:** Regime, risk tier, chart quality, entropy band, volatility band, suppression state, score band, QuantraScore (numeric)
-
-### 6.3 Training Constraints
-
-- Deterministic weight initialization (seeded)
-- Reproducible data shuffling (seeded)
-- Identical outputs for identical training runs
-- Proof logging of all hyperparameters and checkpoints
-
----
-
-## 7. Distillation to ApexCore Mini
-
-ApexCore Mini is not trained directly from data—it is **distilled** from ApexCore Full:
-
-### 7.1 Knowledge Distillation
-
-```
-ApexCore Full (Teacher) → Soft Labels → ApexCore Mini (Student) →
-Validation → TFLite Export → Manifest Generation
-```
+### 7.1 Target Platform
+- **Desktop (K6)** — GMKtec NucBox K6 workstation
 
 ### 7.2 Model Specifications
 
-- **Size:** 0.5–3MB
-- **Inference Time:** <30ms on mobile devices
-- **Outputs:** Same contract as Full (regime, risk, entropy, etc.)
+| Property | Value |
+|----------|-------|
+| Size | 3–20 MB |
+| Format | TFLite |
+| Target | Desktop (K6) |
 
-### 7.3 Distillation Constraints
+### 7.3 Capabilities
 
-- Mini can never exceed Full's output distribution
-- Alignment thresholds must be met before promotion
-- Fail-closed if distillation degradation is detected
-
----
-
-## 8. Validation and Safety
-
-Before any model is promoted for deployment, ApexLab runs comprehensive validation:
-
-### 8.1 Alignment Testing
-
-- Compare model outputs to Apex ground truth across validation set
-- Compute accuracy, precision, recall for each output dimension
-- Flag any outputs that exceed tolerance thresholds
-
-### 8.2 Stability Testing
-
-- Run identical inputs multiple times to confirm deterministic inference
-- Test edge cases (extreme values, missing data, unusual patterns)
-- Verify fail-closed behavior under uncertainty
-
-### 8.3 Fail-Closed Promotion
-
-If any validation check fails:
-- Model promotion is **blocked**
-- Error logs are generated with detailed diagnostics
-- Manual review is required before retry
+- High-resolution structural classification
+- Regime detection
+- Chart quality score
+- Volatility banding
+- Entropy states
+- Suppression detection
+- Score band
+- Mandatory QuantraScore
 
 ---
 
-## 9. Export Artifacts
+## 8. Distillation to ApexCore Mini
+
+ApexCore Mini is distilled from ApexCore Full for mobile deployment:
+
+### 8.1 Target Platform
+- **Android (QuantraVision)** — Mobile devices
+
+### 8.2 Model Specifications
+
+| Property | Value |
+|----------|-------|
+| Size | 0.5–3 MB |
+| Inference | <30ms |
+| Target | Android |
+
+### 8.3 Constraints
+
+- Reduced heads
+- Optimized for speed
+- Same teacher labels as Full
+
+---
+
+## 9. Model Principles
+
+All ApexCore models adhere to these principles:
+
+1. **Apex is always the teacher** — Models learn from deterministic core
+2. **ApexCore never overrides Apex** — Deterministic rules take precedence
+3. **Fails closed if uncertain** — Conservative behavior under ambiguity
+
+---
+
+## 10. Export Artifacts
 
 Successful training produces the following artifacts:
 
-### 9.1 TFLite Models
+### 10.1 Model Files
 
-- `apexcore_full_vX.Y.tflite` — Desktop model
-- `apexcore_mini_vX.Y.tflite` — Mobile model
+- `ApexCore.tflite` — Trained TFLite model
 
-### 9.2 Model Manifests
+### 10.2 Manifest
 
-JSON manifests documenting:
-- Model version and training timestamp
-- Training data hash
-- Hyperparameters
-- Validation metrics
-- Apex engine version used for labeling
+- `MODEL_MANIFEST.json` — Complete training documentation
 
-### 9.3 Proof Logs
+### 10.3 Verification
 
-Complete audit trail of the training run:
-- Input data hashes
-- Feature computation logs
-- Training step logs
-- Validation results
-- Export confirmation
+- Deterministic hash — For integrity verification
+- Training metrics — Performance measurements
 
 ---
 
-## 10. Summary
+## 11. Tests
 
-ApexLab is the controlled, offline environment where QuantraCore Apex's neural models are born. By using the deterministic Apex engine as a teacher, ApexLab ensures that ApexCore Full and Mini remain aligned with the authoritative core while providing efficient inference for deployment scenarios. The fail-closed design guarantees that no degraded model ever reaches production.
+ApexLab includes comprehensive testing:
+
+### 11.1 Dataset Tests
+- Dataset integrity
+- Label reproducibility
+
+### 11.2 Model Tests
+- Model accuracy gates
+- Consistency with Apex
+- Fail-closed paths
+
+### 11.3 Inference Tests
+- Inference speed validation
+
+---
+
+## 12. Summary
+
+ApexLab is the controlled, offline environment where QuantraCore Apex's neural models are born. Using 100-bar OHLCV windows and Apex-native features, ApexLab ensures that ApexCore Full and Mini remain aligned with the authoritative core while providing efficient inference for deployment scenarios. The fail-closed design guarantees that no degraded model ever reaches production.
