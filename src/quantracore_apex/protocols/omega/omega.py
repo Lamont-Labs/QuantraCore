@@ -204,3 +204,13 @@ class OmegaDirectives:
     def should_block_output(self, statuses: Dict[str, OmegaStatus]) -> bool:
         """Determine if output should be blocked based on directives."""
         return self.get_highest_alert_level(statuses) == OmegaLevel.LOCKED
+    
+    def apply_omega4(self, verdict: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Apply Omega 4 compliance directive to a verdict.
+        
+        Ensures compliance note is always present.
+        """
+        if "compliance_note" not in verdict:
+            verdict["compliance_note"] = "Structural analysis only - not trading advice"
+        return verdict

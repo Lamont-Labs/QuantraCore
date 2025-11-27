@@ -89,3 +89,28 @@ class LabelGenerator:
     def _drift_to_class(self, state: str) -> int:
         mapping = {"none": 0, "mild": 1, "significant": 2, "critical": 3}
         return mapping.get(state, 0)
+
+
+_default_generator = None
+
+def generate_labels(windows: List[OhlcvWindow], ohlcv_bars=None) -> np.ndarray:
+    """
+    Module-level function to generate labels for windows.
+    
+    Args:
+        windows: List of OhlcvWindow objects
+        ohlcv_bars: Optional original bars (unused, for API compatibility)
+        
+    Returns:
+        numpy array of primary labels (quantrascore_numeric)
+    """
+    global _default_generator
+    if _default_generator is None:
+        _default_generator = LabelGenerator(enable_logging=False)
+    
+    labels = []
+    for window in windows:
+        label_dict = _default_generator.generate(window)
+        labels.append(label_dict.get("quantrascore_numeric", 50.0))
+    
+    return np.array(labels)

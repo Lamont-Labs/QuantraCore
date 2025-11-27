@@ -6,7 +6,24 @@ Builds 100-bar OHLCV windows from normalized data.
 
 from typing import List, Optional
 from src.quantracore_apex.core.schemas import OhlcvBar, OhlcvWindow
-from src.quantracore_apex.data_layer.normalization import build_windows
+from src.quantracore_apex.data_layer.normalization import build_windows as _build_windows
+
+
+def build_windows(bars: List[OhlcvBar], window_size: int = 100, step: int = 1, symbol: str = "TRAIN", timeframe: str = "1d") -> List[OhlcvWindow]:
+    """
+    Module-level function to build windows.
+    
+    Args:
+        bars: List of OhlcvBar objects
+        window_size: Size of each window
+        step: Steps between windows
+        symbol: Symbol name
+        timeframe: Timeframe string
+        
+    Returns:
+        List of OhlcvWindow objects
+    """
+    return _build_windows(bars, symbol=symbol, timeframe=timeframe, window_size=window_size, step=step)
 
 
 class WindowBuilder:

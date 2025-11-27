@@ -65,3 +65,31 @@ def compute_window_hash(bars_json: str) -> str:
     """
     full_hash = compute_data_hash(bars_json)
     return full_hash[:16]
+
+
+def hash_ohlcv(bars) -> str:
+    """
+    Compute SHA-256 hash of OHLCV data.
+    
+    Args:
+        bars: List of OhlcvBar objects or similar
+        
+    Returns:
+        Hex digest of SHA-256 hash
+    """
+    import json
+    
+    if hasattr(bars, '__iter__'):
+        data = []
+        for bar in bars:
+            if hasattr(bar, 'model_dump'):
+                data.append(bar.model_dump())
+            elif hasattr(bar, '__dict__'):
+                data.append(bar.__dict__)
+            else:
+                data.append(str(bar))
+        json_str = json.dumps(data, sort_keys=True, default=str)
+    else:
+        json_str = str(bars)
+    
+    return compute_data_hash(json_str)
