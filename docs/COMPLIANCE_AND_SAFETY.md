@@ -1,6 +1,46 @@
 # Compliance and Safety
 
-QuantraCore Apex is designed for research and educational purposes only. This document outlines the compliance framework and safety measures.
+QuantraCore Apex v9.0-A is designed for research and educational purposes only. This document outlines the compliance framework and safety measures, including the institutional hardening features introduced in v9.0-A.
+
+---
+
+## 0. v9.0-A Safety Enhancements
+
+### Research-Only Safety Fence
+
+The system mode is explicitly configured in `config/mode.yaml`:
+
+```yaml
+default_mode: "research"
+
+modes:
+  research:
+    allowed_actions:
+      - scans
+      - replays
+      - simulated_orders
+    disallowed_actions:
+      - live_orders
+      - broker_connections
+```
+
+Any live trading connector MUST check this configuration and refuse to operate in research mode.
+
+### Redundant Scoring Protection
+
+Dual-path QuantraScore computation with consistency checking:
+- Primary QuantraScore: Canonical v8.2 implementation
+- Shadow QuantraScore: Independent recomputation
+- Threshold: 5.0 point maximum allowed deviation
+- Major deviations trigger investigation flags
+
+### Drift Detection
+
+Statistical monitoring protects against distribution shifts:
+- QuantraScore distribution tracking
+- Regime frequency monitoring
+- Score consistency failure rate
+- Automatic DRIFT_GUARDED mode on severe drift
 
 ---
 

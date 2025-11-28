@@ -1,0 +1,108 @@
+# QuantraCore Apex - Symbol Universe Registry
+# v9.0-A Institutional Hardening
+#
+# Centralized symbol registry to avoid inconsistencies
+# (delisted tickers, mapped symbols, ETFs vs equities)
+
+version: "9.0-A"
+last_updated: "2025-11-28"
+
+universes:
+  demo:
+    description: "Small demo universe for testing and validation"
+    symbols:
+      - symbol: "AAPL"
+        name: "Apple Inc."
+        asset_class: "equity"
+        sector: "Technology"
+        active: true
+        notes: "Mega-cap tech"
+
+      - symbol: "MSFT"
+        name: "Microsoft Corporation"
+        asset_class: "equity"
+        sector: "Technology"
+        active: true
+        notes: "Mega-cap tech"
+
+      - symbol: "GOOGL"
+        name: "Alphabet Inc."
+        asset_class: "equity"
+        sector: "Technology"
+        active: true
+        notes: "Mega-cap tech"
+
+      - symbol: "AMZN"
+        name: "Amazon.com Inc."
+        asset_class: "equity"
+        sector: "Consumer Discretionary"
+        active: true
+        notes: "Mega-cap"
+
+      - symbol: "NVDA"
+        name: "NVIDIA Corporation"
+        asset_class: "equity"
+        sector: "Technology"
+        active: true
+        notes: "Semiconductor, AI leader"
+
+      - symbol: "META"
+        name: "Meta Platforms Inc."
+        asset_class: "equity"
+        sector: "Technology"
+        active: true
+        notes: "Mega-cap tech"
+
+      - symbol: "TSLA"
+        name: "Tesla Inc."
+        asset_class: "equity"
+        sector: "Consumer Discretionary"
+        active: true
+        notes: "EV, high volatility"
+
+      - symbol: "JPM"
+        name: "JPMorgan Chase & Co."
+        asset_class: "equity"
+        sector: "Financials"
+        active: true
+        notes: "Large-cap bank"
+
+      - symbol: "V"
+        name: "Visa Inc."
+        asset_class: "equity"
+        sector: "Financials"
+        active: true
+        notes: "Payments"
+
+      - symbol: "JNJ"
+        name: "Johnson & Johnson"
+        asset_class: "equity"
+        sector: "Healthcare"
+        active: true
+        notes: "Healthcare conglomerate"
+
+  sp100:
+    description: "S&P 100 large-cap universe"
+    source: "S&P Dow Jones Indices"
+    load_from: "data/universes/sp100.csv"
+    active: true
+    notes: "Load symbols from CSV file when available"
+
+  research_watchlist:
+    description: "Custom research watchlist"
+    symbols: []
+    active: true
+    notes: "User-defined symbols for research focus"
+
+asset_classes:
+  - id: "equity"
+    description: "Common stocks"
+  - id: "etf"
+    description: "Exchange-traded funds"
+  - id: "index"
+    description: "Market indices (for reference only)"
+
+validation_rules:
+  require_active_flag: true
+  warn_on_missing_sector: true
+  reject_unknown_asset_class: true

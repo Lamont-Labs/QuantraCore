@@ -1,7 +1,7 @@
 # QuantraCore Apex - Hybrid AI Trading Intelligence Engine
 
 **Owner:** Lamont Labs - Jesse J. Lamont  
-**Version:** v8.2  
+**Version:** v9.0-A (Institutional Hardening)  
 [![QuantraCore CI](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml/badge.svg)](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml)  
 **Status:** Active - Full Protocol System (Desktop-Only)  
 **Repo:** https://github.com/Lamont-Labs/QuantraCore
@@ -12,6 +12,14 @@
 
 QuantraCore Apex is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). The system represents a unified deterministic + neural hybrid stack designed for transparency, reproducibility, and regulatory compliance.
 
+**v9.0-A Hardening Features:**
+- Redundant scoring with shadow scorer cross-check
+- Drift detection framework with auto-guard mode
+- Multi-provider data failover with integrity verification
+- Model validation pipeline with acceptance criteria
+- Comprehensive audit trail for reproducibility
+- Research-only safety fence (config-enforced)
+
 **Core Principles:**
 - Determinism first
 - Fail-closed always
@@ -19,6 +27,8 @@ QuantraCore Apex is an institutional-grade deterministic AI trading intelligence
 - Local-only learning
 - QuantraScore mandatory everywhere (0-100)
 - Rule engine overrides AI always
+- Redundant verification (v9.0-A)
+- Drift awareness (v9.0-A)
 
 ---
 
