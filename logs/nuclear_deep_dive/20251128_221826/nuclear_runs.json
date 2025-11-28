@@ -1,0 +1,2137 @@
+[
+  {
+    "id": 1,
+    "category": "core_engine",
+    "subcategory": "pytest",
+    "label": "full_test_suite",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 3.48256742599915,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0001_core_engine_full_test_suite_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 2,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "protocol_triple_validation",
+    "command": [
+      "python",
+      "scripts/run_protocol_triple_validation.py"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 2.3952588310057763,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0002_core_engine_protocol_triple_validation_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 3,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "nuclear_determinism_10cycle",
+    "command": [
+      "python",
+      "scripts/run_nuclear_determinism.py"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 1.7339855129976058,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0003_core_engine_nuclear_determinism_10cycle_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 4,
+    "category": "protocols",
+    "subcategory": "tier_protocols",
+    "label": "T01-T80_all_tier_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "protocol or tier"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 2.9214336939985515,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0004_protocols_T01-T80_all_tier_protocols_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 5,
+    "category": "protocols",
+    "subcategory": "learning_protocols",
+    "label": "LP01-LP25_learning_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "learning or label"
+    ],
+    "repetition": 1,
+    "exit_code": 5,
+    "duration_sec": 2.918718736000301,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0005_protocols_LP01-LP25_learning_protocols_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 6,
+    "category": "protocols",
+    "subcategory": "monster_runner",
+    "label": "MR01-MR05_monster_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "monster"
+    ],
+    "repetition": 1,
+    "exit_code": 5,
+    "duration_sec": 2.9939985279997927,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0006_protocols_MR01-MR05_monster_protocols_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 7,
+    "category": "protocols",
+    "subcategory": "omega_directives",
+    "label": "Omega1-5_directives",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or directive"
+    ],
+    "repetition": 1,
+    "exit_code": 5,
+    "duration_sec": 2.931091017999279,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0007_protocols_Omega1-5_directives_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 8,
+    "category": "data_layer",
+    "subcategory": "universe_scan",
+    "label": "random_universe_full_us",
+    "command": [
+      "python",
+      "scripts/run_random_universe_scan.py",
+      "--mode",
+      "full_us_equities"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 13.203179076001106,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0008_data_layer_random_universe_full_us_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 9,
+    "category": "data_layer",
+    "subcategory": "specialized_scan",
+    "label": "high_vol_smallcaps",
+    "command": [
+      "python",
+      "scripts/run_high_vol_smallcaps_scan.py"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 7.073543622005673,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0009_data_layer_high_vol_smallcaps_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 10,
+    "category": "data_layer",
+    "subcategory": "scan_modes",
+    "label": "all_8_scan_modes",
+    "command": [
+      "python",
+      "scripts/run_scanner_all_modes.py"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 2.0164400819994626,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0010_data_layer_all_8_scan_modes_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 11,
+    "category": "data_layer",
+    "subcategory": "adapters",
+    "label": "data_adapter_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "data or adapter or provider"
+    ],
+    "repetition": 1,
+    "exit_code": 5,
+    "duration_sec": 2.9021631659998093,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0011_data_layer_data_adapter_tests_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 12,
+    "category": "apexlab_apexcore",
+    "subcategory": "pipeline",
+    "label": "apexcore_pipeline_validation",
+    "command": [
+      "python",
+      "scripts/validate_apexcore_pipeline.py"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 2.017586071000551,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0012_apexlab_apexcore_apexcore_pipeline_validation_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 13,
+    "category": "apexlab_apexcore",
+    "subcategory": "demo",
+    "label": "apexlab_demo",
+    "command": [
+      "python",
+      "scripts/run_apexlab_demo.py"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 5.035394254002313,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0013_apexlab_apexcore_apexlab_demo_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 14,
+    "category": "apexlab_apexcore",
+    "subcategory": "unit_tests",
+    "label": "apexlab_apexcore_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "apexlab or apexcore or model"
+    ],
+    "repetition": 1,
+    "exit_code": 5,
+    "duration_sec": 2.937372034000873,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0014_apexlab_apexcore_apexlab_apexcore_tests_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 15,
+    "category": "risk_controls",
+    "subcategory": "zde",
+    "label": "zde_validation",
+    "command": [
+      "python",
+      "scripts/zde_validation.py"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 4.23283144600282,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0015_risk_controls_zde_validation_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 16,
+    "category": "risk_controls",
+    "subcategory": "omega",
+    "label": "omega_directive_enforcement",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or risk or suppress"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 2.9592236899989075,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0016_risk_controls_omega_directive_enforcement_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 17,
+    "category": "risk_controls",
+    "subcategory": "engine",
+    "label": "engine_determinism_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "determinism or engine"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 3.054809829001897,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0017_risk_controls_engine_determinism_tests_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 18,
+    "category": "ui_frontend",
+    "subcategory": "typescript",
+    "label": "typescript_typecheck",
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 5.955522776996077,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0018_ui_frontend_typescript_typecheck_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 19,
+    "category": "ui_frontend",
+    "subcategory": "vitest",
+    "label": "vitest_unit_tests",
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "--run"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 3.9260446219996084,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0019_ui_frontend_vitest_unit_tests_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 20,
+    "category": "ui_frontend",
+    "subcategory": "build",
+    "label": "production_build",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 7.0354668159998255,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0020_ui_frontend_production_build_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 21,
+    "category": "ui_frontend",
+    "subcategory": "deep_validation",
+    "label": "ui_deep_3_profiles",
+    "command": [
+      "python",
+      "scripts/run_ui_deep_validation.py"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 32.60820749300183,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0021_ui_frontend_ui_deep_3_profiles_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 22,
+    "category": "server_api",
+    "subcategory": "endpoints",
+    "label": "api_endpoint_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "server or api or health or endpoint"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 3.026851265000005,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0022_server_api_api_endpoint_tests_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 23,
+    "category": "server_api",
+    "subcategory": "integration",
+    "label": "server_integration_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "integration or scan"
+    ],
+    "repetition": 1,
+    "exit_code": 0,
+    "duration_sec": 3.3283173739982885,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0023_server_api_server_integration_tests_rep1.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 24,
+    "category": "core_engine",
+    "subcategory": "pytest",
+    "label": "full_test_suite",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 3.7004619159997674,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0024_core_engine_full_test_suite_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 25,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "protocol_triple_validation",
+    "command": [
+      "python",
+      "scripts/run_protocol_triple_validation.py"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 2.506234118998691,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0025_core_engine_protocol_triple_validation_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 26,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "nuclear_determinism_10cycle",
+    "command": [
+      "python",
+      "scripts/run_nuclear_determinism.py"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 1.9002187160003814,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0026_core_engine_nuclear_determinism_10cycle_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 27,
+    "category": "protocols",
+    "subcategory": "tier_protocols",
+    "label": "T01-T80_all_tier_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "protocol or tier"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 2.9429186299967114,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0027_protocols_T01-T80_all_tier_protocols_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 28,
+    "category": "protocols",
+    "subcategory": "learning_protocols",
+    "label": "LP01-LP25_learning_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "learning or label"
+    ],
+    "repetition": 2,
+    "exit_code": 5,
+    "duration_sec": 2.988276779993612,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0028_protocols_LP01-LP25_learning_protocols_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 29,
+    "category": "protocols",
+    "subcategory": "monster_runner",
+    "label": "MR01-MR05_monster_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "monster"
+    ],
+    "repetition": 2,
+    "exit_code": 5,
+    "duration_sec": 3.0788502830037032,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0029_protocols_MR01-MR05_monster_protocols_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 30,
+    "category": "protocols",
+    "subcategory": "omega_directives",
+    "label": "Omega1-5_directives",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or directive"
+    ],
+    "repetition": 2,
+    "exit_code": 5,
+    "duration_sec": 3.0285929050005507,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0030_protocols_Omega1-5_directives_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 31,
+    "category": "data_layer",
+    "subcategory": "universe_scan",
+    "label": "random_universe_full_us",
+    "command": [
+      "python",
+      "scripts/run_random_universe_scan.py",
+      "--mode",
+      "full_us_equities"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 12.826039174004109,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0031_data_layer_random_universe_full_us_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 32,
+    "category": "data_layer",
+    "subcategory": "specialized_scan",
+    "label": "high_vol_smallcaps",
+    "command": [
+      "python",
+      "scripts/run_high_vol_smallcaps_scan.py"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 6.841976167001121,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0032_data_layer_high_vol_smallcaps_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 33,
+    "category": "data_layer",
+    "subcategory": "scan_modes",
+    "label": "all_8_scan_modes",
+    "command": [
+      "python",
+      "scripts/run_scanner_all_modes.py"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 1.85366871500446,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0033_data_layer_all_8_scan_modes_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 34,
+    "category": "data_layer",
+    "subcategory": "adapters",
+    "label": "data_adapter_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "data or adapter or provider"
+    ],
+    "repetition": 2,
+    "exit_code": 5,
+    "duration_sec": 2.9063247029989725,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0034_data_layer_data_adapter_tests_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 35,
+    "category": "apexlab_apexcore",
+    "subcategory": "pipeline",
+    "label": "apexcore_pipeline_validation",
+    "command": [
+      "python",
+      "scripts/validate_apexcore_pipeline.py"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 2.1082538530026795,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0035_apexlab_apexcore_apexcore_pipeline_validation_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 36,
+    "category": "apexlab_apexcore",
+    "subcategory": "demo",
+    "label": "apexlab_demo",
+    "command": [
+      "python",
+      "scripts/run_apexlab_demo.py"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 4.534584401997563,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0036_apexlab_apexcore_apexlab_demo_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 37,
+    "category": "apexlab_apexcore",
+    "subcategory": "unit_tests",
+    "label": "apexlab_apexcore_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "apexlab or apexcore or model"
+    ],
+    "repetition": 2,
+    "exit_code": 5,
+    "duration_sec": 2.918699704001483,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0037_apexlab_apexcore_apexlab_apexcore_tests_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 38,
+    "category": "risk_controls",
+    "subcategory": "zde",
+    "label": "zde_validation",
+    "command": [
+      "python",
+      "scripts/zde_validation.py"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 4.093328543996904,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0038_risk_controls_zde_validation_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 39,
+    "category": "risk_controls",
+    "subcategory": "omega",
+    "label": "omega_directive_enforcement",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or risk or suppress"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 2.964342935003515,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0039_risk_controls_omega_directive_enforcement_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 40,
+    "category": "risk_controls",
+    "subcategory": "engine",
+    "label": "engine_determinism_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "determinism or engine"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 3.092492843999935,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0040_risk_controls_engine_determinism_tests_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 41,
+    "category": "ui_frontend",
+    "subcategory": "typescript",
+    "label": "typescript_typecheck",
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 4.762123037005949,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0041_ui_frontend_typescript_typecheck_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 42,
+    "category": "ui_frontend",
+    "subcategory": "vitest",
+    "label": "vitest_unit_tests",
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "--run"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 3.7157629350040224,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0042_ui_frontend_vitest_unit_tests_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 43,
+    "category": "ui_frontend",
+    "subcategory": "build",
+    "label": "production_build",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 6.8934917639999185,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0043_ui_frontend_production_build_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 44,
+    "category": "ui_frontend",
+    "subcategory": "deep_validation",
+    "label": "ui_deep_3_profiles",
+    "command": [
+      "python",
+      "scripts/run_ui_deep_validation.py"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 31.616842904993973,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0044_ui_frontend_ui_deep_3_profiles_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 45,
+    "category": "server_api",
+    "subcategory": "endpoints",
+    "label": "api_endpoint_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "server or api or health or endpoint"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 3.010809760002303,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0045_server_api_api_endpoint_tests_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 46,
+    "category": "server_api",
+    "subcategory": "integration",
+    "label": "server_integration_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "integration or scan"
+    ],
+    "repetition": 2,
+    "exit_code": 0,
+    "duration_sec": 3.1661101450008573,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0046_server_api_server_integration_tests_rep2.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 47,
+    "category": "core_engine",
+    "subcategory": "pytest",
+    "label": "full_test_suite",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 3.310729796998203,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0047_core_engine_full_test_suite_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 48,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "protocol_triple_validation",
+    "command": [
+      "python",
+      "scripts/run_protocol_triple_validation.py"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 2.366791612999805,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0048_core_engine_protocol_triple_validation_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 49,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "nuclear_determinism_10cycle",
+    "command": [
+      "python",
+      "scripts/run_nuclear_determinism.py"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 1.688097806996666,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0049_core_engine_nuclear_determinism_10cycle_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 50,
+    "category": "protocols",
+    "subcategory": "tier_protocols",
+    "label": "T01-T80_all_tier_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "protocol or tier"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 2.861143555994204,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0050_protocols_T01-T80_all_tier_protocols_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 51,
+    "category": "protocols",
+    "subcategory": "learning_protocols",
+    "label": "LP01-LP25_learning_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "learning or label"
+    ],
+    "repetition": 3,
+    "exit_code": 5,
+    "duration_sec": 2.9700064520002343,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0051_protocols_LP01-LP25_learning_protocols_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 52,
+    "category": "protocols",
+    "subcategory": "monster_runner",
+    "label": "MR01-MR05_monster_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "monster"
+    ],
+    "repetition": 3,
+    "exit_code": 5,
+    "duration_sec": 2.883790740997938,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0052_protocols_MR01-MR05_monster_protocols_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 53,
+    "category": "protocols",
+    "subcategory": "omega_directives",
+    "label": "Omega1-5_directives",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or directive"
+    ],
+    "repetition": 3,
+    "exit_code": 5,
+    "duration_sec": 2.9243743840052048,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0053_protocols_Omega1-5_directives_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 54,
+    "category": "data_layer",
+    "subcategory": "universe_scan",
+    "label": "random_universe_full_us",
+    "command": [
+      "python",
+      "scripts/run_random_universe_scan.py",
+      "--mode",
+      "full_us_equities"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 13.41621130299609,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0054_data_layer_random_universe_full_us_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 55,
+    "category": "data_layer",
+    "subcategory": "specialized_scan",
+    "label": "high_vol_smallcaps",
+    "command": [
+      "python",
+      "scripts/run_high_vol_smallcaps_scan.py"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 7.901216108999506,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0055_data_layer_high_vol_smallcaps_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 56,
+    "category": "data_layer",
+    "subcategory": "scan_modes",
+    "label": "all_8_scan_modes",
+    "command": [
+      "python",
+      "scripts/run_scanner_all_modes.py"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 1.9059068829956232,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0056_data_layer_all_8_scan_modes_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 57,
+    "category": "data_layer",
+    "subcategory": "adapters",
+    "label": "data_adapter_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "data or adapter or provider"
+    ],
+    "repetition": 3,
+    "exit_code": 5,
+    "duration_sec": 2.886011716000212,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0057_data_layer_data_adapter_tests_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 58,
+    "category": "apexlab_apexcore",
+    "subcategory": "pipeline",
+    "label": "apexcore_pipeline_validation",
+    "command": [
+      "python",
+      "scripts/validate_apexcore_pipeline.py"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 2.1062308969994774,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0058_apexlab_apexcore_apexcore_pipeline_validation_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 59,
+    "category": "apexlab_apexcore",
+    "subcategory": "demo",
+    "label": "apexlab_demo",
+    "command": [
+      "python",
+      "scripts/run_apexlab_demo.py"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 4.616612270001497,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0059_apexlab_apexcore_apexlab_demo_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 60,
+    "category": "apexlab_apexcore",
+    "subcategory": "unit_tests",
+    "label": "apexlab_apexcore_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "apexlab or apexcore or model"
+    ],
+    "repetition": 3,
+    "exit_code": 5,
+    "duration_sec": 2.919683405001706,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0060_apexlab_apexcore_apexlab_apexcore_tests_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 61,
+    "category": "risk_controls",
+    "subcategory": "zde",
+    "label": "zde_validation",
+    "command": [
+      "python",
+      "scripts/zde_validation.py"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 4.258265836004284,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0061_risk_controls_zde_validation_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 62,
+    "category": "risk_controls",
+    "subcategory": "omega",
+    "label": "omega_directive_enforcement",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or risk or suppress"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 2.9722800009985804,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0062_risk_controls_omega_directive_enforcement_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 63,
+    "category": "risk_controls",
+    "subcategory": "engine",
+    "label": "engine_determinism_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "determinism or engine"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 2.973085331002949,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0063_risk_controls_engine_determinism_tests_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 64,
+    "category": "ui_frontend",
+    "subcategory": "typescript",
+    "label": "typescript_typecheck",
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 5.307089116002317,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0064_ui_frontend_typescript_typecheck_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 65,
+    "category": "ui_frontend",
+    "subcategory": "vitest",
+    "label": "vitest_unit_tests",
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "--run"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 3.9569281639996916,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0065_ui_frontend_vitest_unit_tests_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 66,
+    "category": "ui_frontend",
+    "subcategory": "build",
+    "label": "production_build",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 6.749532572001044,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0066_ui_frontend_production_build_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 67,
+    "category": "ui_frontend",
+    "subcategory": "deep_validation",
+    "label": "ui_deep_3_profiles",
+    "command": [
+      "python",
+      "scripts/run_ui_deep_validation.py"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 31.678433182001754,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0067_ui_frontend_ui_deep_3_profiles_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 68,
+    "category": "server_api",
+    "subcategory": "endpoints",
+    "label": "api_endpoint_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "server or api or health or endpoint"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 3.09168648099876,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0068_server_api_api_endpoint_tests_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 69,
+    "category": "server_api",
+    "subcategory": "integration",
+    "label": "server_integration_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "integration or scan"
+    ],
+    "repetition": 3,
+    "exit_code": 0,
+    "duration_sec": 3.257178099003795,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0069_server_api_server_integration_tests_rep3.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 70,
+    "category": "core_engine",
+    "subcategory": "pytest",
+    "label": "full_test_suite",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 3.390837418999581,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0070_core_engine_full_test_suite_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 71,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "protocol_triple_validation",
+    "command": [
+      "python",
+      "scripts/run_protocol_triple_validation.py"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 2.4451280089997454,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0071_core_engine_protocol_triple_validation_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 72,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "nuclear_determinism_10cycle",
+    "command": [
+      "python",
+      "scripts/run_nuclear_determinism.py"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 1.650521256000502,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0072_core_engine_nuclear_determinism_10cycle_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 73,
+    "category": "protocols",
+    "subcategory": "tier_protocols",
+    "label": "T01-T80_all_tier_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "protocol or tier"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 2.9224619369997527,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0073_protocols_T01-T80_all_tier_protocols_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 74,
+    "category": "protocols",
+    "subcategory": "learning_protocols",
+    "label": "LP01-LP25_learning_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "learning or label"
+    ],
+    "repetition": 4,
+    "exit_code": 5,
+    "duration_sec": 2.843584081005247,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0074_protocols_LP01-LP25_learning_protocols_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 75,
+    "category": "protocols",
+    "subcategory": "monster_runner",
+    "label": "MR01-MR05_monster_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "monster"
+    ],
+    "repetition": 4,
+    "exit_code": 5,
+    "duration_sec": 2.915306992996193,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0075_protocols_MR01-MR05_monster_protocols_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 76,
+    "category": "protocols",
+    "subcategory": "omega_directives",
+    "label": "Omega1-5_directives",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or directive"
+    ],
+    "repetition": 4,
+    "exit_code": 5,
+    "duration_sec": 2.857642411996494,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0076_protocols_Omega1-5_directives_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 77,
+    "category": "data_layer",
+    "subcategory": "universe_scan",
+    "label": "random_universe_full_us",
+    "command": [
+      "python",
+      "scripts/run_random_universe_scan.py",
+      "--mode",
+      "full_us_equities"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 13.141484749998199,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0077_data_layer_random_universe_full_us_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 78,
+    "category": "data_layer",
+    "subcategory": "specialized_scan",
+    "label": "high_vol_smallcaps",
+    "command": [
+      "python",
+      "scripts/run_high_vol_smallcaps_scan.py"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 6.905863648004015,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0078_data_layer_high_vol_smallcaps_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 79,
+    "category": "data_layer",
+    "subcategory": "scan_modes",
+    "label": "all_8_scan_modes",
+    "command": [
+      "python",
+      "scripts/run_scanner_all_modes.py"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 2.0677825669990852,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0079_data_layer_all_8_scan_modes_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 80,
+    "category": "data_layer",
+    "subcategory": "adapters",
+    "label": "data_adapter_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "data or adapter or provider"
+    ],
+    "repetition": 4,
+    "exit_code": 5,
+    "duration_sec": 2.9981509919962264,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0080_data_layer_data_adapter_tests_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 81,
+    "category": "apexlab_apexcore",
+    "subcategory": "pipeline",
+    "label": "apexcore_pipeline_validation",
+    "command": [
+      "python",
+      "scripts/validate_apexcore_pipeline.py"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 2.051669849002792,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0081_apexlab_apexcore_apexcore_pipeline_validation_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 82,
+    "category": "apexlab_apexcore",
+    "subcategory": "demo",
+    "label": "apexlab_demo",
+    "command": [
+      "python",
+      "scripts/run_apexlab_demo.py"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 4.492236937003327,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0082_apexlab_apexcore_apexlab_demo_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 83,
+    "category": "apexlab_apexcore",
+    "subcategory": "unit_tests",
+    "label": "apexlab_apexcore_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "apexlab or apexcore or model"
+    ],
+    "repetition": 4,
+    "exit_code": 5,
+    "duration_sec": 2.9429677310035913,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0083_apexlab_apexcore_apexlab_apexcore_tests_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 84,
+    "category": "risk_controls",
+    "subcategory": "zde",
+    "label": "zde_validation",
+    "command": [
+      "python",
+      "scripts/zde_validation.py"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 4.123139287003141,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0084_risk_controls_zde_validation_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 85,
+    "category": "risk_controls",
+    "subcategory": "omega",
+    "label": "omega_directive_enforcement",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or risk or suppress"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 2.785375927000132,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0085_risk_controls_omega_directive_enforcement_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 86,
+    "category": "risk_controls",
+    "subcategory": "engine",
+    "label": "engine_determinism_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "determinism or engine"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 2.898117472002923,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0086_risk_controls_engine_determinism_tests_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 87,
+    "category": "ui_frontend",
+    "subcategory": "typescript",
+    "label": "typescript_typecheck",
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 4.851825799996732,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0087_ui_frontend_typescript_typecheck_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 88,
+    "category": "ui_frontend",
+    "subcategory": "vitest",
+    "label": "vitest_unit_tests",
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "--run"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 3.621250317002705,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0088_ui_frontend_vitest_unit_tests_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 89,
+    "category": "ui_frontend",
+    "subcategory": "build",
+    "label": "production_build",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 6.711142824002309,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0089_ui_frontend_production_build_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 90,
+    "category": "ui_frontend",
+    "subcategory": "deep_validation",
+    "label": "ui_deep_3_profiles",
+    "command": [
+      "python",
+      "scripts/run_ui_deep_validation.py"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 31.63439433900203,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0090_ui_frontend_ui_deep_3_profiles_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 91,
+    "category": "server_api",
+    "subcategory": "endpoints",
+    "label": "api_endpoint_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "server or api or health or endpoint"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 3.120225891005248,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0091_server_api_api_endpoint_tests_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 92,
+    "category": "server_api",
+    "subcategory": "integration",
+    "label": "server_integration_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "integration or scan"
+    ],
+    "repetition": 4,
+    "exit_code": 0,
+    "duration_sec": 3.0637534280031105,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0092_server_api_server_integration_tests_rep4.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 93,
+    "category": "core_engine",
+    "subcategory": "pytest",
+    "label": "full_test_suite",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 3.4928362219943665,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0093_core_engine_full_test_suite_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 94,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "protocol_triple_validation",
+    "command": [
+      "python",
+      "scripts/run_protocol_triple_validation.py"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 2.335155686996586,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0094_core_engine_protocol_triple_validation_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 95,
+    "category": "core_engine",
+    "subcategory": "determinism",
+    "label": "nuclear_determinism_10cycle",
+    "command": [
+      "python",
+      "scripts/run_nuclear_determinism.py"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 1.7514919690001989,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0095_core_engine_nuclear_determinism_10cycle_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 96,
+    "category": "protocols",
+    "subcategory": "tier_protocols",
+    "label": "T01-T80_all_tier_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "protocol or tier"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 2.9768157880025683,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0096_protocols_T01-T80_all_tier_protocols_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 97,
+    "category": "protocols",
+    "subcategory": "learning_protocols",
+    "label": "LP01-LP25_learning_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "learning or label"
+    ],
+    "repetition": 5,
+    "exit_code": 5,
+    "duration_sec": 2.9373914249954396,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0097_protocols_LP01-LP25_learning_protocols_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 98,
+    "category": "protocols",
+    "subcategory": "monster_runner",
+    "label": "MR01-MR05_monster_protocols",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "monster"
+    ],
+    "repetition": 5,
+    "exit_code": 5,
+    "duration_sec": 2.8149123080002028,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0098_protocols_MR01-MR05_monster_protocols_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 99,
+    "category": "protocols",
+    "subcategory": "omega_directives",
+    "label": "Omega1-5_directives",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or directive"
+    ],
+    "repetition": 5,
+    "exit_code": 5,
+    "duration_sec": 2.9065571469982387,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0099_protocols_Omega1-5_directives_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 100,
+    "category": "data_layer",
+    "subcategory": "universe_scan",
+    "label": "random_universe_full_us",
+    "command": [
+      "python",
+      "scripts/run_random_universe_scan.py",
+      "--mode",
+      "full_us_equities"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 12.716752342996188,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0100_data_layer_random_universe_full_us_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 101,
+    "category": "data_layer",
+    "subcategory": "specialized_scan",
+    "label": "high_vol_smallcaps",
+    "command": [
+      "python",
+      "scripts/run_high_vol_smallcaps_scan.py"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 6.728068456999608,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0101_data_layer_high_vol_smallcaps_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 102,
+    "category": "data_layer",
+    "subcategory": "scan_modes",
+    "label": "all_8_scan_modes",
+    "command": [
+      "python",
+      "scripts/run_scanner_all_modes.py"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 1.8450014789996203,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0102_data_layer_all_8_scan_modes_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 103,
+    "category": "data_layer",
+    "subcategory": "adapters",
+    "label": "data_adapter_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "data or adapter or provider"
+    ],
+    "repetition": 5,
+    "exit_code": 5,
+    "duration_sec": 2.8756324509959086,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0103_data_layer_data_adapter_tests_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 104,
+    "category": "apexlab_apexcore",
+    "subcategory": "pipeline",
+    "label": "apexcore_pipeline_validation",
+    "command": [
+      "python",
+      "scripts/validate_apexcore_pipeline.py"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 1.9472693499992602,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0104_apexlab_apexcore_apexcore_pipeline_validation_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 105,
+    "category": "apexlab_apexcore",
+    "subcategory": "demo",
+    "label": "apexlab_demo",
+    "command": [
+      "python",
+      "scripts/run_apexlab_demo.py"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 4.334476137002639,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0105_apexlab_apexcore_apexlab_demo_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 106,
+    "category": "apexlab_apexcore",
+    "subcategory": "unit_tests",
+    "label": "apexlab_apexcore_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "apexlab or apexcore or model"
+    ],
+    "repetition": 5,
+    "exit_code": 5,
+    "duration_sec": 3.0125887200047146,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0106_apexlab_apexcore_apexlab_apexcore_tests_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 107,
+    "category": "risk_controls",
+    "subcategory": "zde",
+    "label": "zde_validation",
+    "command": [
+      "python",
+      "scripts/zde_validation.py"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 4.220696564996615,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0107_risk_controls_zde_validation_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 108,
+    "category": "risk_controls",
+    "subcategory": "omega",
+    "label": "omega_directive_enforcement",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "omega or risk or suppress"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 2.814589194000291,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0108_risk_controls_omega_directive_enforcement_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 109,
+    "category": "risk_controls",
+    "subcategory": "engine",
+    "label": "engine_determinism_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "determinism or engine"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 2.8544214770008693,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0109_risk_controls_engine_determinism_tests_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 110,
+    "category": "ui_frontend",
+    "subcategory": "typescript",
+    "label": "typescript_typecheck",
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 4.638694667999516,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0110_ui_frontend_typescript_typecheck_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 111,
+    "category": "ui_frontend",
+    "subcategory": "vitest",
+    "label": "vitest_unit_tests",
+    "command": [
+      "npm",
+      "test",
+      "--",
+      "--run"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 3.6145027820020914,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0111_ui_frontend_vitest_unit_tests_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 112,
+    "category": "ui_frontend",
+    "subcategory": "build",
+    "label": "production_build",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 6.628517965000356,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0112_ui_frontend_production_build_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 113,
+    "category": "ui_frontend",
+    "subcategory": "deep_validation",
+    "label": "ui_deep_3_profiles",
+    "command": [
+      "python",
+      "scripts/run_ui_deep_validation.py"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 31.39392306199443,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0113_ui_frontend_ui_deep_3_profiles_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 114,
+    "category": "server_api",
+    "subcategory": "endpoints",
+    "label": "api_endpoint_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "server or api or health or endpoint"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 3.1229480239999248,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0114_server_api_api_endpoint_tests_rep5.log",
+    "skipped": false,
+    "reason": ""
+  },
+  {
+    "id": 115,
+    "category": "server_api",
+    "subcategory": "integration",
+    "label": "server_integration_tests",
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/",
+      "-k",
+      "integration or scan"
+    ],
+    "repetition": 5,
+    "exit_code": 0,
+    "duration_sec": 3.3597247279976727,
+    "log_path": "logs/nuclear_deep_dive/20251128_221826/run_0115_server_api_server_integration_tests_rep5.log",
+    "skipped": false,
+    "reason": ""
+  }
+]
