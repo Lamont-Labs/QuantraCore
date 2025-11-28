@@ -19,7 +19,7 @@ from src.quantracore_apex.core.volume_spike import compute_volume_metrics
 from src.quantracore_apex.core.regime import classify_regime
 from src.quantracore_apex.core.quantrascore import compute_quantrascore
 from src.quantracore_apex.core.microtraits import compute_microtraits
-from src.quantracore_apex.core.sector_context import apply_sector_context
+from src.quantracore_apex.core.sector_context import apply_sector_context, SectorContext
 
 
 def generate_bars(n: int = 100, seed: int = 42) -> List[OhlcvBar]:
@@ -49,6 +49,11 @@ def generate_bars(n: int = 100, seed: int = 42) -> List[OhlcvBar]:
     return bars
 
 
+def create_window(bars: List[OhlcvBar], symbol: str = "TEST") -> OhlcvWindow:
+    """Create an OhlcvWindow from bars."""
+    return OhlcvWindow(symbol=symbol, timeframe="1d", bars=bars)
+
+
 class TestApexEngine:
     """Tests for ApexEngine class."""
     
@@ -62,7 +67,7 @@ class TestApexEngine:
         engine = ApexEngine()
         bars = generate_bars(100)
         
-        result = engine.scan(bars, symbol="TEST")
+        result = engine.run_scan(bars, symbol="TEST")
         
         assert isinstance(result, ApexResult)
         assert 0 <= result.quantrascore <= 100
@@ -73,8 +78,8 @@ class TestApexEngine:
         engine = ApexEngine()
         bars = generate_bars(100, seed=42)
         
-        result1 = engine.scan(bars, symbol="TEST")
-        result2 = engine.scan(bars, symbol="TEST")
+        result1 = engine.run_scan(bars, symbol="TEST")
+        result2 = engine.run_scan(bars, symbol="TEST")
         
         assert result1.quantrascore == result2.quantrascore
         assert result1.regime == result2.regime
@@ -87,8 +92,8 @@ class TestApexEngine:
         bars1 = generate_bars(100, seed=42)
         bars2 = generate_bars(100, seed=99)
         
-        result1 = engine.scan(bars1, symbol="TEST1")
-        result2 = engine.scan(bars2, symbol="TEST2")
+        result1 = engine.run_scan(bars1, symbol="TEST1")
+        result2 = engine.run_scan(bars2, symbol="TEST2")
         
         assert result1.quantrascore != result2.quantrascore or result1.regime != result2.regime
 
@@ -99,7 +104,7 @@ class TestEntropyModule:
     def test_compute_entropy(self):
         """Test entropy computation."""
         bars = generate_bars(100)
-        window = OhlcvWindow(bars=bars)
+        window = create_window(bars)
         metrics = compute_entropy(window)
         
         assert metrics is not None
@@ -108,7 +113,7 @@ class TestEntropyModule:
     def test_entropy_determinism(self):
         """Test entropy is deterministic."""
         bars = generate_bars(100, seed=42)
-        window = OhlcvWindow(bars=bars)
+        window = create_window(bars)
         
         m1 = compute_entropy(window)
         m2 = compute_entropy(window)
@@ -122,7 +127,7 @@ class TestSuppressionModule:
     def test_compute_suppression(self):
         """Test suppression computation."""
         bars = generate_bars(100)
-        window = OhlcvWindow(bars=bars)
+        window = create_window(bars)
         metrics = compute_suppression(window)
         
         assert metrics is not None
@@ -131,7 +136,7 @@ class TestSuppressionModule:
     def test_suppression_determinism(self):
         """Test suppression is deterministic."""
         bars = generate_bars(100, seed=42)
-        window = OhlcvWindow(bars=bars)
+        window = create_window(bars)
         
         m1 = compute_suppression(window)
         m2 = compute_suppression(window)
@@ -145,7 +150,7 @@ class TestDriftModule:
     def test_compute_drift(self):
         """Test drift computation."""
         bars = generate_bars(100)
-        window = OhlcvWindow(bars=bars)
+        window = create_window(bars)
         metrics = compute_drift(window)
         
         assert metrics is not None
@@ -158,7 +163,7 @@ class TestContinuationModule:
     def test_compute_continuation(self):
         """Test continuation computation."""
         bars = generate_bars(100)
-        window = OhlcvWindow(bars=bars)
+        window = create_window(bars)
         metrics = compute_continuation(window)
         
         assert metrics is not None
@@ -171,8 +176,8 @@ class TestVolumeModule:
     def test_compute_volume(self):
         """Test volume computation."""
         bars = generate_bars(100)
-        window = OhlcvWindow(bars=bars)
-        metrics = compute_volume_spike(window)
+        window = create_window(bars)
+        metrics = compute_volume_metrics(window)
         
         assert metrics is not None
 
@@ -183,7 +188,9 @@ class TestRegimeModule:
     def test_classify_regime(self):
         """Test regime classification."""
         bars = generate_bars(100)
-        regime = classify_regime(bars)
+        window = create_window(bars)
+        microtraits = compute_microtraits(window)
+        regime = classify_regime(window, microtraits)
         
         assert regime is not None
 
@@ -195,7 +202,7 @@ class TestQuantraScoreModule:
         """Test QuantraScore computation."""
         engine = ApexEngine()
         bars = generate_bars(100)
-        result = engine.scan(bars, symbol="TEST")
+        result = engine.run_scan(bars, symbol="TEST")
         
         assert 0 <= result.quantrascore <= 100
     
@@ -205,7 +212,7 @@ class TestQuantraScoreModule:
         
         for seed in range(10):
             bars = generate_bars(100, seed=seed)
-            result = engine.scan(bars, symbol=f"TEST{seed}")
+            result = engine.run_scan(bars, symbol=f"TEST{seed}")
             assert 0 <= result.quantrascore <= 100
 
 
@@ -215,7 +222,8 @@ class TestMicrotraitsModule:
     def test_compute_microtraits(self):
         """Test microtrait computation."""
         bars = generate_bars(100)
-        traits = compute_microtraits(bars)
+        window = create_window(bars)
+        traits = compute_microtraits(window)
         
         assert traits is not None
 
@@ -227,6 +235,23 @@ class TestSectorContext:
         """Test sector context application."""
         engine = ApexEngine()
         bars = generate_bars(100)
-        result = engine.scan(bars, symbol="AAPL")
+        result = engine.run_scan(bars, symbol="AAPL")
         
         assert result is not None
+    
+    def test_sector_context_class(self):
+        """Test SectorContext class methods."""
+        ctx = SectorContext("technology")
+        assert ctx.get_volatility_baseline() == 0.25
+        assert ctx.get_sensitivity_multiplier() == 1.2
+        
+        adjusted = ctx.adjust_score_for_sector(60.0)
+        assert adjusted != 60.0
+    
+    def test_apply_sector_context_function(self):
+        """Test apply_sector_context convenience function."""
+        score = apply_sector_context(50.0, "technology")
+        assert score == 50.0
+        
+        adjusted = apply_sector_context(60.0, "technology")
+        assert adjusted != 60.0
