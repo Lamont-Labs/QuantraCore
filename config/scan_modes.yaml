@@ -1,0 +1,187 @@
+# QuantraCore Apex - Scan Modes Configuration
+# v9.0-A Universal Scanner Upgrade
+#
+# Pre-defined scanning modes for different universe coverage and focus areas.
+# Optimized for K6 desktop performance with batching and chunking.
+
+version: "9.0-A"
+last_updated: "2025-11-28"
+
+modes:
+  # Full US equity universe (all caps)
+  full_us_equities:
+    description: "All active US equities across all cap buckets"
+    buckets:
+      - mega
+      - large
+      - mid
+      - small
+      - micro
+      - nano
+      - penny
+    max_symbols: 4000
+    chunk_size: 300
+    batch_delay_seconds: 0.5
+    cache_required: true
+    priority_sort: "market_cap_desc"
+    filters: null
+    risk_default: "mixed"
+    notes: "Full universe scan - use caching, run in batches"
+
+  # High-volatility small caps
+  high_vol_small_caps:
+    description: "Small/Micro/Nano caps with high volatility and volume"
+    buckets:
+      - small
+      - micro
+      - nano
+      - penny
+    max_symbols: 1000
+    chunk_size: 200
+    batch_delay_seconds: 0.3
+    cache_required: true
+    priority_sort: "volatility_desc"
+    filters:
+      min_price: 0.20
+      max_price: 50.00
+      min_atr_percent: 3.0
+      min_relative_volume: 2.0
+      min_avg_volume: 100000
+    risk_default: "high"
+    notes: "Focus on volatile small caps - MonsterRunner territory"
+
+  # Low-float runner candidates
+  low_float_runners:
+    description: "Low-float names where monster runners often appear"
+    buckets:
+      - micro
+      - nano
+      - penny
+    max_symbols: 500
+    chunk_size: 150
+    batch_delay_seconds: 0.2
+    cache_required: true
+    priority_sort: "float_asc"
+    filters:
+      max_float_millions: 15.0
+      min_relative_volume: 3.0
+      min_avg_volume: 50000
+      min_price: 0.10
+      max_price: 20.00
+    risk_default: "extreme"
+    notes: "Extreme volatility zone - strict risk controls required"
+
+  # Mega and large caps only (existing behavior)
+  mega_large_focus:
+    description: "Mega/Large caps only - stable, liquid names"
+    buckets:
+      - mega
+      - large
+    max_symbols: 500
+    chunk_size: 200
+    batch_delay_seconds: 0.1
+    cache_required: false
+    priority_sort: "market_cap_desc"
+    filters:
+      min_avg_volume: 500000
+    risk_default: "low"
+    notes: "Blue-chip focus - low risk, high liquidity"
+
+  # Mid-cap focus
+  mid_cap_focus:
+    description: "Mid-cap universe - growth potential with moderate risk"
+    buckets:
+      - mid
+    max_symbols: 800
+    chunk_size: 250
+    batch_delay_seconds: 0.2
+    cache_required: true
+    priority_sort: "market_cap_desc"
+    filters:
+      min_avg_volume: 200000
+    risk_default: "medium"
+    notes: "Mid-cap sweet spot - balanced risk/reward"
+
+  # Momentum runners
+  momentum_runners:
+    description: "High momentum stocks across all caps"
+    buckets:
+      - mega
+      - large
+      - mid
+      - small
+      - micro
+    max_symbols: 300
+    chunk_size: 100
+    batch_delay_seconds: 0.2
+    cache_required: true
+    priority_sort: "momentum_desc"
+    filters:
+      min_relative_volume: 2.5
+      min_price_change_5d_percent: 10.0
+      min_avg_volume: 100000
+    risk_default: "high"
+    notes: "Momentum focus - already moving names"
+
+  # Demo mode (tiny universe for testing)
+  demo:
+    description: "Tiny demo universe for testing and CI"
+    buckets:
+      - mega
+      - large
+    max_symbols: 20
+    chunk_size: 10
+    batch_delay_seconds: 0.0
+    cache_required: false
+    priority_sort: null
+    filters: null
+    risk_default: "low"
+    use_universe: "demo"
+    notes: "For testing only - not for production scans"
+
+  # CI test mode (very small)
+  ci_test:
+    description: "Minimal universe for CI testing"
+    buckets:
+      - mega
+    max_symbols: 5
+    chunk_size: 5
+    batch_delay_seconds: 0.0
+    cache_required: false
+    priority_sort: null
+    filters: null
+    risk_default: "low"
+    use_universe: "demo"
+    notes: "CI-only - 5 symbols max"
+
+# Performance settings for K6 desktop
+performance:
+  k6_safe_defaults:
+    max_concurrent_requests: 4
+    memory_limit_mb: 2048
+    cpu_throttle_percent: 70
+    disk_cache_max_gb: 10
+    batch_cooldown_seconds: 1.0
+  
+  throttling:
+    enable_cpu_monitoring: true
+    pause_on_high_cpu: true
+    high_cpu_threshold: 85
+    resume_cpu_threshold: 60
+
+# Cache settings
+caching:
+  enabled: true
+  cache_dir: "data/cache"
+  manifest_file: "data/cache/MANIFEST.json"
+  max_age_days: 7
+  refresh_on_stale: true
+  compression: true
+  file_format: "parquet"
+
+# Provider priority for data fetching
+data_providers:
+  primary: "polygon"
+  secondary: "yahoo"
+  tertiary: "csv_bundle"
+  fallback_to_synthetic: false
