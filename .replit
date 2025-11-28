@@ -4,7 +4,7 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
-packages = ["glibcLocales", "libxcrypt", "libyaml"]
+packages = ["gitFull", "glibcLocales", "libxcrypt", "libyaml", "playwright-driver", "nspr", "nss", "dbus", "at-spi2-atk", "cups", "xorg.libxcb", "libxkbcommon", "at-spi2-core", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXfixes", "mesa", "cairo", "pango", "alsa-lib", "atk", "gdk-pixbuf", "gtk3", "xorg.libX11", "xorg.libXrandr", "xorg.libXext", "libgbm", "libdrm"]
 
 [workflows]
 runButton = "Project"
@@ -21,6 +21,10 @@ args = "FastAPI Backend"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "ApexDesk Frontend"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "UI Live Demo"
 
 [[workflows.workflow]]
 name = "FastAPI Backend"
@@ -46,6 +50,17 @@ waitForPort = 5000
 [workflows.workflow.metadata]
 outputType = "webview"
 
+[[workflows.workflow]]
+name = "UI Live Demo"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python scripts/run_ui_live_demo.py"
+
+[workflows.workflow.metadata]
+outputType = "vnc"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
@@ -65,10 +80,6 @@ externalPort = 8080
 [[ports]]
 localPort = 34451
 externalPort = 5173
-
-[[ports]]
-localPort = 34595
-externalPort = 8081
 
 [[ports]]
 localPort = 36313
