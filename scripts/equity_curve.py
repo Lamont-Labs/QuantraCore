@@ -30,7 +30,7 @@ print(f"\nLoaded {len(decisions)} decisions from proof log")
 portfolio_value = 100000.0
 starting_capital = portfolio_value
 
-HIGH_THRESHOLD = 70
+HIGH_THRESHOLD = 60
 LOW_THRESHOLD = 30
 POSITION_SIZE_PCT = 0.10
 
