@@ -63,15 +63,18 @@ class TestProtocolSignatures:
         assert result.details is not None
         assert isinstance(result.details, dict)
     
-    def test_stub_protocols_return_stub_status(self, protocol_runner, sample_window):
-        """Test stub protocols (T21+) return stub status."""
+    def test_extended_protocols_return_valid_results(self, protocol_runner, sample_window):
+        """Test extended protocols (T21-T80) return valid results."""
         microtraits = compute_microtraits(sample_window)
-        result = protocol_runner.run_single("T30", sample_window, microtraits)
         
-        if result:
-            assert result.fired == False
-            assert "stub" in str(result.details.get("status", "")).lower() or \
-                   "stub" in str(result.details.get("message", "")).lower()
+        for proto_id in ["T21", "T30", "T40", "T50", "T60", "T70", "T80"]:
+            result = protocol_runner.run_single(proto_id, sample_window, microtraits)
+            
+            if result:
+                assert result.protocol_id == proto_id
+                assert 0 <= result.confidence <= 1
+                assert result.details is not None
+                assert "stub" not in str(result.details.get("status", "")).lower()
 
 
 class TestProtocolDeterminism:
