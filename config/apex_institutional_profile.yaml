@@ -1,0 +1,88 @@
+system: QuantraCore Apex
+version: v9.0-A (Institutional Hardening)
+generated_utc: '2025-11-28T23:17:18Z'
+data_tier_note: This bootstrap profile is data-tier agnostic. It is compatible with
+  both free-tier OHLCV data (e.g., Polygon free) and institutional data feeds. Institutions
+  are expected to wire their own feeds into the scanner layer; this config only dictates
+  hardware-aware scaling heuristics.
+hardware:
+  hostname: ea076780c532
+  os: Linux
+  os_version: '#1-NixOS SMP PREEMPT_DYNAMIC Tue Jan  1 00:00:00 UTC 1980'
+  python_version: 3.11.13
+  cpu_model: unknown-cpu
+  cpu_cores_logical: 8
+  cpu_cores_physical: 4
+  ram_gb: 62.8
+  gpu_present: false
+  gpu_name: null
+  gpu_count: 0
+scaling:
+  tier: MEDIUM
+  tier_reason: "<=8 logical cores or <=32GB RAM \u2014 tuned for single-node institutional\
+    \ pilot."
+  scanner_max_symbols: 5000
+  scanner_batch_size: 500
+  scanner_parallel_jobs: 4
+  engine_workers: 6
+  engine_max_concurrent_signals: 2000
+  apexlab_training_workers: 2
+  apexlab_max_parallel_jobs: 2
+  apexlab_recommended_checkpoint_interval: 45
+  apexcore_variant: big
+  apexcore_batch_size: 256
+  ui_max_concurrent_sessions: 15
+  ui_enable_server_side_render: true
+  log_retention_days: 14
+  log_max_bytes_per_file: 209715200
+environment_hints:
+  recommended_env:
+    APEX_ENGINE_WORKERS: 6
+    APEX_ENGINE_MAX_CONCURRENT_SIGNALS: 2000
+    APEX_SCANNER_MAX_SYMBOLS: 5000
+    APEX_SCANNER_BATCH_SIZE: 500
+    APEX_SCANNER_PARALLEL_JOBS: 4
+    APEXLAB_TRAINING_WORKERS: 2
+    APEXLAB_MAX_PARALLEL_JOBS: 2
+    APEXLAB_CKPT_INTERVAL_MIN: 45
+    APEXCORE_VARIANT: big
+    APEXCORE_BATCH_SIZE: 256
+    APEX_UI_MAX_SESSIONS: 15
+    APEX_UI_ENABLE_SSR: 1
+    APEX_LOG_RETENTION_DAYS: 14
+    APEX_LOG_MAX_BYTES: 209715200
+  integration_notes:
+  - These values are safe defaults derived from detected hardware.
+  - Institutions may increase limits gradually while monitoring CPU/RAM.
+  - For clustered deployments, run this script once per node and merge profiles.
+  - All settings are compatible with both free-tier and institutional data feeds.
+  hardware_summary:
+    hostname: ea076780c532
+    os: Linux
+    os_version: '#1-NixOS SMP PREEMPT_DYNAMIC Tue Jan  1 00:00:00 UTC 1980'
+    python_version: 3.11.13
+    cpu_model: unknown-cpu
+    cpu_cores_logical: 8
+    cpu_cores_physical: 4
+    ram_gb: 62.8
+    gpu_present: false
+    gpu_name: null
+    gpu_count: 0
+  scaling_summary:
+    tier: MEDIUM
+    tier_reason: "<=8 logical cores or <=32GB RAM \u2014 tuned for single-node institutional\
+      \ pilot."
+    scanner_max_symbols: 5000
+    scanner_batch_size: 500
+    scanner_parallel_jobs: 4
+    engine_workers: 6
+    engine_max_concurrent_signals: 2000
+    apexlab_training_workers: 2
+    apexlab_max_parallel_jobs: 2
+    apexlab_recommended_checkpoint_interval: 45
+    apexcore_variant: big
+    apexcore_batch_size: 256
+    ui_max_concurrent_sessions: 15
+    ui_enable_server_side_render: true
+    log_retention_days: 14
+    log_max_bytes_per_file: 209715200
