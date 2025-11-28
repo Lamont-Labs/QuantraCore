@@ -1,0 +1,106 @@
+{
+  "manifest_version": "1.0.0",
+  "project": {
+    "name": "QuantraCore Apex",
+    "version": "8.0.0",
+    "description": "Institutional-Grade Deterministic AI Trading Intelligence Engine",
+    "owner": "Lamont Labs — Jesse J. Lamont",
+    "repository": "https://github.com/Lamont-Labs/QuantraCore"
+  },
+  "build": {
+    "timestamp": "2025-11-28T00:00:00Z",
+    "environment": "Replit / NixOS",
+    "python_version": "3.11",
+    "platform": "linux-x86_64"
+  },
+  "protocols": {
+    "tier": {
+      "total": 80,
+      "implemented": "T01-T30",
+      "stub": "T31-T80",
+      "version": "1.0.0"
+    },
+    "learning": {
+      "total": 25,
+      "implemented": "LP01-LP10",
+      "stub": "LP11-LP25",
+      "version": "1.0.0"
+    },
+    "omega": {
+      "total": 4,
+      "implemented": "Ω1-Ω4",
+      "version": "1.0.0"
+    }
+  },
+  "modules": {
+    "core": {
+      "engine": "src/quantracore_apex/core/engine.py",
+      "schemas": "src/quantracore_apex/core/schemas.py",
+      "microtraits": "src/quantracore_apex/core/microtraits.py",
+      "entropy": "src/quantracore_apex/core/entropy.py",
+      "quantrascore": "src/quantracore_apex/core/quantrascore.py"
+    },
+    "data_layer": {
+      "polygon_adapter": "src/quantracore_apex/data_layer/adapters/polygon_adapter.py",
+      "caching": "src/quantracore_apex/data_layer/caching.py",
+      "normalization": "src/quantracore_apex/data_layer/normalization.py"
+    },
+    "apexlab": {
+      "features": "src/quantracore_apex/apexlab/features.py",
+      "labels": "src/quantracore_apex/apexlab/labels.py",
+      "dataset_builder": "src/quantracore_apex/apexlab/dataset_builder.py",
+      "train": "src/quantracore_apex/apexlab/train_apexcore_demo.py"
+    },
+    "apexcore": {
+      "interface": "src/quantracore_apex/apexcore/interface.py"
+    },
+    "prediction": {
+      "expected_move": "src/quantracore_apex/prediction/expected_move.py",
+      "monster_runner": "src/quantracore_apex/prediction/monster_runner.py"
+    },
+    "risk": {
+      "engine": "src/quantracore_apex/risk/engine.py"
+    },
+    "broker": {
+      "oms": "src/quantracore_apex/broker/oms.py"
+    },
+    "portfolio": {
+      "portfolio": "src/quantracore_apex/portfolio/portfolio.py"
+    },
+    "signal": {
+      "signal_builder": "src/quantracore_apex/signal/signal_builder.py"
+    },
+    "server": {
+      "api": "src/api/main.py",
+      "dashboard": "dashboard/app.py"
+    }
+  },
+  "verification": {
+    "nuclear_test_passed": true,
+    "determinism_verified": true,
+    "protocol_coverage": "17+ tier protocols firing",
+    "hash_chain_verified": true,
+    "memory_stable": true,
+    "fuzz_tested": true,
+    "quantrascore_bounds": "0-100 verified"
+  },
+  "backtest": {
+    "symbols_tested": 50,
+    "period": "2021-01-01 to 2024-01-01",
+    "mean_score": 52.80,
+    "high_conviction_count": 9,
+    "win_rate": "77.8%",
+    "profit_factor": 10.52
+  },
+  "compliance": {
+    "mode": "enabled",
+    "live_trading": "disabled",
+    "output_framing": "structural_probabilities",
+    "mobile_builds": "prohibited"
+  },
+  "artifacts": {
+    "sbom": "sbom/SBOM.json",
+    "provenance": "provenance/PROVENANCE.manifest",
+    "proof_logs": "proof_logs/"
+  }
+}

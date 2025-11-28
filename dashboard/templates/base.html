@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}QuantraCore Apex{% endblock %}</title>
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --red: #f85149;
+            --yellow: #d29922;
+            --purple: #a371f7;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        .logo span { color: var(--text-muted); font-weight: 400; }
+        
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 20px;
+            transition: color 0.2s;
+        }
+        
+        nav a:hover { color: var(--accent); }
+        nav a.active { color: var(--accent); }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        
+        tr:hover { background: rgba(88, 166, 255, 0.05); }
+        
+        .score {
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .score-high { background: rgba(63, 185, 80, 0.2); color: var(--green); }
+        .score-mid { background: rgba(210, 153, 34, 0.2); color: var(--yellow); }
+        .score-low { background: rgba(248, 81, 73, 0.2); color: var(--red); }
+        
+        .regime {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .regime-trending_up { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+        .regime-trending_down { background: rgba(248, 81, 73, 0.15); color: var(--red); }
+        .regime-volatile { background: rgba(210, 153, 34, 0.15); color: var(--yellow); }
+        .regime-range_bound { background: rgba(163, 113, 247, 0.15); color: var(--purple); }
+        .regime-unknown { background: rgba(139, 148, 158, 0.15); color: var(--text-muted); }
+        
+        .risk-low { color: var(--green); }
+        .risk-medium { color: var(--yellow); }
+        .risk-high { color: var(--red); }
+        .risk-extreme { color: #ff6b6b; font-weight: bold; }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-primary:hover { background: #4393e6; }
+        
+        .grid { display: grid; gap: 20px; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        
+        @media (max-width: 1024px) {
+            .grid-4 { grid-template-columns: repeat(2, 1fr); }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 640px) {
+            .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+        }
+        
+        .stat-card {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .compliance-banner {
+            background: rgba(210, 153, 34, 0.1);
+            border: 1px solid rgba(210, 153, 34, 0.3);
+            color: var(--yellow);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .detail-label { color: var(--text-muted); }
+        .detail-value { font-weight: 500; }
+        
+        .protocol-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 2px;
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--accent);
+        }
+        
+        input[type="text"], select {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+        }
+        
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">QuantraCore <span>Apex</span></div>
+        <nav>
+            <a href="/" class="{% if active == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="/scan" class="{% if active == 'scan' %}active{% endif %}">Scan</a>
+            <a href="/backtest" class="{% if active == 'backtest' %}active{% endif %}">Backtest</a>
+            <a href="/api/docs" target="_blank">API Docs</a>
+        </nav>
+    </header>
+    
+    <main class="container">
+        <div class="compliance-banner">
+            All outputs are structural probabilities for research purposes only — not trading advice.
+        </div>
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <script>
+        function getScoreClass(score) {
+            if (score >= 60) return 'score-high';
+            if (score >= 45) return 'score-mid';
+            return 'score-low';
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

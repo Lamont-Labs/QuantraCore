@@ -18,12 +18,14 @@ def compute_wick_ratio(bars: List[OhlcvBar]) -> float:
     ratios = []
     for bar in bars:
         if bar.range > 0:
-            total_wick = bar.upper_wick + bar.lower_wick
-            ratios.append(total_wick / bar.range)
+            total_wick = max(0, bar.upper_wick) + max(0, bar.lower_wick)
+            ratio = total_wick / bar.range
+            ratios.append(max(0.0, min(1.0, ratio)))
         else:
             ratios.append(0.0)
     
-    return float(np.mean(ratios)) if ratios else 0.0
+    result = float(np.mean(ratios)) if ratios else 0.0
+    return max(0.0, min(1.0, result))
 
 
 def compute_body_ratio(bars: List[OhlcvBar]) -> float:
@@ -34,11 +36,13 @@ def compute_body_ratio(bars: List[OhlcvBar]) -> float:
     ratios = []
     for bar in bars:
         if bar.range > 0:
-            ratios.append(bar.body / bar.range)
+            ratio = abs(bar.body) / bar.range
+            ratios.append(max(0.0, min(1.0, ratio)))
         else:
             ratios.append(0.0)
     
-    return float(np.mean(ratios)) if ratios else 0.0
+    result = float(np.mean(ratios)) if ratios else 0.0
+    return max(0.0, min(1.0, result))
 
 
 def compute_bullish_pct(bars: List[OhlcvBar], lookback: int = 20) -> float:
@@ -121,13 +125,13 @@ def compute_range_density(bars: List[OhlcvBar]) -> float:
         return 0.0
     
     total_range = max(bar.high for bar in bars) - min(bar.low for bar in bars)
-    if total_range == 0:
+    if total_range <= 0:
         return 0.0
     
-    sum_bar_ranges = sum(bar.range for bar in bars)
+    sum_bar_ranges = sum(max(0, bar.range) for bar in bars)
     density = sum_bar_ranges / (total_range * len(bars))
     
-    return float(min(1.0, density))
+    return float(max(0.0, min(1.0, density)))
 
 
 def compute_volume_intensity(bars: List[OhlcvBar]) -> float:
@@ -197,18 +201,25 @@ def compute_microtraits(window: OhlcvWindow) -> Microtraits:
     
     This is the main entry point for microtrait extraction.
     All computations are deterministic given the same input.
+    Values are clamped to valid bounds to handle edge cases.
     """
     bars = window.bars
     
+    def clamp_01(val: float) -> float:
+        return max(0.0, min(1.0, float(val)))
+    
+    def clamp_ge0(val: float) -> float:
+        return max(0.0, float(val))
+    
     return Microtraits(
-        wick_ratio=compute_wick_ratio(bars),
-        body_ratio=compute_body_ratio(bars),
-        bullish_pct_last20=compute_bullish_pct(bars, lookback=20),
-        compression_score=compute_compression_score(bars),
-        noise_score=compute_noise_score(bars),
-        strength_slope=compute_strength_slope(bars),
-        range_density=compute_range_density(bars),
-        volume_intensity=compute_volume_intensity(bars),
-        trend_consistency=compute_trend_consistency(bars),
-        volatility_ratio=compute_volatility_ratio(bars),
+        wick_ratio=clamp_01(compute_wick_ratio(bars)),
+        body_ratio=clamp_01(compute_body_ratio(bars)),
+        bullish_pct_last20=clamp_01(compute_bullish_pct(bars, lookback=20)),
+        compression_score=clamp_01(compute_compression_score(bars)),
+        noise_score=clamp_01(compute_noise_score(bars)),
+        strength_slope=float(np.clip(compute_strength_slope(bars), -10, 10)),
+        range_density=clamp_01(compute_range_density(bars)),
+        volume_intensity=clamp_ge0(compute_volume_intensity(bars)),
+        trend_consistency=float(np.clip(compute_trend_consistency(bars), -1, 1)),
+        volatility_ratio=clamp_ge0(compute_volatility_ratio(bars)),
     )
