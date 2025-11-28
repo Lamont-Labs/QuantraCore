@@ -125,7 +125,7 @@ def main():
                         else:
                             raise retry_e
                 
-                if not aggs or len(aggs) < MIN_CANDLES:
+                if not aggs or len(list(aggs)) < MIN_CANDLES:
                     skipped += 1
                     continue
                 
@@ -141,8 +141,8 @@ def main():
                     "quantra_score": round(scan_result.quantrascore, 2),
                     "regime": scan_result.regime.value if hasattr(scan_result.regime, 'value') else str(scan_result.regime),
                     "risk_tier": scan_result.risk_tier.value if hasattr(scan_result.risk_tier, 'value') else str(scan_result.risk_tier),
-                    "entropy_state": scan_result.entropy_metrics.entropy_state,
-                    "drift_state": scan_result.drift_analysis.drift_state if scan_result.drift_analysis else None,
+                    "entropy_state": str(scan_result.entropy_metrics.entropy_state),
+                    "drift_state": getattr(getattr(scan_result, 'drift_analysis', None), 'drift_state', None),
                     "fired_protocols": fired_protocols,
                     "protocol_count": len(fired_protocols),
                     "num_candles": len(bars),
