@@ -1,0 +1,36 @@
+===============================================================================
+QuantraCore Apex — ApexDesk UI Deep Validation Harness
+===============================================================================
+Repo root        : /home/runner/workspace
+Output directory : /home/runner/workspace/logs/ui_validation/20251128_213312
+Timestamp (UTC)  : 20251128_213312
+
+Detected UI commands for validation:
+  • ui_test_default: npm test -- --run
+  • ui_build_prod: npm run build
+
+-------------------------------------------------------------------------------
+ENV PROFILE: ci
+-------------------------------------------------------------------------------
+[RUN 001] [ci] round=1 label=ui_test_default
+          cmd=npm test -- --run
+[RUN 001] [ci] round=1 label=ui_test_default → exit=0 duration=3.93s log=/home/runner/workspace/logs/ui_validation/20251128_213312/run_001_ui_test_default_env-ci_r1.log
+[RUN 002] [ci] round=1 label=ui_build_prod
+          cmd=npm run build
+[RUN 002] [ci] round=1 label=ui_build_prod → exit=2 duration=4.08s log=/home/runner/workspace/logs/ui_validation/20251128_213312/run_002_ui_build_prod_env-ci_r1.log
+
+*******************************************************************************
+[FAIL-FAST] UI command failed: label=ui_build_prod env=ci round=1
+           See log: logs/ui_validation/20251128_213312/run_002_ui_build_prod_env-ci_r1.log
+*******************************************************************************
+
+===============================================================================
+UI DEEP VALIDATION SUMMARY
+===============================================================================
+Total UI runs executed : 2
+Passing runs           : 1
+Failing runs           : 1
+
+Failing runs:
+  • id=002 label=ui_build_prod env=ci round=1 exit=2 log=logs/ui_validation/20251128_213312/run_002_ui_build_prod_env-ci_r1.log
+===============================================================================
