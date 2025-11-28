@@ -149,9 +149,14 @@ def compute_suppression(window: OhlcvWindow) -> SuppressionMetrics:
     breakout_probability = compute_breakout_probability(suppression_level, coil_factor)
     suppression_state = determine_suppression_state(suppression_level)
     
+    is_suppressed = suppression_level >= 0.4
+    suppression_score = suppression_level
+    
     return SuppressionMetrics(
         suppression_level=suppression_level,
         suppression_state=suppression_state,
         coil_factor=coil_factor,
         breakout_probability=breakout_probability,
+        is_suppressed=is_suppressed,
+        suppression_score=suppression_score,
     )
