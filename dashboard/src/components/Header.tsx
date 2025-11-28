@@ -14,44 +14,37 @@ export function Header({ health, onRunScan, isScanning }: HeaderProps) {
   })
 
   return (
-    <header className="h-16 bg-slate-900/70 border-b border-slate-700/30 px-6 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <img
-            src="/assets/quantra-q-icon.png"
-            alt="Q"
-            className="w-6 h-6"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none'
-            }}
-          />
-          <h1 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-violet-500 bg-clip-text text-transparent">
-            QuantraCore Apex
+    <header className="h-16 bg-gradient-to-r from-[#0a0f1a] to-[#050810] border-b border-[#1e3a5f]/40 px-6 flex items-center justify-between">
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-bold tracking-wider">
+            <span className="text-[#00d4ff]">QUANTRACORE</span>
+            <span className="text-slate-300 ml-2 font-normal">Apex</span>
           </h1>
         </div>
 
         <div className="flex items-center gap-3 text-sm">
-          <span className={`px-2 py-0.5 rounded-full text-xs font-medium
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider
             ${health?.status === 'healthy'
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+              ? 'bg-[#00d4ff]/10 text-[#00d4ff] border border-[#00d4ff]/30 shadow-sm shadow-[#00d4ff]/20'
+              : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
             }`}
           >
             {health?.engine || 'connecting...'}
           </span>
 
-          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-violet-500/20 text-violet-300 border border-violet-500/30">
+          <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/30">
             RESEARCH MODE
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="text-sm text-slate-400 font-mono">
+      <div className="flex items-center gap-6">
+        <div className="text-sm text-slate-500 font-mono tracking-wider">
           {currentTime}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={onRunScan}
             disabled={isScanning}

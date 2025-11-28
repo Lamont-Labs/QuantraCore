@@ -1,19 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  --color-apex-base: #020617;
-  --color-apex-card: rgba(15, 23, 42, 0.95);
-  --color-apex-border: rgba(148, 163, 184, 0.25);
-  --color-apex-glow: #06b6d4;
-  --color-apex-accent: #7c3aed;
+  --color-apex-base: #050810;
+  --color-apex-dark: #0a0f1a;
+  --color-apex-card: rgba(10, 15, 26, 0.95);
+  --color-apex-border: rgba(30, 58, 95, 0.4);
+  --color-apex-glow: #00d4ff;
+  --color-apex-cyan: #22d3ee;
+  --color-apex-accent: #3b82f6;
+  --color-apex-gold: #d4a574;
 }
 
 :root {
-  --apex-base: #020617;
-  --apex-card: rgba(15, 23, 42, 0.95);
-  --apex-border: rgba(148, 163, 184, 0.25);
-  --apex-glow: #06b6d4;
-  --apex-accent: #7c3aed;
+  --apex-base: #050810;
+  --apex-dark: #0a0f1a;
+  --apex-card: rgba(10, 15, 26, 0.95);
+  --apex-border: rgba(30, 58, 95, 0.4);
+  --apex-glow: #00d4ff;
+  --apex-cyan: #22d3ee;
+  --apex-accent: #3b82f6;
+  --apex-gold: #d4a574;
 }
 
 html, body {
@@ -24,23 +30,25 @@ html, body {
 
 body {
   background: var(--apex-base);
-  background-image: radial-gradient(ellipse at top, rgba(6, 182, 212, 0.15) 0%, transparent 50%);
+  background-image: 
+    radial-gradient(ellipse at top center, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
   font-family: 'Inter', system-ui, sans-serif;
   color: #e2e8f0;
 }
 
 .apex-card {
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(71, 85, 105, 0.25);
+  background: linear-gradient(135deg, rgba(10, 15, 26, 0.95) 0%, rgba(5, 8, 16, 0.98) 100%);
+  border: 1px solid rgba(30, 58, 95, 0.4);
   border-radius: 1rem;
   padding: 1.25rem;
   backdrop-filter: blur(12px);
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .apex-card:hover {
-  box-shadow: 0 0 25px rgba(6, 182, 212, 0.2);
-  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.15), 0 0 60px rgba(0, 212, 255, 0.05);
+  border-color: rgba(0, 212, 255, 0.4);
 }
 
 .apex-heading {
@@ -52,20 +60,22 @@ body {
 }
 
 .apex-button {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 0.5rem;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.875rem;
-  transition: all 0.2s;
-  background: linear-gradient(to right, #06b6d4, #8b5cf6);
-  color: white;
+  transition: all 0.3s;
+  background: linear-gradient(135deg, #00d4ff 0%, #0095b3 100%);
+  color: #050810;
   border: none;
   cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .apex-button:hover {
-  box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.3);
-  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(0, 212, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .apex-button:disabled {
@@ -75,34 +85,35 @@ body {
 }
 
 .apex-button-secondary {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 0.5rem;
   font-weight: 500;
   font-size: 0.875rem;
-  transition: all 0.2s;
-  background: #1e293b;
-  color: #e2e8f0;
-  border: 1px solid #334155;
+  transition: all 0.3s;
+  background: rgba(10, 15, 26, 0.8);
+  color: #94a3b8;
+  border: 1px solid rgba(30, 58, 95, 0.6);
   cursor: pointer;
 }
 
 .apex-button-secondary:hover {
-  background: #334155;
-  border-color: rgba(6, 182, 212, 0.5);
+  background: rgba(30, 58, 95, 0.4);
+  border-color: rgba(0, 212, 255, 0.4);
+  color: #00d4ff;
 }
 
 .apex-input {
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid #334155;
+  background: rgba(10, 15, 26, 0.8);
+  border: 1px solid rgba(30, 58, 95, 0.5);
   color: #f1f5f9;
 }
 
 .apex-input:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5);
-  border-color: #06b6d4;
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.3);
+  border-color: #00d4ff;
 }
 
 .apex-input::placeholder {
@@ -125,11 +136,11 @@ body {
 
 .apex-table td {
   padding: 0.75rem 0;
-  border-top: 1px solid rgba(71, 85, 105, 0.5);
+  border-top: 1px solid rgba(30, 58, 95, 0.3);
 }
 
 .apex-table tr:hover td {
-  background: rgba(30, 41, 59, 0.3);
+  background: rgba(0, 212, 255, 0.05);
 }
 
 .score-excellent { color: #34d399; }
@@ -155,14 +166,23 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(5, 8, 16, 0.8);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.5);
+  background: rgba(30, 58, 95, 0.6);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.7);
+  background: rgba(0, 212, 255, 0.4);
+}
+
+.glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(0, 212, 255, 0.4); }
 }

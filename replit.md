@@ -222,9 +222,16 @@ All outputs are framed as **structural probabilities**, NOT trading advice.
 
 **ApexDesk Frontend (React + Tailwind v4):**
 - Modern React 19 frontend with Vite 7 and Tailwind CSS v4
-- Lamont Labs + QuantraCore branding with dark navy theme
+- Lamont Labs + QuantraCore branding with authentic brand assets:
+  - Sawblade gear logo with circuit board pattern (lamont_labs_logo.png)
+  - QuantraCore 3D disk with candlestick chart (quantracore_disk.png)
+  - Tagline: "Obsession turned into systems."
+- Color theme extracted from brand images:
+  - Deep navy base (#050810, #0a0f1a)
+  - Electric cyan glow (#00d4ff)
+  - Subtle blue accents (#1e3a5f, #3b82f6)
 - Left rail navigation: Dashboard, Research, ApexLab, Models, Logs
-- Header with status badges and action buttons
+- Header with QUANTRACORE Apex title, status badges, action buttons
 - Universe Scanner table with score coloring and regime display
 - Detail Panel with tabbed interface (Overview, Trace, Monster, Signal)
 - Full API wiring to FastAPI backend via Vite proxy
