@@ -22,9 +22,28 @@ from src.quantracore_apex.risk.engine import RiskEngine, RiskAssessment
 from src.quantracore_apex.broker.oms import OrderManagementSystem, OrderSide, OrderType
 from src.quantracore_apex.portfolio.portfolio import Portfolio
 from src.quantracore_apex.signal.signal_builder import SignalBuilder
+import numpy as np
 
 
 logger = logging.getLogger(__name__)
+
+
+def convert_numpy_types(obj: Any) -> Any:
+    """Convert numpy types to native Python types for JSON serialization."""
+    if isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, (np.bool_, np.bool_.__class__)):
+        return bool(obj)
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    else:
+        return obj
 
 
 class ScanRequest(BaseModel):
@@ -221,7 +240,7 @@ def create_app() -> FastAPI:
         
         result = scan_cache[window_hash]
         
-        return {
+        return convert_numpy_types({
             "window_hash": window_hash,
             "symbol": result.symbol,
             "microtraits": result.microtraits.model_dump(),
@@ -233,7 +252,7 @@ def create_app() -> FastAPI:
             "protocol_results": [p.model_dump() for p in result.protocol_results],
             "verdict": result.verdict.model_dump(),
             "omega_overrides": result.omega_overrides
-        }
+        })
     
     @app.post("/monster_runner/{symbol}")
     async def check_monster_runner(symbol: str, lookback_days: int = 150):
