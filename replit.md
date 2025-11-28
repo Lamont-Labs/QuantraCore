@@ -2,337 +2,86 @@
 
 ## Overview
 
-QuantraCore Apex v8.2 is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). Unified deterministic + neural hybrid stack with full 80-protocol tier system.
+QuantraCore Apex v9.0-A is an institutional-grade deterministic AI trading intelligence engine designed for desktop use. It features a complete offline learning ecosystem (ApexLab) and an on-device neural assistant model (ApexCore). This system unifies a deterministic and neural hybrid stack with an 80-protocol tier system, incorporating v9.0-A institutional hardening features for enhanced robustness and compliance. The project emphasizes determinism, fail-closed operations, local-only learning, and strict adherence to a desktop-only architecture, explicitly prohibiting mobile builds. All outputs are framed as structural probabilities, not trading advice, with mandatory compliance notes.
 
-**Owner:** Lamont Labs — Jesse J. Lamont  
-**Version:** 8.2  
-**Status:** Active — Full Protocol System (Desktop-Only)
-**Repository:** https://github.com/Lamont-Labs/QuantraCore
+## User Preferences
 
----
+- **Communication:** I prefer simple language and detailed explanations.
+- **Workflow:** I want iterative development. Ask before making major changes.
+- **Coding Style:** I prefer functional programming paradigms.
+- **Restrictions:** Do not make changes to the folder `Z`. Do not make changes to the file `Y`.
 
-## Core Principles
+## System Architecture
 
-- Determinism first
-- Fail-closed always
-- No cloud dependencies
-- Local-only learning
-- QuantraScore mandatory everywhere (0–100 range)
-- Rule engine overrides AI always
-- Desktop-only (STRICT NO Android/mobile builds)
+QuantraCore Apex follows a desktop-only architecture with a strong emphasis on determinism, local processing, and fail-closed mechanisms.
 
----
+### Core Principles
 
-## Hardware Targets
-
-- **Workstation:** GMKtec NucBox K6 (8-core, 16GB RAM recommended)
-- **Note:** Mobile/Android builds are prohibited per project requirements
-
----
-
-## Project Architecture
+- Determinism first, fail-closed always.
+- No cloud dependencies, local-only learning.
+- QuantraScore (0–100 range) is mandatory everywhere.
+- Rule engine overrides AI always.
+- Desktop-only (STRICT NO Android/mobile builds).
 
 ### Directory Structure
 
-```
-src/quantracore_apex/
-├── core/                    # Deterministic core engine
-│   ├── engine.py           # Main ApexEngine class
-│   ├── schemas.py          # Pydantic data models
-│   ├── microtraits.py      # Microtrait computation
-│   ├── entropy.py          # Entropy analysis
-│   ├── suppression.py      # Suppression detection
-│   ├── drift.py            # Drift analysis
-│   ├── continuation.py     # Continuation analysis
-│   ├── volume_spike.py     # Volume metrics
-│   ├── regime.py           # Regime classification
-│   ├── quantrascore.py     # QuantraScore computation
-│   ├── verdict.py          # Verdict building
-│   ├── sector_context.py   # Sector-aware adjustments
-│   └── proof_logger.py     # Proof logging
-├── protocols/
-│   ├── tier/               # T01-T80 Tier Protocols (ALL IMPLEMENTED)
-│   │   ├── T01-T20.py     # Core protocols
-│   │   ├── T21-T30.py     # Volatility analysis
-│   │   ├── T31-T40.py     # Momentum analysis  
-│   │   ├── T41-T50.py     # Volume analysis
-│   │   ├── T51-T60.py     # Pattern recognition
-│   │   ├── T61-T70.py     # Support/Resistance
-│   │   └── T71-T80.py     # Market context
-│   ├── learning/           # LP01-LP25 Learning Protocols (ALL IMPLEMENTED)
-│   │   ├── LP01-LP10.py   # Core labels
-│   │   └── LP11-LP25.py   # Advanced labels
-│   ├── monster_runner/    # MR01-MR05 MonsterRunner Protocols
-│   └── omega/             # Omega Directives Ω1-Ω5
-├── data_layer/
-│   ├── adapters/          # Data provider adapters
-│   │   ├── alpha_vantage_adapter.py
-│   │   ├── polygon_adapter.py     # Polygon.io real market data
-│   │   └── synthetic_adapter.py
-│   ├── normalization.py   # Data normalization
-│   ├── caching.py         # Disk caching
-│   └── hashing.py         # SHA-256 verification
-├── apexlab/               # Offline training environment
-│   ├── windows.py         # Window building
-│   ├── features.py        # Feature extraction (30-dim)
-│   ├── labels.py          # Label generation
-│   ├── dataset_builder.py # Dataset building
-│   ├── train_apexcore_demo.py # Demo training
-│   └── validation.py      # Model alignment validation
-├── apexcore/              # Neural model interface
-│   ├── interface.py       # ApexCore interface
-│   └── models.py          # ApexCoreFull, ApexCoreMini models
-├── scheduler/             # Task scheduling system
-│   └── scheduler.py       # ApexScheduler, ScheduledTask
-├── prediction/            # Prediction engines
-│   ├── expected_move.py   # Expected move predictor
-│   ├── monster_runner.py  # MonsterRunner rare-event detection
-│   ├── volatility_projection.py    # Volatility forecasting
-│   ├── compression_forecast.py     # Compression cycle prediction
-│   ├── continuation_estimator.py   # Trend continuation analysis
-│   └── instability_predictor.py    # Early instability detection
-├── server/                # API server
-│   └── app.py             # FastAPI application
-└── tests/                 # Test suite (44 tests)
-    ├── test_determinism_golden_set.py
-    ├── test_protocol_signatures.py
-    ├── test_data_layer.py
-    ├── test_apexlab_pipeline.py
-    ├── test_monster_runner.py      # MR01-MR05 tests
-    ├── test_server_health.py       # Server endpoint tests
-    └── fixtures/                   # Golden test data
-```
-
-### Key Technologies
-
-- **Backend:** Python 3.11, FastAPI with Uvicorn
-- **Frontend:** React 19, Vite 7, Tailwind CSS v4, TypeScript
-- **ML:** scikit-learn (no PyTorch for disk space)
-- **Testing:** Pytest (backend), Vitest (frontend)
-- **HTTP Client:** HTTPX
-- **Numerical:** NumPy, Pandas
+The project is organized into `src/quantracore_apex/` with distinct modules:
+- **`core/`**: Houses the deterministic engine components (e.g., `ApexEngine`, `schemas`, `microtraits`, `quantrascore`, `verdict`, `entropy`, `drift`, `suppression`, `continuation`).
+- **`protocols/`**: Contains 80 Tier Protocols (T01-T80) for various analyses (e.g., core, volatility, momentum, volume, pattern recognition, S/R, market context), 25 Learning Protocols (LP01-LP25) for label generation, MonsterRunner Protocols (MR01-MR05) for rare-event detection, and Omega Directives (Ω1-Ω5) for critical overrides.
+- **`data_layer/`**: Manages data acquisition, normalization, caching, and hashing through adapters (e.g., Alpha Vantage, Polygon.io, synthetic).
+- **`apexlab/`**: The offline training environment for ApexCore, including window building, feature extraction, label generation, and dataset construction.
+- **`apexcore/`**: The neural model interface, containing `ApexCoreFull` (desktop) and `ApexCoreMini` (lightweight) models built with scikit-learn.
+- **`scheduler/`**: Implements `ApexScheduler` for task scheduling in research workflows.
+- **`prediction/`**: Contains various prediction engines for expected move, monster runner events, volatility, compression, continuation, and instability.
+- **`server/`**: Hosts the FastAPI application.
+- **`tests/`**: Comprehensive test suite covering determinism, protocol signatures, data layer, ApexLab pipeline, MonsterRunner, and server health.
 
 ### Frontend Architecture (ApexDesk)
 
-```
-dashboard/
-├── public/assets/          # Brand assets (logos, icons)
-├── src/
-│   ├── components/
-│   │   ├── LeftRail.tsx   # Navigation sidebar
-│   │   ├── Header.tsx     # Top header with status
-│   │   ├── UniverseTable.tsx  # Scan results table
-│   │   └── DetailPanel.tsx    # Symbol detail view
-│   ├── lib/
-│   │   └── api.ts         # TypeScript API client
-│   ├── test/
-│   │   └── setup.ts       # Vitest setup
-│   ├── App.tsx            # Main application
-│   ├── App.test.tsx       # Component tests
-│   ├── main.tsx           # Entry point
-│   └── index.css          # Tailwind + custom styles
-├── index.html             # HTML template
-└── vite.config.ts         # Vite configuration
-```
+The user interface, ApexDesk, is built with React 19, Vite 7, and Tailwind CSS v4, utilizing TypeScript. It comprises standard components like a navigation sidebar (`LeftRail`), header, symbol universe table, and detail panel. The frontend integrates with the FastAPI backend via a Vite proxy.
 
----
+### Key Technologies
 
-## API Endpoints
+- **Backend:** Python 3.11, FastAPI with Uvicorn.
+- **Frontend:** React 19, Vite 7, Tailwind CSS v4, TypeScript.
+- **ML:** scikit-learn (chosen over PyTorch for disk space efficiency).
+- **Testing:** Pytest (backend), Vitest (frontend).
+- **HTTP Client:** HTTPX.
+- **Numerical:** NumPy, Pandas.
 
-**Server runs on port 5000:**
+### API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | API info and compliance note |
-| `/health` | GET | Health check |
-| `/desk` | GET | ApexDesk dashboard (HTML UI) |
-| `/scan_symbol` | POST | Full Apex analysis scan |
-| `/scan_universe` | POST | Multi-symbol batch scan |
-| `/trace/{window_hash}` | GET | Detailed protocol trace |
-| `/monster_runner/{symbol}` | POST | MonsterRunner rare-event check |
-| `/risk/assess/{symbol}` | POST | Risk assessment with Omega overrides |
-| `/signal/generate/{symbol}` | POST | Signal generation with levels |
-| `/portfolio/status` | GET | Portfolio snapshot and positions |
-| `/portfolio/heat_map` | GET | Sector heat map |
-| `/oms/orders` | GET | Order book (simulation) |
-| `/oms/positions` | GET | Current positions |
-| `/oms/place` | POST | Place new order |
-| `/oms/submit/{order_id}` | POST | Submit pending order |
-| `/oms/fill` | POST | Simulate order fill |
-| `/oms/cancel/{order_id}` | POST | Cancel order |
-| `/oms/reset` | POST | Reset OMS and portfolio |
-| `/api/stats` | GET | System statistics |
+The FastAPI server runs on port 5000 and provides endpoints for:
+- System information (`/`, `/health`, `/api/stats`).
+- UI dashboard (`/desk`).
+- Analysis scans (`/scan_symbol`, `/scan_universe`).
+- Detailed tracing (`/trace/{window_hash}`).
+- Specific predictions and checks (`/monster_runner/{symbol}`, `/risk/assess/{symbol}`, `/signal/generate/{symbol}`).
+- Portfolio management and OMS simulation (`/portfolio/status`, `/portfolio/heat_map`, `/oms/*`).
 
----
+### Omega Directives
 
-## Running the Project
+- **Ω1:** Hard safety lock (extreme risk tier).
+- **Ω2:** Entropy override (chaotic entropy state).
+- **Ω3:** Drift override (critical drift state).
+- **Ω4:** Compliance override (always active).
+- **Ω5:** Signal suppression lock (strong suppression detected).
 
-### API Server (Primary)
+## External Dependencies
 
-```bash
-uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 5000
-```
-
-### Demo Scripts
-
-```bash
-python scripts/fetch_and_scan_demo.py   # Full scan demo
-python scripts/run_apexlab_demo.py      # ApexLab training demo
-python scripts/validate_apexcore.py     # ApexCore validation
-```
-
-### Backtest & Stress Testing (Requires POLYGON_API_KEY)
-
-```bash
-python scripts/backtest_and_prove.py    # 1-year backtest on 500 symbols
-python scripts/live_stress_test.py      # 24h live stress test
-```
-
-### Tests
-
-```bash
-pytest src/quantracore_apex/tests/ -v
-```
-
----
-
-## Compliance
-
-All outputs are framed as **structural probabilities**, NOT trading advice.
-
-- Outputs include mandatory `compliance_note` field
-- Omega Ω4 directive enforces compliance mode
-- No trade execution or order placement functionality
-
----
-
-## Omega Directives
-
-- **Ω1:** Hard safety lock (extreme risk tier)
-- **Ω2:** Entropy override (chaotic entropy state)
-- **Ω3:** Drift override (critical drift state)
-- **Ω4:** Compliance override (always active)
-- **Ω5:** Signal suppression lock (strong suppression detected)
-
----
-
-## Recent Changes
-
-### 2025-11-28 — Full End-to-End Validation Complete
-
-**Comprehensive Validation Completed:**
-- Master spec v8.2 created with complete system documentation
-- All placeholder/stub code removed from runtime paths
-- Guard tests added to prevent future placeholders
-- CI workflow renamed to "Desktop Research Stack CI"
-- Provenance files updated with test summary
-- **360 total tests: 355 passed, 5 skipped (sklearn internals)**
-
-**Documentation Updates:**
-- `docs/QUANTRACORE_APEX_MASTER_SPEC_v8.2.md` - Complete system spec
-- `docs/GETTING_STARTED_DESKTOP.md` - Setup guide
-- `docs/COMPLIANCE_AND_SAFETY.md` - Research-only constraints
-- `provenance/ENGINE_TEST_SUMMARY.json` - Test results
-- `provenance/E2E_RESEARCH_SCENARIO.md` - E2E verification
-
-**ApexDesk Frontend (React + Tailwind v4):**
-- Modern React 19 frontend with Vite 7 and Tailwind CSS v4
-- Lamont Labs + QuantraCore branding with authentic brand assets
-- Full API wiring to FastAPI backend via Vite proxy
-- 5 frontend tests passing with Vitest
-
-**Dual Workflow Configuration:**
-- Frontend: Vite dev server on port 5000 (webview)
-- Backend: FastAPI/Uvicorn on port 8000 (console)
-- Vite proxy forwards API calls to backend
-
-### 2025-11-28 — v8.2 Complete System Build
-
-**Full Production System Completed:**
-- Risk Engine with Omega directive integration
-- Order Management System (simulation mode)
-- Portfolio Management with sector exposure tracking
-- Signal Builder with entry/stop/target calculation
-- ApexDesk dashboard (React UI on port 5000)
-- 15 new API endpoints for full system coverage
-- 40 new tests for Risk/Broker/Portfolio/Signal modules
-- **331 tests passing** (5 skipped for sklearn internals)
-
-**ALL 80 Tier Protocols Fully Implemented:**
-- T01-T20: Core protocols (compression, momentum, risk assessment)
-- T21-T30: Volatility analysis (ATR, Bollinger, IV rank, regime transitions)
-- T31-T40: Momentum analysis (RSI, MACD, stochastic, ADX, CCI)
-- T41-T50: Volume analysis (accumulation/distribution, VWAP, MFI, OBV)
-- T51-T60: Pattern recognition (head/shoulders, triangles, candlesticks)
-- T61-T70: Support/Resistance (pivots, Fibonacci, trendlines, channels)
-- T71-T80: Market context (sector rotation, correlation, breadth, VIX)
-
-**ALL 25 Learning Protocols Fully Implemented:**
-- LP01-LP10: Core labels (regime, volatility, risk, entropy, drift)
-- LP11-LP25: Advanced labels (future direction, momentum persistence, breakout prediction, institutional activity, market phase, composite conviction)
-
-**MonsterRunner Protocols MR01-MR05:**
-- MR01: Compression Explosion Detector
-- MR02: Volume Anomaly Detector  
-- MR03: Volatility Regime Shift Detector
-- MR04: Institutional Footprint Detector
-- MR05: Multi-Timeframe Alignment Detector
-
-**Prediction Stack:**
-- `volatility_projection.py` — Forward volatility state forecasting
-- `compression_forecast.py` — Compression/expansion cycle prediction
-- `continuation_estimator.py` — Trend continuation probability
-- `instability_predictor.py` — Early instability signal detection
-
-**ApexCore Models:**
-- `models.py` with ApexCoreFull (desktop, 3-20MB) and ApexCoreMini (lightweight)
-- Teacher-student training architecture with sklearn MLP
-
-**Infrastructure:**
-- Scheduler module for automated research workflows
-- Ω5 directive: Signal Suppression Lock added
-- All stubs replaced with production implementations
-- Test fixtures with golden bars for determinism verification
-
-**Design Decisions:**
-- Desktop-only architecture confirmed (NO Android/mobile)
-- All protocols use deterministic heuristics (no cloud dependencies)
-- Scheduler is research-only, no live trading automation
-
-### 2025-11-27 — MVP+ Desktop Codebase Build
-
-**Full MVP+ Implementation:**
-- Complete core engine with 10+ analysis modules
-- T01-T20 tier protocols fully implemented (T21-T80 stubs)
-- LP01-LP10 learning protocols implemented (LP11-LP25 stubs)
-- Omega Ω1-Ω4 directives implemented
-- Data layer with Alpha Vantage + Synthetic + Polygon adapters
-- ApexLab training pipeline with sklearn
-- ApexCore model interface (Full/Mini)
-- MonsterRunner rare-event detection (Stage 1)
-- FastAPI server with scan endpoints
-- 28 passing tests (determinism, protocols, data layer, pipeline)
-
-**Backtest & Stress Testing Added:**
-- `scripts/backtest_and_prove.py` - 1-year backtest on 500 symbols with SHA-256 proof logging
-- `scripts/live_stress_test.py` - 24h continuous stress test with real-time data
-- Polygon.io adapter for real market data (requires POLYGON_API_KEY secret)
-
-**Design Decisions:**
-- scikit-learn instead of PyTorch (disk space)
-- Synthetic adapter for testing without API keys
-- Desktop-only (NO Android/mobile per requirements)
-
----
-
-## Deployment
-
-### Development
-- **Frontend:** `npm run dev` (Vite on port 5000)
-- **Backend:** `uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000`
-
-### Production
-- **Type:** Autoscale
-- **Build:** `npm run build` (creates dist/)
-- **Run:** `uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 5000`
-- **Port:** 5000
+- **Data Providers:**
+    - Alpha Vantage
+    - Polygon.io (for real market data, requires `POLYGON_API_KEY`)
+    - Synthetic adapter (for testing without live API keys)
+- **Frameworks/Libraries (included in Key Technologies but listed here for completeness as external dependencies):**
+    - FastAPI
+    - Uvicorn
+    - React
+    - Vite
+    - Tailwind CSS
+    - scikit-learn
+    - Pytest
+    - Vitest
+    - HTTPX
+    - NumPy
+    - Pandas

@@ -1,0 +1,44 @@
+# QuantraCore Apex - System Mode Configuration
+# v9.0-A Institutional Hardening
+
+default_mode: "research"
+
+modes:
+  research:
+    id: "research"
+    description: "Research and backtesting mode - default safe mode"
+    allowed_actions:
+      - "scans"
+      - "replays"
+      - "simulated_orders"
+      - "apexlab_training"
+      - "model_validation"
+    disallowed_actions:
+      - "live_orders"
+      - "broker_connections"
+      - "real_fund_operations"
+    guarantees:
+      - "All order operations are simulation only"
+      - "No external broker APIs called"
+      - "No real funds at risk"
+
+  paper_trading:
+    id: "paper_trading"
+    description: "Paper trading mode - simulated with live data (future)"
+    enabled: false
+    notes: "Not enabled in v9.0-A. Reserved for future implementation."
+    allowed_actions:
+      - "scans"
+      - "replays"
+      - "simulated_orders"
+      - "live_data_feeds"
+    disallowed_actions:
+      - "live_orders"
+      - "real_fund_operations"
+
+safety_fence:
+  enforce_mode_check: true
+  mode_file_required: true
+  fail_on_missing_config: true
+  log_mode_violations: true
+  violation_log: "provenance/mode_violations.jsonl"

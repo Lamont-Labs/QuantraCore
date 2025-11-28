@@ -197,7 +197,9 @@ class TestDashboardEndpoint:
         response = client.get("/api/stats")
         assert response.status_code == 200
         data = response.json()
-        assert data["version"] == "8.2.0"
+        assert data["version"] == "9.0-A"
         assert data["protocols"]["tier"] == 80
         assert data["protocols"]["learning"] == 25
         assert data["simulation_mode"] == True
+        assert "v9_hardening" in data
+        assert data["v9_hardening"]["redundant_scoring"] == True
