@@ -8,6 +8,9 @@ that operate on ApexResult before output.
 Ω2: Entropy Override - Forces caution on high entropy
 Ω3: Drift Override - Forces caution on critical drift
 Ω4: Compliance Override - Ensures all outputs are compliant
+Ω5: Signal Suppression Lock - Blocks signals under suppression conditions
+
+Version: 8.1
 """
 
 from typing import Dict, Any, Optional
@@ -49,11 +52,13 @@ class OmegaDirectives:
         enable_omega_2: bool = True,
         enable_omega_3: bool = True,
         enable_omega_4: bool = True,
+        enable_omega_5: bool = True,
     ):
         self.enable_omega_1 = enable_omega_1
         self.enable_omega_2 = enable_omega_2
         self.enable_omega_3 = enable_omega_3
         self.enable_omega_4 = enable_omega_4
+        self.enable_omega_5 = enable_omega_5
     
     def check_omega_1(self, result: ApexResult) -> OmegaStatus:
         """
@@ -175,6 +180,40 @@ class OmegaDirectives:
             }
         )
     
+    def check_omega_5(self, result: ApexResult) -> OmegaStatus:
+        """
+        Ω5: Signal Suppression Lock
+        
+        Triggers when suppression conditions indicate signal unreliability:
+        - Strong suppression detected
+        - Multiple suppression factors active
+        """
+        if not self.enable_omega_5:
+            return OmegaStatus(active=False, level=OmegaLevel.INACTIVE)
+        
+        suppression = result.suppression_metrics
+        
+        if suppression.is_suppressed and suppression.suppression_score > 0.7:
+            return OmegaStatus(
+                active=True,
+                level=OmegaLevel.ENFORCED,
+                reason="Strong signal suppression detected - suppression lock active",
+                metadata={
+                    "suppression_score": suppression.suppression_score,
+                    "is_suppressed": suppression.is_suppressed,
+                }
+            )
+        
+        if suppression.suppression_score > 0.5:
+            return OmegaStatus(
+                active=True,
+                level=OmegaLevel.ADVISORY,
+                reason="Moderate suppression warning",
+                metadata={"suppression_score": suppression.suppression_score}
+            )
+        
+        return OmegaStatus(active=False, level=OmegaLevel.INACTIVE)
+    
     def apply_all(self, result: ApexResult) -> Dict[str, OmegaStatus]:
         """
         Apply all Omega directives to an ApexResult.
@@ -186,6 +225,7 @@ class OmegaDirectives:
             "omega_2_entropy": self.check_omega_2(result),
             "omega_3_drift": self.check_omega_3(result),
             "omega_4_compliance": self.check_omega_4(result),
+            "omega_5_suppression": self.check_omega_5(result),
         }
     
     def get_highest_alert_level(self, statuses: Dict[str, OmegaStatus]) -> OmegaLevel:
