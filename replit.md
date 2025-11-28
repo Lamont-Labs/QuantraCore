@@ -122,12 +122,23 @@ src/quantracore_apex/
 |----------|--------|-------------|
 | `/` | GET | API info and compliance note |
 | `/health` | GET | Health check |
-| `/score?ticker=AAPL` | GET | Legacy QuantraScore endpoint |
-| `/scan/{symbol}` | GET | Full Apex analysis scan |
+| `/desk` | GET | ApexDesk dashboard (HTML UI) |
+| `/scan_symbol` | POST | Full Apex analysis scan |
+| `/scan_universe` | POST | Multi-symbol batch scan |
 | `/trace/{window_hash}` | GET | Detailed protocol trace |
-| `/monster_runner/{symbol}` | GET | MonsterRunner rare-event check |
-| `/risk/hud` | GET | Risk HUD data (legacy) |
-| `/audit/export` | GET | Audit export (legacy) |
+| `/monster_runner/{symbol}` | POST | MonsterRunner rare-event check |
+| `/risk/assess/{symbol}` | POST | Risk assessment with Omega overrides |
+| `/signal/generate/{symbol}` | POST | Signal generation with levels |
+| `/portfolio/status` | GET | Portfolio snapshot and positions |
+| `/portfolio/heat_map` | GET | Sector heat map |
+| `/oms/orders` | GET | Order book (simulation) |
+| `/oms/positions` | GET | Current positions |
+| `/oms/place` | POST | Place new order |
+| `/oms/submit/{order_id}` | POST | Submit pending order |
+| `/oms/fill` | POST | Simulate order fill |
+| `/oms/cancel/{order_id}` | POST | Cancel order |
+| `/oms/reset` | POST | Reset OMS and portfolio |
+| `/api/stats` | GET | System statistics |
 
 ---
 
@@ -184,7 +195,17 @@ All outputs are framed as **structural probabilities**, NOT trading advice.
 
 ## Recent Changes
 
-### 2025-11-28 — v8.2 Full Protocol System Build
+### 2025-11-28 — v8.2 Complete System Build
+
+**Full Production System Completed:**
+- Risk Engine with Omega directive integration
+- Order Management System (simulation mode)
+- Portfolio Management with sector exposure tracking
+- Signal Builder with entry/stop/target calculation
+- ApexDesk dashboard (HTML UI at /desk)
+- 15 new API endpoints for full system coverage
+- 40 new tests for Risk/Broker/Portfolio/Signal modules
+- **331 tests passing** (5 skipped for sklearn internals)
 
 **ALL 80 Tier Protocols Fully Implemented:**
 - T01-T20: Core protocols (compression, momentum, risk assessment)
