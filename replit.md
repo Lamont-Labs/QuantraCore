@@ -2,10 +2,10 @@
 
 ## Overview
 
-QuantraCore Apex v8.0 is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). Unified deterministic + neural hybrid stack.
+QuantraCore Apex v8.1 is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). Unified deterministic + neural hybrid stack.
 
 **Owner:** Lamont Labs — Jesse J. Lamont  
-**Version:** 8.0  
+**Version:** 8.1  
 **Status:** Active — Core Engine (MVP+ Desktop-Only)
 **Repository:** https://github.com/Lamont-Labs/QuantraCore
 
@@ -57,7 +57,8 @@ src/quantracore_apex/
 │   ├── learning/           # LP01-LP25 Learning Protocols
 │   │   ├── LP01-LP10.py   # Fully implemented
 │   │   └── LP11-LP25.py   # Stubs
-│   └── omega/             # Omega Directives Ω1-Ω4
+│   ├── monster_runner/    # MR01-MR05 MonsterRunner Protocols
+│   └── omega/             # Omega Directives Ω1-Ω5
 ├── data_layer/
 │   ├── adapters/          # Data provider adapters
 │   │   ├── alpha_vantage_adapter.py
@@ -74,17 +75,27 @@ src/quantracore_apex/
 │   ├── train_apexcore_demo.py # Demo training
 │   └── validation.py      # Model alignment validation
 ├── apexcore/              # Neural model interface
-│   └── interface.py       # ApexCoreFull, ApexCoreMini
+│   ├── interface.py       # ApexCore interface
+│   └── models.py          # ApexCoreFull, ApexCoreMini models
+├── scheduler/             # Task scheduling system
+│   └── scheduler.py       # ApexScheduler, ScheduledTask
 ├── prediction/            # Prediction engines
 │   ├── expected_move.py   # Expected move predictor
-│   └── monster_runner.py  # MonsterRunner rare-event detection
+│   ├── monster_runner.py  # MonsterRunner rare-event detection
+│   ├── volatility_projection.py    # Volatility forecasting
+│   ├── compression_forecast.py     # Compression cycle prediction
+│   ├── continuation_estimator.py   # Trend continuation analysis
+│   └── instability_predictor.py    # Early instability detection
 ├── server/                # API server
 │   └── app.py             # FastAPI application
-└── tests/                 # Test suite
+└── tests/                 # Test suite (44 tests)
     ├── test_determinism_golden_set.py
     ├── test_protocol_signatures.py
     ├── test_data_layer.py
-    └── test_apexlab_pipeline.py
+    ├── test_apexlab_pipeline.py
+    ├── test_monster_runner.py      # MR01-MR05 tests
+    ├── test_server_health.py       # Server endpoint tests
+    └── fixtures/                   # Golden test data
 ```
 
 ### Key Technologies
@@ -162,10 +173,43 @@ All outputs are framed as **structural probabilities**, NOT trading advice.
 - **Ω2:** Entropy override (chaotic entropy state)
 - **Ω3:** Drift override (critical drift state)
 - **Ω4:** Compliance override (always active)
+- **Ω5:** Signal suppression lock (strong suppression detected)
 
 ---
 
 ## Recent Changes
+
+### 2025-11-28 — v8.1 Ecosystem Upgrade
+
+**New Protocol Systems:**
+- MonsterRunner protocols MR01-MR05 with deterministic rare-event detection
+  - MR01: Compression Explosion Detector
+  - MR02: Volume Anomaly Detector
+  - MR03: Volatility Regime Shift Detector
+  - MR04: Institutional Footprint Detector
+  - MR05: Multi-Timeframe Alignment Detector
+- MonsterRunnerLoader for protocol discovery and aggregation
+
+**Prediction Stack:**
+- `volatility_projection.py` — Forward volatility state forecasting
+- `compression_forecast.py` — Compression/expansion cycle prediction
+- `continuation_estimator.py` — Trend continuation probability
+- `instability_predictor.py` — Early instability signal detection
+
+**ApexCore Models:**
+- `models.py` with ApexCoreFull (desktop, 3-20MB) and ApexCoreMini (lightweight)
+- Teacher-student training architecture with sklearn MLP
+
+**Infrastructure:**
+- Scheduler module for automated research workflows
+- Ω5 directive: Signal Suppression Lock added
+- Test suite expanded to 44 passing tests
+- Test fixtures with golden bars for determinism verification
+
+**Design Decisions:**
+- Desktop-only architecture confirmed (NO Android/mobile)
+- All MR protocols use deterministic heuristics (no ML)
+- Scheduler is research-only, no live trading automation
 
 ### 2025-11-27 — MVP+ Desktop Codebase Build
 
