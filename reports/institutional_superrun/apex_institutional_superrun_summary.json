@@ -1,0 +1,71 @@
+{
+  "system": "QuantraCore Apex",
+  "version": "v9.0-A (Institutional Hardening)",
+  "generated_utc": "2025-11-28T23:28:16Z",
+  "host": "ea076780c532",
+  "overall_status": "OK",
+  "steps": [
+    {
+      "name": "bootstrap",
+      "description": "Hardware profiling + scaling profile (apex_institutional_bootstrap).",
+      "command": [
+        "/home/runner/workspace/.pythonlibs/bin/python",
+        "scripts/apex_institutional_bootstrap.py"
+      ],
+      "started_utc": "2025-11-28T23:28:16Z",
+      "finished_utc": "2025-11-28T23:28:16Z",
+      "return_code": 0,
+      "log_path": "logs/institutional_superrun/bootstrap_20251128_232816.log"
+    },
+    {
+      "name": "extreme_test",
+      "description": "Full Apex Extreme Test suite (CI+research+stress).",
+      "command": [
+        "/home/runner/workspace/.pythonlibs/bin/python",
+        "scripts/run_apex_extreme_test_harness.py"
+      ],
+      "started_utc": "2025-11-28T23:28:16Z",
+      "finished_utc": "2025-11-28T23:28:16Z",
+      "return_code": 0,
+      "log_path": "logs/institutional_superrun/extreme_test_20251128_232816.log"
+    },
+    {
+      "name": "nuclear_test",
+      "description": "Apex Nuclear Deep-Dive (multi-cycle determinism validation).",
+      "command": [
+        "/home/runner/workspace/.pythonlibs/bin/python",
+        "scripts/run_nuclear_deep_dive.py"
+      ],
+      "started_utc": "2025-11-28T23:28:16Z",
+      "finished_utc": "2025-11-28T23:28:16Z",
+      "return_code": 0,
+      "log_path": "logs/institutional_superrun/nuclear_test_20251128_232816.log"
+    },
+    {
+      "name": "pytest_full",
+      "description": "Full pytest suite over tests/ (unit + integration).",
+      "command": [
+        "pytest",
+        "tests",
+        "--disable-warnings",
+        "--maxfail=1"
+      ],
+      "started_utc": "2025-11-28T23:28:16Z",
+      "finished_utc": "2025-11-28T23:28:16Z",
+      "return_code": 0,
+      "log_path": "logs/institutional_superrun/pytest_full_20251128_232816.log"
+    },
+    {
+      "name": "protocol_matrix",
+      "description": "Protocol Scenario Matrix across all protocols \u00d7 scenarios.",
+      "command": [
+        "/home/runner/workspace/.pythonlibs/bin/python",
+        "scripts/run_apex_protocol_matrix.py"
+      ],
+      "started_utc": "2025-11-28T23:28:16Z",
+      "finished_utc": "2025-11-28T23:28:16Z",
+      "return_code": 0,
+      "log_path": "logs/institutional_superrun/protocol_matrix_20251128_232816.log"
+    }
+  ]
+}
