@@ -5,11 +5,11 @@
 # mega, large, mid, small, micro, nano, penny
 #
 # This is the single source of truth for "what can be scanned"
+# Contains ~4000 active US equities across all market cap tiers
 
 version: "9.0-A"
 last_updated: "2025-11-28"
 
-# Market Cap Bucket Definitions (approximate ranges)
 market_cap_buckets:
   mega:
     description: "Mega-cap ($200B+)"
@@ -46,241 +46,281 @@ market_cap_buckets:
     risk_category: "extreme"
 
 universes:
-  # Demo universe for testing
   demo:
     description: "Small demo universe for testing and validation"
     symbols:
-      - symbol: "AAPL"
-        name: "Apple Inc."
-        asset_class: "equity"
-        sector: "Technology"
-        market_cap_bucket: "mega"
-        float_millions: 15500
-        active: true
-        allow_smallcap_scan: false
-        notes: "Mega-cap tech"
+      - {symbol: "AAPL", name: "Apple Inc.", market_cap_bucket: "mega", float_millions: 15500, active: true, sector: "Technology"}
+      - {symbol: "MSFT", name: "Microsoft Corporation", market_cap_bucket: "mega", float_millions: 7400, active: true, sector: "Technology"}
+      - {symbol: "GOOGL", name: "Alphabet Inc.", market_cap_bucket: "mega", float_millions: 5600, active: true, sector: "Technology"}
+      - {symbol: "AMZN", name: "Amazon.com Inc.", market_cap_bucket: "mega", float_millions: 10300, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "NVDA", name: "NVIDIA Corporation", market_cap_bucket: "mega", float_millions: 2450, active: true, sector: "Technology"}
+      - {symbol: "META", name: "Meta Platforms Inc.", market_cap_bucket: "mega", float_millions: 2200, active: true, sector: "Technology"}
+      - {symbol: "TSLA", name: "Tesla Inc.", market_cap_bucket: "mega", float_millions: 2800, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "JPM", name: "JPMorgan Chase & Co.", market_cap_bucket: "mega", float_millions: 2850, active: true, sector: "Financials"}
+      - {symbol: "V", name: "Visa Inc.", market_cap_bucket: "mega", float_millions: 1650, active: true, sector: "Financials"}
+      - {symbol: "JNJ", name: "Johnson & Johnson", market_cap_bucket: "mega", float_millions: 2400, active: true, sector: "Healthcare"}
 
-      - symbol: "MSFT"
-        name: "Microsoft Corporation"
-        asset_class: "equity"
-        sector: "Technology"
-        market_cap_bucket: "mega"
-        float_millions: 7400
-        active: true
-        allow_smallcap_scan: false
-        notes: "Mega-cap tech"
-
-      - symbol: "GOOGL"
-        name: "Alphabet Inc."
-        asset_class: "equity"
-        sector: "Technology"
-        market_cap_bucket: "mega"
-        float_millions: 5600
-        active: true
-        allow_smallcap_scan: false
-        notes: "Mega-cap tech"
-
-      - symbol: "AMZN"
-        name: "Amazon.com Inc."
-        asset_class: "equity"
-        sector: "Consumer Discretionary"
-        market_cap_bucket: "mega"
-        float_millions: 10300
-        active: true
-        allow_smallcap_scan: false
-        notes: "Mega-cap"
-
-      - symbol: "NVDA"
-        name: "NVIDIA Corporation"
-        asset_class: "equity"
-        sector: "Technology"
-        market_cap_bucket: "mega"
-        float_millions: 2450
-        active: true
-        allow_smallcap_scan: false
-        notes: "Semiconductor, AI leader"
-
-      - symbol: "META"
-        name: "Meta Platforms Inc."
-        asset_class: "equity"
-        sector: "Technology"
-        market_cap_bucket: "mega"
-        float_millions: 2200
-        active: true
-        allow_smallcap_scan: false
-        notes: "Mega-cap tech"
-
-      - symbol: "TSLA"
-        name: "Tesla Inc."
-        asset_class: "equity"
-        sector: "Consumer Discretionary"
-        market_cap_bucket: "mega"
-        float_millions: 2800
-        active: true
-        allow_smallcap_scan: false
-        notes: "EV, high volatility"
-
-      - symbol: "JPM"
-        name: "JPMorgan Chase & Co."
-        asset_class: "equity"
-        sector: "Financials"
-        market_cap_bucket: "mega"
-        float_millions: 2850
-        active: true
-        allow_smallcap_scan: false
-        notes: "Large-cap bank"
-
-      - symbol: "V"
-        name: "Visa Inc."
-        asset_class: "equity"
-        sector: "Financials"
-        market_cap_bucket: "mega"
-        float_millions: 1650
-        active: true
-        allow_smallcap_scan: false
-        notes: "Payments"
-
-      - symbol: "JNJ"
-        name: "Johnson & Johnson"
-        asset_class: "equity"
-        sector: "Healthcare"
-        market_cap_bucket: "mega"
-        float_millions: 2400
-        active: true
-        allow_smallcap_scan: false
-        notes: "Healthcare conglomerate"
-
-  # Small-cap focus universe for MonsterRunner testing
-  smallcap_demo:
-    description: "Demo small/micro caps for MonsterRunner testing"
+  mega_cap:
+    description: "Mega-cap universe ($200B+)"
     symbols:
-      - symbol: "CLOV"
-        name: "Clover Health"
-        asset_class: "equity"
-        sector: "Healthcare"
-        market_cap_bucket: "small"
-        float_millions: 350
-        active: true
-        allow_smallcap_scan: true
-        notes: "High volatility small-cap"
+      - {symbol: "AAPL", name: "Apple Inc.", market_cap_bucket: "mega", float_millions: 15500, active: true, sector: "Technology"}
+      - {symbol: "MSFT", name: "Microsoft Corporation", market_cap_bucket: "mega", float_millions: 7400, active: true, sector: "Technology"}
+      - {symbol: "GOOGL", name: "Alphabet Inc. Class A", market_cap_bucket: "mega", float_millions: 5600, active: true, sector: "Technology"}
+      - {symbol: "GOOG", name: "Alphabet Inc. Class C", market_cap_bucket: "mega", float_millions: 5500, active: true, sector: "Technology"}
+      - {symbol: "AMZN", name: "Amazon.com Inc.", market_cap_bucket: "mega", float_millions: 10300, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "NVDA", name: "NVIDIA Corporation", market_cap_bucket: "mega", float_millions: 2450, active: true, sector: "Technology"}
+      - {symbol: "META", name: "Meta Platforms Inc.", market_cap_bucket: "mega", float_millions: 2200, active: true, sector: "Technology"}
+      - {symbol: "TSLA", name: "Tesla Inc.", market_cap_bucket: "mega", float_millions: 2800, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "BRK.B", name: "Berkshire Hathaway Class B", market_cap_bucket: "mega", float_millions: 1350, active: true, sector: "Financials"}
+      - {symbol: "AVGO", name: "Broadcom Inc.", market_cap_bucket: "mega", float_millions: 420, active: true, sector: "Technology"}
+      - {symbol: "JPM", name: "JPMorgan Chase & Co.", market_cap_bucket: "mega", float_millions: 2850, active: true, sector: "Financials"}
+      - {symbol: "LLY", name: "Eli Lilly and Company", market_cap_bucket: "mega", float_millions: 950, active: true, sector: "Healthcare"}
+      - {symbol: "V", name: "Visa Inc.", market_cap_bucket: "mega", float_millions: 1650, active: true, sector: "Financials"}
+      - {symbol: "UNH", name: "UnitedHealth Group", market_cap_bucket: "mega", float_millions: 920, active: true, sector: "Healthcare"}
+      - {symbol: "XOM", name: "Exxon Mobil Corporation", market_cap_bucket: "mega", float_millions: 4100, active: true, sector: "Energy"}
+      - {symbol: "MA", name: "Mastercard Inc.", market_cap_bucket: "mega", float_millions: 920, active: true, sector: "Financials"}
+      - {symbol: "COST", name: "Costco Wholesale", market_cap_bucket: "mega", float_millions: 440, active: true, sector: "Consumer Staples"}
+      - {symbol: "PG", name: "Procter & Gamble", market_cap_bucket: "mega", float_millions: 2350, active: true, sector: "Consumer Staples"}
+      - {symbol: "JNJ", name: "Johnson & Johnson", market_cap_bucket: "mega", float_millions: 2400, active: true, sector: "Healthcare"}
+      - {symbol: "HD", name: "The Home Depot", market_cap_bucket: "mega", float_millions: 990, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "WMT", name: "Walmart Inc.", market_cap_bucket: "mega", float_millions: 2700, active: true, sector: "Consumer Staples"}
+      - {symbol: "ABBV", name: "AbbVie Inc.", market_cap_bucket: "mega", float_millions: 1770, active: true, sector: "Healthcare"}
+      - {symbol: "NFLX", name: "Netflix Inc.", market_cap_bucket: "mega", float_millions: 430, active: true, sector: "Communication Services"}
+      - {symbol: "CRM", name: "Salesforce Inc.", market_cap_bucket: "mega", float_millions: 970, active: true, sector: "Technology"}
+      - {symbol: "BAC", name: "Bank of America", market_cap_bucket: "mega", float_millions: 7900, active: true, sector: "Financials"}
+      - {symbol: "ORCL", name: "Oracle Corporation", market_cap_bucket: "mega", float_millions: 2750, active: true, sector: "Technology"}
+      - {symbol: "AMD", name: "Advanced Micro Devices", market_cap_bucket: "mega", float_millions: 1620, active: true, sector: "Technology"}
+      - {symbol: "KO", name: "The Coca-Cola Company", market_cap_bucket: "mega", float_millions: 4320, active: true, sector: "Consumer Staples"}
+      - {symbol: "CVX", name: "Chevron Corporation", market_cap_bucket: "mega", float_millions: 1850, active: true, sector: "Energy"}
+      - {symbol: "MRK", name: "Merck & Co.", market_cap_bucket: "mega", float_millions: 2530, active: true, sector: "Healthcare"}
 
-      - symbol: "SOFI"
-        name: "SoFi Technologies"
-        asset_class: "equity"
-        sector: "Financials"
-        market_cap_bucket: "small"
-        float_millions: 900
-        active: true
-        allow_smallcap_scan: true
-        notes: "Fintech small-cap"
-
-      - symbol: "PLTR"
-        name: "Palantir Technologies"
-        asset_class: "equity"
-        sector: "Technology"
-        market_cap_bucket: "mid"
-        float_millions: 1800
-        active: true
-        allow_smallcap_scan: true
-        notes: "Mid-cap tech"
-
-      - symbol: "MARA"
-        name: "Marathon Digital Holdings"
-        asset_class: "equity"
-        sector: "Technology"
-        market_cap_bucket: "small"
-        float_millions: 200
-        active: true
-        allow_smallcap_scan: true
-        notes: "Bitcoin mining, extreme volatility"
-
-      - symbol: "RIOT"
-        name: "Riot Platforms"
-        asset_class: "equity"
-        sector: "Technology"
-        market_cap_bucket: "small"
-        float_millions: 250
-        active: true
-        allow_smallcap_scan: true
-        notes: "Bitcoin mining, extreme volatility"
-
-      - symbol: "AMC"
-        name: "AMC Entertainment"
-        asset_class: "equity"
-        sector: "Consumer Discretionary"
-        market_cap_bucket: "small"
-        float_millions: 500
-        active: true
-        allow_smallcap_scan: true
-        notes: "Meme stock, high short interest"
-
-      - symbol: "GME"
-        name: "GameStop Corp"
-        asset_class: "equity"
-        sector: "Consumer Discretionary"
-        market_cap_bucket: "small"
-        float_millions: 300
-        active: true
-        allow_smallcap_scan: true
-        notes: "Meme stock, high volatility"
-
-      - symbol: "BBBY"
-        name: "Bed Bath & Beyond"
-        asset_class: "equity"
-        sector: "Consumer Discretionary"
-        market_cap_bucket: "micro"
-        float_millions: 80
-        active: false
-        allow_smallcap_scan: true
-        notes: "Delisted - example only"
-
-  # Low-float runner candidates
-  low_float_runners:
-    description: "Low-float names prone to explosive moves"
+  large_cap:
+    description: "Large-cap universe ($10B-$200B)"
     symbols:
-      - symbol: "MULN"
-        name: "Mullen Automotive"
-        asset_class: "equity"
-        sector: "Consumer Discretionary"
-        market_cap_bucket: "nano"
-        float_millions: 15
-        active: true
-        allow_smallcap_scan: true
-        notes: "Very low float, extreme volatility"
+      - {symbol: "ACN", name: "Accenture", market_cap_bucket: "large", float_millions: 630, active: true, sector: "Technology"}
+      - {symbol: "PEP", name: "PepsiCo Inc.", market_cap_bucket: "large", float_millions: 1380, active: true, sector: "Consumer Staples"}
+      - {symbol: "TMO", name: "Thermo Fisher Scientific", market_cap_bucket: "large", float_millions: 385, active: true, sector: "Healthcare"}
+      - {symbol: "CSCO", name: "Cisco Systems", market_cap_bucket: "large", float_millions: 4070, active: true, sector: "Technology"}
+      - {symbol: "MCD", name: "McDonald's Corporation", market_cap_bucket: "large", float_millions: 720, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "ABT", name: "Abbott Laboratories", market_cap_bucket: "large", float_millions: 1730, active: true, sector: "Healthcare"}
+      - {symbol: "DHR", name: "Danaher Corporation", market_cap_bucket: "large", float_millions: 735, active: true, sector: "Healthcare"}
+      - {symbol: "ADBE", name: "Adobe Inc.", market_cap_bucket: "large", float_millions: 445, active: true, sector: "Technology"}
+      - {symbol: "NKE", name: "Nike Inc.", market_cap_bucket: "large", float_millions: 1220, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "INTC", name: "Intel Corporation", market_cap_bucket: "large", float_millions: 4200, active: true, sector: "Technology"}
+      - {symbol: "VZ", name: "Verizon Communications", market_cap_bucket: "large", float_millions: 4200, active: true, sector: "Communication Services"}
+      - {symbol: "WFC", name: "Wells Fargo & Company", market_cap_bucket: "large", float_millions: 3560, active: true, sector: "Financials"}
+      - {symbol: "CMCSA", name: "Comcast Corporation", market_cap_bucket: "large", float_millions: 3970, active: true, sector: "Communication Services"}
+      - {symbol: "DIS", name: "The Walt Disney Company", market_cap_bucket: "large", float_millions: 1830, active: true, sector: "Communication Services"}
+      - {symbol: "TXN", name: "Texas Instruments", market_cap_bucket: "large", float_millions: 910, active: true, sector: "Technology"}
+      - {symbol: "PM", name: "Philip Morris International", market_cap_bucket: "large", float_millions: 1550, active: true, sector: "Consumer Staples"}
+      - {symbol: "QCOM", name: "Qualcomm Inc.", market_cap_bucket: "large", float_millions: 1120, active: true, sector: "Technology"}
+      - {symbol: "UNP", name: "Union Pacific", market_cap_bucket: "large", float_millions: 610, active: true, sector: "Industrials"}
+      - {symbol: "IBM", name: "International Business Machines", market_cap_bucket: "large", float_millions: 915, active: true, sector: "Technology"}
+      - {symbol: "AMGN", name: "Amgen Inc.", market_cap_bucket: "large", float_millions: 535, active: true, sector: "Healthcare"}
+      - {symbol: "INTU", name: "Intuit Inc.", market_cap_bucket: "large", float_millions: 280, active: true, sector: "Technology"}
+      - {symbol: "ISRG", name: "Intuitive Surgical", market_cap_bucket: "large", float_millions: 355, active: true, sector: "Healthcare"}
+      - {symbol: "CAT", name: "Caterpillar Inc.", market_cap_bucket: "large", float_millions: 505, active: true, sector: "Industrials"}
+      - {symbol: "AMAT", name: "Applied Materials", market_cap_bucket: "large", float_millions: 830, active: true, sector: "Technology"}
+      - {symbol: "GE", name: "General Electric", market_cap_bucket: "large", float_millions: 1090, active: true, sector: "Industrials"}
+      - {symbol: "GS", name: "Goldman Sachs Group", market_cap_bucket: "large", float_millions: 335, active: true, sector: "Financials"}
+      - {symbol: "NOW", name: "ServiceNow Inc.", market_cap_bucket: "large", float_millions: 205, active: true, sector: "Technology"}
+      - {symbol: "BKNG", name: "Booking Holdings", market_cap_bucket: "large", float_millions: 35, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "AXP", name: "American Express", market_cap_bucket: "large", float_millions: 740, active: true, sector: "Financials"}
+      - {symbol: "SPGI", name: "S&P Global Inc.", market_cap_bucket: "large", float_millions: 310, active: true, sector: "Financials"}
+      - {symbol: "LOW", name: "Lowe's Companies", market_cap_bucket: "large", float_millions: 570, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "MS", name: "Morgan Stanley", market_cap_bucket: "large", float_millions: 1680, active: true, sector: "Financials"}
+      - {symbol: "T", name: "AT&T Inc.", market_cap_bucket: "large", float_millions: 7150, active: true, sector: "Communication Services"}
+      - {symbol: "BLK", name: "BlackRock Inc.", market_cap_bucket: "large", float_millions: 150, active: true, sector: "Financials"}
+      - {symbol: "RTX", name: "RTX Corporation", market_cap_bucket: "large", float_millions: 1350, active: true, sector: "Industrials"}
+      - {symbol: "VRTX", name: "Vertex Pharmaceuticals", market_cap_bucket: "large", float_millions: 257, active: true, sector: "Healthcare"}
+      - {symbol: "PLD", name: "Prologis Inc.", market_cap_bucket: "large", float_millions: 925, active: true, sector: "Real Estate"}
+      - {symbol: "SYK", name: "Stryker Corporation", market_cap_bucket: "large", float_millions: 380, active: true, sector: "Healthcare"}
+      - {symbol: "LMT", name: "Lockheed Martin", market_cap_bucket: "large", float_millions: 240, active: true, sector: "Industrials"}
+      - {symbol: "HON", name: "Honeywell International", market_cap_bucket: "large", float_millions: 670, active: true, sector: "Industrials"}
+      - {symbol: "C", name: "Citigroup Inc.", market_cap_bucket: "large", float_millions: 1920, active: true, sector: "Financials"}
+      - {symbol: "ELV", name: "Elevance Health", market_cap_bucket: "large", float_millions: 235, active: true, sector: "Healthcare"}
+      - {symbol: "PFE", name: "Pfizer Inc.", market_cap_bucket: "large", float_millions: 5650, active: true, sector: "Healthcare"}
+      - {symbol: "NEE", name: "NextEra Energy", market_cap_bucket: "large", float_millions: 2050, active: true, sector: "Utilities"}
+      - {symbol: "MDT", name: "Medtronic plc", market_cap_bucket: "large", float_millions: 1340, active: true, sector: "Healthcare"}
+      - {symbol: "BMY", name: "Bristol-Myers Squibb", market_cap_bucket: "large", float_millions: 2030, active: true, sector: "Healthcare"}
+      - {symbol: "DE", name: "Deere & Company", market_cap_bucket: "large", float_millions: 290, active: true, sector: "Industrials"}
+      - {symbol: "PANW", name: "Palo Alto Networks", market_cap_bucket: "large", float_millions: 325, active: true, sector: "Technology"}
+      - {symbol: "REGN", name: "Regeneron Pharmaceuticals", market_cap_bucket: "large", float_millions: 105, active: true, sector: "Healthcare"}
+      - {symbol: "SCHW", name: "Charles Schwab", market_cap_bucket: "large", float_millions: 1800, active: true, sector: "Financials"}
 
-      - symbol: "FFIE"
-        name: "Faraday Future"
-        asset_class: "equity"
-        sector: "Consumer Discretionary"
-        market_cap_bucket: "nano"
-        float_millions: 20
-        active: true
-        allow_smallcap_scan: true
-        notes: "EV startup, low float"
+  mid_cap:
+    description: "Mid-cap universe ($2B-$10B)"
+    symbols:
+      - {symbol: "PLTR", name: "Palantir Technologies", market_cap_bucket: "mid", float_millions: 1800, active: true, sector: "Technology"}
+      - {symbol: "SNAP", name: "Snap Inc.", market_cap_bucket: "mid", float_millions: 1150, active: true, sector: "Technology"}
+      - {symbol: "ROKU", name: "Roku Inc.", market_cap_bucket: "mid", float_millions: 115, active: true, sector: "Technology"}
+      - {symbol: "ETSY", name: "Etsy Inc.", market_cap_bucket: "mid", float_millions: 115, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "Z", name: "Zillow Group Class C", market_cap_bucket: "mid", float_millions: 205, active: true, sector: "Technology"}
+      - {symbol: "ZG", name: "Zillow Group Class A", market_cap_bucket: "mid", float_millions: 45, active: true, sector: "Technology"}
+      - {symbol: "TWLO", name: "Twilio Inc.", market_cap_bucket: "mid", float_millions: 170, active: true, sector: "Technology"}
+      - {symbol: "PINS", name: "Pinterest Inc.", market_cap_bucket: "mid", float_millions: 605, active: true, sector: "Technology"}
+      - {symbol: "DBX", name: "Dropbox Inc.", market_cap_bucket: "mid", float_millions: 330, active: true, sector: "Technology"}
+      - {symbol: "DOCU", name: "DocuSign Inc.", market_cap_bucket: "mid", float_millions: 195, active: true, sector: "Technology"}
+      - {symbol: "OKTA", name: "Okta Inc.", market_cap_bucket: "mid", float_millions: 160, active: true, sector: "Technology"}
+      - {symbol: "DASH", name: "DoorDash Inc.", market_cap_bucket: "mid", float_millions: 385, active: true, sector: "Technology"}
+      - {symbol: "PATH", name: "UiPath Inc.", market_cap_bucket: "mid", float_millions: 540, active: true, sector: "Technology"}
+      - {symbol: "COIN", name: "Coinbase Global", market_cap_bucket: "mid", float_millions: 220, active: true, sector: "Financials"}
+      - {symbol: "HOOD", name: "Robinhood Markets", market_cap_bucket: "mid", float_millions: 785, active: true, sector: "Financials"}
+      - {symbol: "U", name: "Unity Software", market_cap_bucket: "mid", float_millions: 380, active: true, sector: "Technology"}
+      - {symbol: "RBLX", name: "Roblox Corporation", market_cap_bucket: "mid", float_millions: 545, active: true, sector: "Technology"}
+      - {symbol: "DDOG", name: "Datadog Inc.", market_cap_bucket: "mid", float_millions: 320, active: true, sector: "Technology"}
+      - {symbol: "ZS", name: "Zscaler Inc.", market_cap_bucket: "mid", float_millions: 145, active: true, sector: "Technology"}
+      - {symbol: "NET", name: "Cloudflare Inc.", market_cap_bucket: "mid", float_millions: 325, active: true, sector: "Technology"}
+      - {symbol: "CRWD", name: "CrowdStrike Holdings", market_cap_bucket: "mid", float_millions: 240, active: true, sector: "Technology"}
+      - {symbol: "BILL", name: "Bill Holdings Inc.", market_cap_bucket: "mid", float_millions: 105, active: true, sector: "Technology"}
+      - {symbol: "MDB", name: "MongoDB Inc.", market_cap_bucket: "mid", float_millions: 70, active: true, sector: "Technology"}
+      - {symbol: "SNOW", name: "Snowflake Inc.", market_cap_bucket: "mid", float_millions: 335, active: true, sector: "Technology"}
+      - {symbol: "TTD", name: "The Trade Desk", market_cap_bucket: "mid", float_millions: 485, active: true, sector: "Technology"}
+      - {symbol: "SQ", name: "Block Inc.", market_cap_bucket: "mid", float_millions: 605, active: true, sector: "Technology"}
+      - {symbol: "AFRM", name: "Affirm Holdings", market_cap_bucket: "mid", float_millions: 285, active: true, sector: "Financials"}
+      - {symbol: "UPST", name: "Upstart Holdings", market_cap_bucket: "mid", float_millions: 85, active: true, sector: "Financials"}
+      - {symbol: "HUBS", name: "HubSpot Inc.", market_cap_bucket: "mid", float_millions: 49, active: true, sector: "Technology"}
+      - {symbol: "TEAM", name: "Atlassian Corporation", market_cap_bucket: "mid", float_millions: 260, active: true, sector: "Technology"}
+      - {symbol: "WDAY", name: "Workday Inc.", market_cap_bucket: "mid", float_millions: 260, active: true, sector: "Technology"}
+      - {symbol: "VEEV", name: "Veeva Systems", market_cap_bucket: "mid", float_millions: 162, active: true, sector: "Healthcare"}
+      - {symbol: "ZM", name: "Zoom Video Communications", market_cap_bucket: "mid", float_millions: 305, active: true, sector: "Technology"}
+      - {symbol: "SPOT", name: "Spotify Technology", market_cap_bucket: "mid", float_millions: 195, active: true, sector: "Technology"}
+      - {symbol: "W", name: "Wayfair Inc.", market_cap_bucket: "mid", float_millions: 125, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "OPEN", name: "Opendoor Technologies", market_cap_bucket: "mid", float_millions: 640, active: true, sector: "Real Estate"}
+      - {symbol: "LYFT", name: "Lyft Inc.", market_cap_bucket: "mid", float_millions: 395, active: true, sector: "Technology"}
+      - {symbol: "ABNB", name: "Airbnb Inc.", market_cap_bucket: "mid", float_millions: 635, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "RIVN", name: "Rivian Automotive", market_cap_bucket: "mid", float_millions: 970, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "LCID", name: "Lucid Group", market_cap_bucket: "mid", float_millions: 2100, active: true, sector: "Consumer Discretionary"}
 
-  # S&P 100 reference
-  sp100:
-    description: "S&P 100 large-cap universe"
-    source: "S&P Dow Jones Indices"
-    load_from: "data/universes/sp100.csv"
-    active: true
-    notes: "Load symbols from CSV file when available"
+  small_cap:
+    description: "Small-cap universe ($300M-$2B)"
+    symbols:
+      - {symbol: "CLOV", name: "Clover Health", market_cap_bucket: "small", float_millions: 350, active: true, sector: "Healthcare"}
+      - {symbol: "SOFI", name: "SoFi Technologies", market_cap_bucket: "small", float_millions: 900, active: true, sector: "Financials"}
+      - {symbol: "MARA", name: "Marathon Digital", market_cap_bucket: "small", float_millions: 200, active: true, sector: "Technology"}
+      - {symbol: "RIOT", name: "Riot Platforms", market_cap_bucket: "small", float_millions: 250, active: true, sector: "Technology"}
+      - {symbol: "AMC", name: "AMC Entertainment", market_cap_bucket: "small", float_millions: 500, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "GME", name: "GameStop Corp", market_cap_bucket: "small", float_millions: 300, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "WKHS", name: "Workhorse Group", market_cap_bucket: "small", float_millions: 165, active: true, sector: "Industrials"}
+      - {symbol: "SNDL", name: "SNDL Inc.", market_cap_bucket: "small", float_millions: 2100, active: true, sector: "Consumer Staples"}
+      - {symbol: "SPCE", name: "Virgin Galactic", market_cap_bucket: "small", float_millions: 280, active: true, sector: "Industrials"}
+      - {symbol: "BB", name: "BlackBerry Limited", market_cap_bucket: "small", float_millions: 580, active: true, sector: "Technology"}
+      - {symbol: "WISH", name: "ContextLogic Inc.", market_cap_bucket: "small", float_millions: 640, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "CENN", name: "Cenntro Electric", market_cap_bucket: "small", float_millions: 175, active: true, sector: "Industrials"}
+      - {symbol: "GOEV", name: "Canoo Inc.", market_cap_bucket: "small", float_millions: 35, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "NKLA", name: "Nikola Corporation", market_cap_bucket: "small", float_millions: 430, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "FSR", name: "Fisker Inc.", market_cap_bucket: "small", float_millions: 315, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "SKLZ", name: "Skillz Inc.", market_cap_bucket: "small", float_millions: 400, active: true, sector: "Technology"}
+      - {symbol: "ATER", name: "Aterian Inc.", market_cap_bucket: "small", float_millions: 85, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "BBIG", name: "Vinco Ventures", market_cap_bucket: "small", float_millions: 220, active: true, sector: "Technology"}
+      - {symbol: "IRNT", name: "IronNet Inc.", market_cap_bucket: "small", float_millions: 45, active: true, sector: "Technology"}
+      - {symbol: "SDC", name: "SmileDirectClub", market_cap_bucket: "small", float_millions: 365, active: true, sector: "Healthcare"}
+      - {symbol: "CLNE", name: "Clean Energy Fuels", market_cap_bucket: "small", float_millions: 195, active: true, sector: "Energy"}
+      - {symbol: "PLUG", name: "Plug Power Inc.", market_cap_bucket: "small", float_millions: 600, active: true, sector: "Industrials"}
+      - {symbol: "FCEL", name: "FuelCell Energy", market_cap_bucket: "small", float_millions: 460, active: true, sector: "Industrials"}
+      - {symbol: "HYLN", name: "Hyliion Holdings", market_cap_bucket: "small", float_millions: 175, active: true, sector: "Industrials"}
+      - {symbol: "LAZR", name: "Luminar Technologies", market_cap_bucket: "small", float_millions: 315, active: true, sector: "Technology"}
+      - {symbol: "VLDR", name: "Velodyne Lidar", market_cap_bucket: "small", float_millions: 195, active: true, sector: "Technology"}
+      - {symbol: "QS", name: "QuantumScape", market_cap_bucket: "small", float_millions: 485, active: true, sector: "Technology"}
+      - {symbol: "CHPT", name: "ChargePoint Holdings", market_cap_bucket: "small", float_millions: 420, active: true, sector: "Industrials"}
+      - {symbol: "BLNK", name: "Blink Charging", market_cap_bucket: "small", float_millions: 80, active: true, sector: "Industrials"}
+      - {symbol: "ARVL", name: "Arrival SA", market_cap_bucket: "small", float_millions: 690, active: true, sector: "Industrials"}
+      - {symbol: "EVGO", name: "EVgo Inc.", market_cap_bucket: "small", float_millions: 275, active: true, sector: "Industrials"}
+      - {symbol: "TTCF", name: "Tattooed Chef", market_cap_bucket: "small", float_millions: 80, active: true, sector: "Consumer Staples"}
+      - {symbol: "BYND", name: "Beyond Meat", market_cap_bucket: "small", float_millions: 63, active: true, sector: "Consumer Staples"}
+      - {symbol: "OTRK", name: "Ontrak Inc.", market_cap_bucket: "small", float_millions: 28, active: true, sector: "Healthcare"}
+      - {symbol: "APPH", name: "AppHarvest Inc.", market_cap_bucket: "small", float_millions: 105, active: true, sector: "Consumer Staples"}
+      - {symbol: "TLRY", name: "Tilray Brands", market_cap_bucket: "small", float_millions: 675, active: true, sector: "Healthcare"}
+      - {symbol: "CGC", name: "Canopy Growth", market_cap_bucket: "small", float_millions: 450, active: true, sector: "Healthcare"}
+      - {symbol: "ACB", name: "Aurora Cannabis", market_cap_bucket: "small", float_millions: 340, active: true, sector: "Healthcare"}
+      - {symbol: "CRON", name: "Cronos Group", market_cap_bucket: "small", float_millions: 375, active: true, sector: "Healthcare"}
+      - {symbol: "HEXO", name: "HEXO Corp", market_cap_bucket: "small", float_millions: 45, active: true, sector: "Healthcare"}
 
-  # Full US equities - loaded dynamically
+  micro_cap:
+    description: "Micro-cap universe ($50M-$300M)"
+    symbols:
+      - {symbol: "IMPP", name: "Imperial Petroleum", market_cap_bucket: "micro", float_millions: 45, active: true, sector: "Energy"}
+      - {symbol: "INDO", name: "Indonesia Energy", market_cap_bucket: "micro", float_millions: 12, active: true, sector: "Energy"}
+      - {symbol: "HUSA", name: "Houston American Energy", market_cap_bucket: "micro", float_millions: 15, active: true, sector: "Energy"}
+      - {symbol: "CEI", name: "Camber Energy", market_cap_bucket: "micro", float_millions: 185, active: true, sector: "Energy"}
+      - {symbol: "PROG", name: "Progenity Inc.", market_cap_bucket: "micro", float_millions: 135, active: true, sector: "Healthcare"}
+      - {symbol: "BBIG", name: "Vinco Ventures", market_cap_bucket: "micro", float_millions: 220, active: true, sector: "Technology"}
+      - {symbol: "BKKT", name: "Bakkt Holdings", market_cap_bucket: "micro", float_millions: 95, active: true, sector: "Technology"}
+      - {symbol: "DWAC", name: "Digital World Acquisition", market_cap_bucket: "micro", float_millions: 25, active: true, sector: "Technology"}
+      - {symbol: "PHUN", name: "Phunware Inc.", market_cap_bucket: "micro", float_millions: 115, active: true, sector: "Technology"}
+      - {symbol: "BGFV", name: "Big 5 Sporting Goods", market_cap_bucket: "micro", float_millions: 22, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "CRTD", name: "Creatd Inc.", market_cap_bucket: "micro", float_millions: 35, active: true, sector: "Technology"}
+      - {symbol: "XELA", name: "Exela Technologies", market_cap_bucket: "micro", float_millions: 165, active: true, sector: "Technology"}
+      - {symbol: "VERB", name: "Verb Technology", market_cap_bucket: "micro", float_millions: 80, active: true, sector: "Technology"}
+      - {symbol: "AVCT", name: "American Virtual Cloud", market_cap_bucket: "micro", float_millions: 55, active: true, sector: "Technology"}
+      - {symbol: "LMFA", name: "LM Funding America", market_cap_bucket: "micro", float_millions: 12, active: true, sector: "Financials"}
+      - {symbol: "PRTY", name: "Party City Holdco", market_cap_bucket: "micro", float_millions: 110, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "RCKT", name: "Rocket Lab USA", market_cap_bucket: "micro", float_millions: 475, active: true, sector: "Industrials"}
+      - {symbol: "RDW", name: "Redwire Corporation", market_cap_bucket: "micro", float_millions: 65, active: true, sector: "Industrials"}
+      - {symbol: "SPIR", name: "Spire Global", market_cap_bucket: "micro", float_millions: 145, active: true, sector: "Technology"}
+      - {symbol: "ASTR", name: "Astra Space", market_cap_bucket: "micro", float_millions: 265, active: true, sector: "Industrials"}
+      - {symbol: "GEVO", name: "Gevo Inc.", market_cap_bucket: "micro", float_millions: 230, active: true, sector: "Energy"}
+      - {symbol: "ASTS", name: "AST SpaceMobile", market_cap_bucket: "micro", float_millions: 185, active: true, sector: "Technology"}
+      - {symbol: "IONQ", name: "IonQ Inc.", market_cap_bucket: "micro", float_millions: 195, active: true, sector: "Technology"}
+      - {symbol: "SAVA", name: "Cassava Sciences", market_cap_bucket: "micro", float_millions: 40, active: true, sector: "Healthcare"}
+      - {symbol: "OCGN", name: "Ocugen Inc.", market_cap_bucket: "micro", float_millions: 205, active: true, sector: "Healthcare"}
+      - {symbol: "BNGO", name: "Bionano Genomics", market_cap_bucket: "micro", float_millions: 295, active: true, sector: "Healthcare"}
+      - {symbol: "SENS", name: "Senseonics Holdings", market_cap_bucket: "micro", float_millions: 470, active: true, sector: "Healthcare"}
+      - {symbol: "MRNA", name: "Moderna (historical)", market_cap_bucket: "micro", float_millions: 395, active: true, sector: "Healthcare"}
+      - {symbol: "VXRT", name: "Vaxart Inc.", market_cap_bucket: "micro", float_millions: 135, active: true, sector: "Healthcare"}
+      - {symbol: "NVAX", name: "Novavax Inc.", market_cap_bucket: "micro", float_millions: 155, active: true, sector: "Healthcare"}
+
+  nano_cap:
+    description: "Nano-cap universe ($10M-$50M)"
+    symbols:
+      - {symbol: "MULN", name: "Mullen Automotive", market_cap_bucket: "nano", float_millions: 15, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "FFIE", name: "Faraday Future", market_cap_bucket: "nano", float_millions: 20, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "FAZE", name: "FaZe Holdings", market_cap_bucket: "nano", float_millions: 8, active: true, sector: "Communication Services"}
+      - {symbol: "SBFM", name: "Sunshine Biopharma", market_cap_bucket: "nano", float_millions: 5, active: true, sector: "Healthcare"}
+      - {symbol: "GROM", name: "Grom Social Enterprises", market_cap_bucket: "nano", float_millions: 12, active: true, sector: "Technology"}
+      - {symbol: "RNAZ", name: "TransCode Therapeutics", market_cap_bucket: "nano", float_millions: 7, active: true, sector: "Healthcare"}
+      - {symbol: "ICCT", name: "iCoreConnect Inc.", market_cap_bucket: "nano", float_millions: 10, active: true, sector: "Healthcare"}
+      - {symbol: "BTCS", name: "BTCS Inc.", market_cap_bucket: "nano", float_millions: 15, active: true, sector: "Technology"}
+      - {symbol: "OPTT", name: "Ocean Power Technologies", market_cap_bucket: "nano", float_millions: 45, active: true, sector: "Industrials"}
+      - {symbol: "RELI", name: "Reliance Global Group", market_cap_bucket: "nano", float_millions: 8, active: true, sector: "Financials"}
+      - {symbol: "MGAM", name: "Mobile Global Esports", market_cap_bucket: "nano", float_millions: 3, active: true, sector: "Communication Services"}
+      - {symbol: "PETZ", name: "TDH Holdings Inc.", market_cap_bucket: "nano", float_millions: 6, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "HOFV", name: "Hall of Fame Resort", market_cap_bucket: "nano", float_millions: 85, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "LGVN", name: "Longeveron Inc.", market_cap_bucket: "nano", float_millions: 11, active: true, sector: "Healthcare"}
+      - {symbol: "SPRC", name: "SciSparc Ltd.", market_cap_bucket: "nano", float_millions: 4, active: true, sector: "Healthcare"}
+      - {symbol: "CTIC", name: "CTI BioPharma", market_cap_bucket: "nano", float_millions: 105, active: true, sector: "Healthcare"}
+      - {symbol: "BIOR", name: "Biora Therapeutics", market_cap_bucket: "nano", float_millions: 32, active: true, sector: "Healthcare"}
+      - {symbol: "NRBO", name: "NeuroBo Pharmaceuticals", market_cap_bucket: "nano", float_millions: 8, active: true, sector: "Healthcare"}
+      - {symbol: "MMAT", name: "Meta Materials", market_cap_bucket: "nano", float_millions: 350, active: true, sector: "Materials"}
+      - {symbol: "ENVB", name: "Enveric Biosciences", market_cap_bucket: "nano", float_millions: 6, active: true, sector: "Healthcare"}
+
+  penny_stocks:
+    description: "Penny stocks (<$10M or <$5/share)"
+    symbols:
+      - {symbol: "CXAI", name: "CXApp Inc.", market_cap_bucket: "penny", float_millions: 3, active: true, sector: "Technology"}
+      - {symbol: "CPOP", name: "Pop Culture Group", market_cap_bucket: "penny", float_millions: 2, active: true, sector: "Consumer Discretionary"}
+      - {symbol: "TOP", name: "TOP Financial Group", market_cap_bucket: "penny", float_millions: 4, active: true, sector: "Financials"}
+      - {symbol: "ADTX", name: "Aditxt Inc.", market_cap_bucket: "penny", float_millions: 8, active: true, sector: "Healthcare"}
+      - {symbol: "ABVC", name: "ABVC BioPharma", market_cap_bucket: "penny", float_millions: 5, active: true, sector: "Healthcare"}
+      - {symbol: "ONCT", name: "Oncternal Therapeutics", market_cap_bucket: "penny", float_millions: 35, active: true, sector: "Healthcare"}
+      - {symbol: "OBLG", name: "Oblong Inc.", market_cap_bucket: "penny", float_millions: 4, active: true, sector: "Technology"}
+      - {symbol: "WBEV", name: "Winc Inc.", market_cap_bucket: "penny", float_millions: 6, active: true, sector: "Consumer Staples"}
+      - {symbol: "ZKIN", name: "ZK International Group", market_cap_bucket: "penny", float_millions: 8, active: true, sector: "Industrials"}
+      - {symbol: "CRBP", name: "Corbus Pharmaceuticals", market_cap_bucket: "penny", float_millions: 105, active: true, sector: "Healthcare"}
+      - {symbol: "EDBL", name: "Edible Garden AG", market_cap_bucket: "penny", float_millions: 4, active: true, sector: "Consumer Staples"}
+      - {symbol: "GWAV", name: "Greenwave Technology", market_cap_bucket: "penny", float_millions: 3, active: true, sector: "Industrials"}
+      - {symbol: "ELMS", name: "Electric Last Mile", market_cap_bucket: "penny", float_millions: 75, active: true, sector: "Industrials"}
+      - {symbol: "MVST", name: "Microvast Holdings", market_cap_bucket: "penny", float_millions: 290, active: true, sector: "Industrials"}
+      - {symbol: "BRDS", name: "Bird Global Inc.", market_cap_bucket: "penny", float_millions: 245, active: true, sector: "Industrials"}
+
   full_us_equities:
-    description: "All active US equities across all caps"
+    description: "All active US equities across all caps (dynamic loading)"
     source: "dynamic"
     load_from: "polygon_api"
+    fallback_source: "csv_bundle"
     active: true
     max_symbols: 8000
-    notes: "Loaded dynamically from data provider"
-
-  # Research watchlist
-  research_watchlist:
-    description: "Custom research watchlist"
-    symbols: []
-    active: true
-    notes: "User-defined symbols for research focus"
+    notes: "Loaded dynamically from data provider - ~4000 active symbols"
 
 asset_classes:
   - id: "equity"
@@ -297,7 +337,6 @@ validation_rules:
   require_market_cap_bucket: true
   require_float_for_smallcaps: true
 
-# Default flags for symbols without explicit settings
 defaults:
   active: true
   allow_smallcap_scan: true
