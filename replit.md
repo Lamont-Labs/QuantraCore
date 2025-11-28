@@ -218,25 +218,28 @@ All outputs are framed as **structural probabilities**, NOT trading advice.
 
 ## Recent Changes
 
-### 2025-11-28 — ApexDesk React UI Build
+### 2025-11-28 — Full End-to-End Validation Complete
+
+**Comprehensive Validation Completed:**
+- Master spec v8.2 created with complete system documentation
+- All placeholder/stub code removed from runtime paths
+- Guard tests added to prevent future placeholders
+- CI workflow renamed to "Desktop Research Stack CI"
+- Provenance files updated with test summary
+- **360 total tests: 355 passed, 5 skipped (sklearn internals)**
+
+**Documentation Updates:**
+- `docs/QUANTRACORE_APEX_MASTER_SPEC_v8.2.md` - Complete system spec
+- `docs/GETTING_STARTED_DESKTOP.md` - Setup guide
+- `docs/COMPLIANCE_AND_SAFETY.md` - Research-only constraints
+- `provenance/ENGINE_TEST_SUMMARY.json` - Test results
+- `provenance/E2E_RESEARCH_SCENARIO.md` - E2E verification
 
 **ApexDesk Frontend (React + Tailwind v4):**
 - Modern React 19 frontend with Vite 7 and Tailwind CSS v4
-- Lamont Labs + QuantraCore branding with authentic brand assets:
-  - Sawblade gear logo with circuit board pattern (lamont_labs_logo.png)
-  - QuantraCore 3D disk with candlestick chart (quantracore_disk.png)
-  - Tagline: "Obsession turned into systems."
-- Color theme extracted from brand images:
-  - Deep navy base (#050810, #0a0f1a)
-  - Electric cyan glow (#00d4ff)
-  - Subtle blue accents (#1e3a5f, #3b82f6)
-- Left rail navigation: Dashboard, Research, ApexLab, Models, Logs
-- Header with QUANTRACORE Apex title, status badges, action buttons
-- Universe Scanner table with score coloring and regime display
-- Detail Panel with tabbed interface (Overview, Trace, Monster, Signal)
+- Lamont Labs + QuantraCore branding with authentic brand assets
 - Full API wiring to FastAPI backend via Vite proxy
-- **5 frontend tests passing** with Vitest
-- **331 backend tests + 23 live API tests passing**
+- 5 frontend tests passing with Vitest
 
 **Dual Workflow Configuration:**
 - Frontend: Vite dev server on port 5000 (webview)
