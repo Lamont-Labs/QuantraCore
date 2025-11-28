@@ -22,10 +22,6 @@ args = "FastAPI Backend"
 task = "workflow.run"
 args = "ApexDesk Frontend"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "UI Live Demo"
-
 [[workflows.workflow]]
 name = "FastAPI Backend"
 author = "agent"
@@ -49,17 +45,6 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
-
-[[workflows.workflow]]
-name = "UI Live Demo"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python scripts/run_ui_live_demo.py"
-
-[workflows.workflow.metadata]
-outputType = "vnc"
 
 [[ports]]
 localPort = 5000
