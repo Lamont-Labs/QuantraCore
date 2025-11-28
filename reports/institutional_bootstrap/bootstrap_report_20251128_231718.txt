@@ -1,0 +1,53 @@
+QuantraCore Apex — Institutional Bootstrap Report
+============================================================
+Generated UTC      : 2025-11-28T23:17:18Z
+System             : QuantraCore Apex
+Version            : v9.0-A (Institutional Hardening)
+
+Hardware Profile
+----------------------------------------
+Hostname           : ea076780c532
+OS                 : Linux #1-NixOS SMP PREEMPT_DYNAMIC Tue Jan  1 00:00:00 UTC 1980
+Python             : 3.11.13
+CPU model          : unknown-cpu
+Logical cores      : 8
+Physical cores     : 4
+RAM (GB)           : 62.8
+GPU present        : False
+GPU name           : -
+GPU count          : 0
+
+Scaling Profile
+----------------------------------------
+Tier               : MEDIUM
+Tier reason        : <=8 logical cores or <=32GB RAM — tuned for single-node institutional pilot.
+
+Scanner
+  max_symbols      : 5000
+  batch_size       : 500
+  parallel_jobs    : 4
+
+Engine
+  workers          : 6
+  max_concurrent   : 2000
+
+ApexLab
+  training_workers : 2
+  max_parallel     : 2
+  ckpt_interval    : 45 min
+
+ApexCore
+  variant          : big
+  batch_size       : 256
+
+UI
+  max_sessions     : 15
+  SSR enabled      : True
+
+Logging
+  retention_days   : 14
+  max_bytes/file   : 209715200
+
+Data Tier Note
+----------------------------------------
+This bootstrap profile is data-tier agnostic. It is compatible with both free-tier OHLCV data (e.g., Polygon free) and institutional data feeds. Institutions are expected to wire their own feeds into the scanner layer; this config only dictates hardware-aware scaling heuristics.
