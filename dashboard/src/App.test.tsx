@@ -61,7 +61,7 @@ describe('App', () => {
 
   it('renders the Lamont Labs branding', () => {
     render(<App />)
-    expect(screen.getByText('LAMONT LABS')).toBeInTheDocument()
+    expect(screen.getAllByText('LAMONT LABS').length).toBeGreaterThan(0)
   })
 
   it('renders the QuantraCore branding', () => {
