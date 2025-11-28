@@ -28,13 +28,14 @@ QuantraCore Apex follows a desktop-only architecture with a strong emphasis on d
 The project is organized into `src/quantracore_apex/` with distinct modules:
 - **`core/`**: Houses the deterministic engine components (e.g., `ApexEngine`, `schemas`, `microtraits`, `quantrascore`, `verdict`, `entropy`, `drift`, `suppression`, `continuation`).
 - **`protocols/`**: Contains 80 Tier Protocols (T01-T80) for various analyses (e.g., core, volatility, momentum, volume, pattern recognition, S/R, market context), 25 Learning Protocols (LP01-LP25) for label generation, MonsterRunner Protocols (MR01-MR05) for rare-event detection, and Omega Directives (Ω1-Ω5) for critical overrides.
-- **`data_layer/`**: Manages data acquisition, normalization, caching, and hashing through adapters (e.g., Alpha Vantage, Polygon.io, synthetic).
+- **`data_layer/`**: Manages data acquisition, normalization, caching, and hashing through adapters (e.g., Alpha Vantage, Polygon.io, Yahoo Finance, CSV bundle, synthetic) with multi-provider failover support.
 - **`apexlab/`**: The offline training environment for ApexCore, including window building, feature extraction, label generation, and dataset construction.
 - **`apexcore/`**: The neural model interface, containing `ApexCoreFull` (desktop) and `ApexCoreMini` (lightweight) models built with scikit-learn.
 - **`scheduler/`**: Implements `ApexScheduler` for task scheduling in research workflows.
 - **`prediction/`**: Contains various prediction engines for expected move, monster runner events, volatility, compression, continuation, and instability.
 - **`server/`**: Hosts the FastAPI application.
-- **`tests/`**: Comprehensive test suite covering determinism, protocol signatures, data layer, ApexLab pipeline, MonsterRunner, and server health.
+- **`tests/`**: Comprehensive test suite covering determinism, protocol signatures, data layer, ApexLab pipeline, MonsterRunner, universal scanner, and server health (414 tests).
+- **`config/`**: Configuration files including `symbol_universe.yaml` (7 market cap buckets), `scan_modes.yaml` (8 scan modes), and `mode.yaml` (research-only enforcement).
 
 ### Frontend Architecture (ApexDesk)
 
