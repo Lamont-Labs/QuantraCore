@@ -126,6 +126,8 @@ class SuppressionMetrics(BaseModel):
     suppression_state: SuppressionState
     coil_factor: float = Field(ge=0)
     breakout_probability: float = Field(ge=0, le=1)
+    is_suppressed: bool = False
+    suppression_score: float = Field(default=0.0, ge=0, le=1)
 
 
 class DriftMetrics(BaseModel):
