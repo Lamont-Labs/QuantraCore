@@ -50,6 +50,15 @@ The user interface, ApexDesk, is built with React 19, Vite 7, and Tailwind CSS v
 - **HTTP Client:** HTTPX.
 - **Numerical:** NumPy, Pandas.
 
+### Validation & Stress Testing Scripts
+
+Located in `/scripts/`:
+- **`zero_doubt_verification.sh`** - Full 13-stage validation with double-pass testing
+- **`run_random_universe_scan.py`** - Random universe stress scan (up to full universe)
+- **`run_nuclear_determinism.py`** - 10-cycle determinism validation
+- **`run_scanner_all_modes.py`** - All 8 scan modes validation
+- **`validate_apexcore_pipeline.py`** - ApexLab/ApexCore pipeline validation
+
 ### API Endpoints
 
 The FastAPI server runs on port 5000 and provides endpoints for:
