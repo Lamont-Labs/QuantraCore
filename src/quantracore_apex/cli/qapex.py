@@ -170,6 +170,120 @@ def cmd_replay_demo(args):
         return 1
 
 
+def cmd_scan_mode(args):
+    """Run a scan using a pre-defined scan mode."""
+    mode = args.mode
+    max_symbols = args.max_symbols
+    lookback = args.lookback
+    
+    print(f"QuantraCore Apex v9.0-A Mode Scan")
+    print(f"Mode: {mode}")
+    print("=" * 50)
+    
+    try:
+        from src.quantracore_apex.config.scan_modes import load_scan_mode, list_scan_modes
+        
+        available_modes = list_scan_modes()
+        if mode not in available_modes:
+            print(f"[ERROR] Unknown mode: {mode}")
+            print(f"Available modes: {', '.join(available_modes)}")
+            return 1
+        
+        mode_config = load_scan_mode(mode)
+        print(f"Description: {mode_config.description}")
+        print(f"Buckets: {', '.join(mode_config.buckets)}")
+        print(f"Max symbols: {max_symbols or mode_config.max_symbols}")
+        print(f"Chunk size: {mode_config.chunk_size}")
+        print("-" * 50)
+        
+        from src.quantracore_apex.core.universe_scan import create_universe_scanner
+        
+        scanner = create_universe_scanner()
+        
+        def on_progress(symbol, current, total):
+            pct = current / total * 100
+            print(f"  [{current}/{total}] {symbol} ({pct:.0f}%)")
+        
+        result = scanner.scan(
+            mode=mode,
+            lookback_days=lookback,
+            max_symbols=max_symbols,
+            on_progress=on_progress if args.verbose else None,
+        )
+        
+        print("-" * 50)
+        print(f"SCAN RESULTS")
+        print(f"  Symbols scanned: {result.scan_count}")
+        print(f"  Successful: {result.success_count}")
+        print(f"  Errors: {result.error_count}")
+        print(f"  Small-caps: {result.smallcap_count}")
+        print(f"  Extreme risk: {result.extreme_risk_count}")
+        print(f"  Runner candidates: {result.runner_candidate_count}")
+        print(f"  Time: {result.total_time_seconds:.2f}s")
+        
+        if result.results and args.show_top:
+            print("-" * 50)
+            print(f"TOP {min(args.show_top, len(result.results))} RESULTS:")
+            for i, r in enumerate(result.results[:args.show_top], 1):
+                flags = []
+                if r.smallcap_flag:
+                    flags.append("SC")
+                if r.speculative_flag:
+                    flags.append("SPEC")
+                if r.mr_fuse_score >= 60:
+                    flags.append(f"MR:{r.mr_fuse_score:.0f}")
+                flag_str = " [" + ",".join(flags) + "]" if flags else ""
+                print(f"  {i}. {r.symbol}: {r.quantrascore:.1f} ({r.score_bucket}) - {r.verdict_action}{flag_str}")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"[ERROR] Scan failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
+def cmd_list_modes(args):
+    """List available scan modes."""
+    print("QuantraCore Apex v9.0-A - Available Scan Modes")
+    print("=" * 60)
+    
+    try:
+        from src.quantracore_apex.config.scan_modes import (
+            list_scan_modes,
+            load_scan_mode,
+            get_smallcap_modes,
+            get_extreme_risk_modes,
+        )
+        
+        modes = list_scan_modes()
+        smallcap_modes = set(get_smallcap_modes())
+        extreme_modes = set(get_extreme_risk_modes())
+        
+        for mode_name in modes:
+            config = load_scan_mode(mode_name)
+            flags = []
+            if mode_name in smallcap_modes:
+                flags.append("SMALLCAP")
+            if mode_name in extreme_modes:
+                flags.append("EXTREME")
+            flag_str = f" [{','.join(flags)}]" if flags else ""
+            
+            print(f"\n{mode_name}{flag_str}")
+            print(f"  {config.description}")
+            print(f"  Buckets: {', '.join(config.buckets)}")
+            print(f"  Max: {config.max_symbols} | Chunk: {config.chunk_size}")
+        
+        print("\n" + "=" * 60)
+        print(f"Total modes: {len(modes)}")
+        return 0
+        
+    except Exception as e:
+        print(f"[ERROR] {e}")
+        return 1
+
+
 def cmd_lab_train_mini(args):
     """Run small ApexCoreMini training on demo set."""
     print("ApexLab Demo Training")
@@ -242,6 +356,40 @@ def main(argv: Optional[list] = None):
     
     train_parser = subparsers.add_parser("lab-train-mini", help="Run demo ApexCoreMini training")
     train_parser.set_defaults(func=cmd_lab_train_mini)
+    
+    scan_mode_parser = subparsers.add_parser("scan", help="Run scan with pre-defined mode")
+    scan_mode_parser.add_argument(
+        "--mode", "-m",
+        default="demo",
+        help="Scan mode (e.g., demo, mega_large_focus, high_vol_small_caps, low_float_runners)"
+    )
+    scan_mode_parser.add_argument(
+        "--max-symbols", "-n",
+        type=int,
+        default=None,
+        help="Override max symbols from mode config"
+    )
+    scan_mode_parser.add_argument(
+        "--lookback", "-l",
+        type=int,
+        default=250,
+        help="Lookback days for historical data"
+    )
+    scan_mode_parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Show progress for each symbol"
+    )
+    scan_mode_parser.add_argument(
+        "--show-top", "-t",
+        type=int,
+        default=10,
+        help="Show top N results"
+    )
+    scan_mode_parser.set_defaults(func=cmd_scan_mode)
+    
+    list_modes_parser = subparsers.add_parser("list-modes", help="List available scan modes")
+    list_modes_parser.set_defaults(func=cmd_list_modes)
     
     args = parser.parse_args(argv)
     

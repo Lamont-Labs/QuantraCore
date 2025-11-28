@@ -1,13 +1,52 @@
 # QuantraCore Apex - Symbol Universe Registry
-# v9.0-A Institutional Hardening
+# v9.0-A Universal Scanner Upgrade
 #
-# Centralized symbol registry to avoid inconsistencies
-# (delisted tickers, mapped symbols, ETFs vs equities)
+# Centralized symbol registry supporting ALL cap buckets:
+# mega, large, mid, small, micro, nano, penny
+#
+# This is the single source of truth for "what can be scanned"
 
 version: "9.0-A"
 last_updated: "2025-11-28"
 
+# Market Cap Bucket Definitions (approximate ranges)
+market_cap_buckets:
+  mega:
+    description: "Mega-cap ($200B+)"
+    min_market_cap_billions: 200
+    risk_category: "low"
+  large:
+    description: "Large-cap ($10B-$200B)"
+    min_market_cap_billions: 10
+    max_market_cap_billions: 200
+    risk_category: "low"
+  mid:
+    description: "Mid-cap ($2B-$10B)"
+    min_market_cap_billions: 2
+    max_market_cap_billions: 10
+    risk_category: "medium"
+  small:
+    description: "Small-cap ($300M-$2B)"
+    min_market_cap_millions: 300
+    max_market_cap_billions: 2
+    risk_category: "high"
+  micro:
+    description: "Micro-cap ($50M-$300M)"
+    min_market_cap_millions: 50
+    max_market_cap_millions: 300
+    risk_category: "high"
+  nano:
+    description: "Nano-cap ($10M-$50M)"
+    min_market_cap_millions: 10
+    max_market_cap_millions: 50
+    risk_category: "extreme"
+  penny:
+    description: "Penny stocks (<$10M or <$5/share)"
+    max_market_cap_millions: 10
+    risk_category: "extreme"
+
 universes:
+  # Demo universe for testing
   demo:
     description: "Small demo universe for testing and validation"
     symbols:
@@ -15,72 +54,211 @@ universes:
         name: "Apple Inc."
         asset_class: "equity"
         sector: "Technology"
+        market_cap_bucket: "mega"
+        float_millions: 15500
         active: true
+        allow_smallcap_scan: false
         notes: "Mega-cap tech"
 
       - symbol: "MSFT"
         name: "Microsoft Corporation"
         asset_class: "equity"
         sector: "Technology"
+        market_cap_bucket: "mega"
+        float_millions: 7400
         active: true
+        allow_smallcap_scan: false
         notes: "Mega-cap tech"
 
       - symbol: "GOOGL"
         name: "Alphabet Inc."
         asset_class: "equity"
         sector: "Technology"
+        market_cap_bucket: "mega"
+        float_millions: 5600
         active: true
+        allow_smallcap_scan: false
         notes: "Mega-cap tech"
 
       - symbol: "AMZN"
         name: "Amazon.com Inc."
         asset_class: "equity"
         sector: "Consumer Discretionary"
+        market_cap_bucket: "mega"
+        float_millions: 10300
         active: true
+        allow_smallcap_scan: false
         notes: "Mega-cap"
 
       - symbol: "NVDA"
         name: "NVIDIA Corporation"
         asset_class: "equity"
         sector: "Technology"
+        market_cap_bucket: "mega"
+        float_millions: 2450
         active: true
+        allow_smallcap_scan: false
         notes: "Semiconductor, AI leader"
 
       - symbol: "META"
         name: "Meta Platforms Inc."
         asset_class: "equity"
         sector: "Technology"
+        market_cap_bucket: "mega"
+        float_millions: 2200
         active: true
+        allow_smallcap_scan: false
         notes: "Mega-cap tech"
 
       - symbol: "TSLA"
         name: "Tesla Inc."
         asset_class: "equity"
         sector: "Consumer Discretionary"
+        market_cap_bucket: "mega"
+        float_millions: 2800
         active: true
+        allow_smallcap_scan: false
         notes: "EV, high volatility"
 
       - symbol: "JPM"
         name: "JPMorgan Chase & Co."
         asset_class: "equity"
         sector: "Financials"
+        market_cap_bucket: "mega"
+        float_millions: 2850
         active: true
+        allow_smallcap_scan: false
         notes: "Large-cap bank"
 
       - symbol: "V"
         name: "Visa Inc."
         asset_class: "equity"
         sector: "Financials"
+        market_cap_bucket: "mega"
+        float_millions: 1650
         active: true
+        allow_smallcap_scan: false
         notes: "Payments"
 
       - symbol: "JNJ"
         name: "Johnson & Johnson"
         asset_class: "equity"
         sector: "Healthcare"
+        market_cap_bucket: "mega"
+        float_millions: 2400
         active: true
+        allow_smallcap_scan: false
         notes: "Healthcare conglomerate"
 
+  # Small-cap focus universe for MonsterRunner testing
+  smallcap_demo:
+    description: "Demo small/micro caps for MonsterRunner testing"
+    symbols:
+      - symbol: "CLOV"
+        name: "Clover Health"
+        asset_class: "equity"
+        sector: "Healthcare"
+        market_cap_bucket: "small"
+        float_millions: 350
+        active: true
+        allow_smallcap_scan: true
+        notes: "High volatility small-cap"
+
+      - symbol: "SOFI"
+        name: "SoFi Technologies"
+        asset_class: "equity"
+        sector: "Financials"
+        market_cap_bucket: "small"
+        float_millions: 900
+        active: true
+        allow_smallcap_scan: true
+        notes: "Fintech small-cap"
+
+      - symbol: "PLTR"
+        name: "Palantir Technologies"
+        asset_class: "equity"
+        sector: "Technology"
+        market_cap_bucket: "mid"
+        float_millions: 1800
+        active: true
+        allow_smallcap_scan: true
+        notes: "Mid-cap tech"
+
+      - symbol: "MARA"
+        name: "Marathon Digital Holdings"
+        asset_class: "equity"
+        sector: "Technology"
+        market_cap_bucket: "small"
+        float_millions: 200
+        active: true
+        allow_smallcap_scan: true
+        notes: "Bitcoin mining, extreme volatility"
+
+      - symbol: "RIOT"
+        name: "Riot Platforms"
+        asset_class: "equity"
+        sector: "Technology"
+        market_cap_bucket: "small"
+        float_millions: 250
+        active: true
+        allow_smallcap_scan: true
+        notes: "Bitcoin mining, extreme volatility"
+
+      - symbol: "AMC"
+        name: "AMC Entertainment"
+        asset_class: "equity"
+        sector: "Consumer Discretionary"
+        market_cap_bucket: "small"
+        float_millions: 500
+        active: true
+        allow_smallcap_scan: true
+        notes: "Meme stock, high short interest"
+
+      - symbol: "GME"
+        name: "GameStop Corp"
+        asset_class: "equity"
+        sector: "Consumer Discretionary"
+        market_cap_bucket: "small"
+        float_millions: 300
+        active: true
+        allow_smallcap_scan: true
+        notes: "Meme stock, high volatility"
+
+      - symbol: "BBBY"
+        name: "Bed Bath & Beyond"
+        asset_class: "equity"
+        sector: "Consumer Discretionary"
+        market_cap_bucket: "micro"
+        float_millions: 80
+        active: false
+        allow_smallcap_scan: true
+        notes: "Delisted - example only"
+
+  # Low-float runner candidates
+  low_float_runners:
+    description: "Low-float names prone to explosive moves"
+    symbols:
+      - symbol: "MULN"
+        name: "Mullen Automotive"
+        asset_class: "equity"
+        sector: "Consumer Discretionary"
+        market_cap_bucket: "nano"
+        float_millions: 15
+        active: true
+        allow_smallcap_scan: true
+        notes: "Very low float, extreme volatility"
+
+      - symbol: "FFIE"
+        name: "Faraday Future"
+        asset_class: "equity"
+        sector: "Consumer Discretionary"
+        market_cap_bucket: "nano"
+        float_millions: 20
+        active: true
+        allow_smallcap_scan: true
+        notes: "EV startup, low float"
+
+  # S&P 100 reference
   sp100:
     description: "S&P 100 large-cap universe"
     source: "S&P Dow Jones Indices"
@@ -88,6 +266,16 @@ universes:
     active: true
     notes: "Load symbols from CSV file when available"
 
+  # Full US equities - loaded dynamically
+  full_us_equities:
+    description: "All active US equities across all caps"
+    source: "dynamic"
+    load_from: "polygon_api"
+    active: true
+    max_symbols: 8000
+    notes: "Loaded dynamically from data provider"
+
+  # Research watchlist
   research_watchlist:
     description: "Custom research watchlist"
     symbols: []
@@ -106,3 +294,11 @@ validation_rules:
   require_active_flag: true
   warn_on_missing_sector: true
   reject_unknown_asset_class: true
+  require_market_cap_bucket: true
+  require_float_for_smallcaps: true
+
+# Default flags for symbols without explicit settings
+defaults:
+  active: true
+  allow_smallcap_scan: true
+  asset_class: "equity"
