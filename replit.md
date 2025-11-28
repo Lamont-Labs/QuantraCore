@@ -147,7 +147,7 @@ src/quantracore_apex/
 ### API Server (Primary)
 
 ```bash
-uvicorn src.api.main:app --host 0.0.0.0 --port 5000
+uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 5000
 ```
 
 ### Demo Scripts
@@ -277,5 +277,5 @@ All outputs are framed as **structural probabilities**, NOT trading advice.
 ## Deployment
 
 - **Type:** Autoscale
-- **Run Command:** `uvicorn src.api.main:app --host 0.0.0.0 --port 5000`
+- **Run Command:** `uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 5000`
 - **Port:** 5000
