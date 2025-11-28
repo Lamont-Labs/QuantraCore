@@ -1,0 +1,43 @@
+================================================================================
+QuantraCore Apex — Institutional Battle Test
+================================================================================
+Repo root     : /home/runner/workspace
+Output folder : /home/runner/workspace/logs/battle_test/20251128_210324
+Timestamp UTC : 20251128_210324
+
+Detected components:
+  • tests/ directory          : YES
+  • scanner-focused tests     : NO
+  • package.json (frontend)   : YES
+  • zero_doubt_verification   : YES
+  • protocol triple validation: YES
+
+Battle test command plan:
+  • backend_pytest_full: python -m pytest -q tests/
+  • frontend_npm_test: npm test -- --run
+  • protocol_triple_validation: python scripts/run_protocol_triple_validation.py
+  • zero_doubt_verification: bash scripts/zero_doubt_verification.sh
+
+================================================================================
+ENV PROFILE: ci
+================================================================================
+-------------------------- ROUND 1/2 (ci) --------------------------
+[RUN 001] [ci] round=1 label=backend_pytest_full
+          cmd=python -m pytest -q tests/
+[RUN 001] [ci] round=1 label=backend_pytest_full → exit=1  duration=3.38s  log=/home/runner/workspace/logs/battle_test/20251128_210324/run_001_backend_pytest_full_env-ci_r1.log
+
+********************************************************************************
+[FAIL-FAST] Command failed: label=backend_pytest_full, env=ci, round=1
+          See log: logs/battle_test/20251128_210324/run_001_backend_pytest_full_env-ci_r1.log
+********************************************************************************
+
+================================================================================
+BATTLE TEST SUMMARY
+================================================================================
+Total runs executed : 1
+Passed              : 0
+Failed              : 1
+
+Failed runs:
+  • id=001 label=backend_pytest_full env=ci round=1 exit=1 log=logs/battle_test/20251128_210324/run_001_backend_pytest_full_env-ci_r1.log
+================================================================================

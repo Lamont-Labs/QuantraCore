@@ -1,0 +1,88 @@
+================================================================================
+QuantraCore Apex — Institutional Battle Test
+================================================================================
+Repo root     : /home/runner/workspace
+Output folder : /home/runner/workspace/logs/battle_test/20251128_210503
+Timestamp UTC : 20251128_210503
+
+Detected components:
+  • tests/ directory          : YES
+  • scanner-focused tests     : NO
+  • package.json (frontend)   : YES
+  • zero_doubt_verification   : YES
+  • protocol triple validation: YES
+
+Battle test command plan:
+  • backend_pytest_full: python -m pytest -q tests/
+  • frontend_npm_test: npm test -- --run
+  • protocol_triple_validation: python scripts/run_protocol_triple_validation.py
+  • zero_doubt_verification: bash scripts/zero_doubt_verification.sh
+
+================================================================================
+ENV PROFILE: ci
+================================================================================
+-------------------------- ROUND 1/2 (ci) --------------------------
+[RUN 001] [ci] round=1 label=backend_pytest_full
+          cmd=python -m pytest -q tests/
+[RUN 001] [ci] round=1 label=backend_pytest_full → exit=0  duration=2.93s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_001_backend_pytest_full_env-ci_r1.log
+[RUN 002] [ci] round=1 label=frontend_npm_test
+          cmd=npm test -- --run
+[RUN 002] [ci] round=1 label=frontend_npm_test → exit=0  duration=5.34s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_002_frontend_npm_test_env-ci_r1.log
+[RUN 003] [ci] round=1 label=protocol_triple_validation
+          cmd=python scripts/run_protocol_triple_validation.py
+[RUN 003] [ci] round=1 label=protocol_triple_validation → exit=0  duration=2.14s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_003_protocol_triple_validation_env-ci_r1.log
+[RUN 004] [ci] round=1 label=zero_doubt_verification
+          cmd=bash scripts/zero_doubt_verification.sh
+[RUN 004] [ci] round=1 label=zero_doubt_verification → exit=0  duration=108.81s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_004_zero_doubt_verification_env-ci_r1.log
+-------------------------- ROUND 2/2 (ci) --------------------------
+[RUN 005] [ci] round=2 label=backend_pytest_full
+          cmd=python -m pytest -q tests/
+[RUN 005] [ci] round=2 label=backend_pytest_full → exit=0  duration=3.19s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_005_backend_pytest_full_env-ci_r2.log
+[RUN 006] [ci] round=2 label=frontend_npm_test
+          cmd=npm test -- --run
+[RUN 006] [ci] round=2 label=frontend_npm_test → exit=0  duration=4.03s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_006_frontend_npm_test_env-ci_r2.log
+[RUN 007] [ci] round=2 label=protocol_triple_validation
+          cmd=python scripts/run_protocol_triple_validation.py
+[RUN 007] [ci] round=2 label=protocol_triple_validation → exit=0  duration=2.06s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_007_protocol_triple_validation_env-ci_r2.log
+[RUN 008] [ci] round=2 label=zero_doubt_verification
+          cmd=bash scripts/zero_doubt_verification.sh
+[RUN 008] [ci] round=2 label=zero_doubt_verification → exit=0  duration=98.15s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_008_zero_doubt_verification_env-ci_r2.log
+================================================================================
+ENV PROFILE: research
+================================================================================
+-------------------------- ROUND 1/2 (research) --------------------------
+[RUN 009] [research] round=1 label=backend_pytest_full
+          cmd=python -m pytest -q tests/
+[RUN 009] [research] round=1 label=backend_pytest_full → exit=0  duration=3.15s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_009_backend_pytest_full_env-research_r1.log
+[RUN 010] [research] round=1 label=frontend_npm_test
+          cmd=npm test -- --run
+[RUN 010] [research] round=1 label=frontend_npm_test → exit=0  duration=3.93s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_010_frontend_npm_test_env-research_r1.log
+[RUN 011] [research] round=1 label=protocol_triple_validation
+          cmd=python scripts/run_protocol_triple_validation.py
+[RUN 011] [research] round=1 label=protocol_triple_validation → exit=0  duration=2.10s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_011_protocol_triple_validation_env-research_r1.log
+[RUN 012] [research] round=1 label=zero_doubt_verification
+          cmd=bash scripts/zero_doubt_verification.sh
+[RUN 012] [research] round=1 label=zero_doubt_verification → exit=0  duration=99.00s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_012_zero_doubt_verification_env-research_r1.log
+-------------------------- ROUND 2/2 (research) --------------------------
+[RUN 013] [research] round=2 label=backend_pytest_full
+          cmd=python -m pytest -q tests/
+[RUN 013] [research] round=2 label=backend_pytest_full → exit=0  duration=3.17s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_013_backend_pytest_full_env-research_r2.log
+[RUN 014] [research] round=2 label=frontend_npm_test
+          cmd=npm test -- --run
+[RUN 014] [research] round=2 label=frontend_npm_test → exit=0  duration=3.91s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_014_frontend_npm_test_env-research_r2.log
+[RUN 015] [research] round=2 label=protocol_triple_validation
+          cmd=python scripts/run_protocol_triple_validation.py
+[RUN 015] [research] round=2 label=protocol_triple_validation → exit=0  duration=2.08s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_015_protocol_triple_validation_env-research_r2.log
+[RUN 016] [research] round=2 label=zero_doubt_verification
+          cmd=bash scripts/zero_doubt_verification.sh
+[RUN 016] [research] round=2 label=zero_doubt_verification → exit=0  duration=98.57s  log=/home/runner/workspace/logs/battle_test/20251128_210503/run_016_zero_doubt_verification_env-research_r2.log
+
+================================================================================
+BATTLE TEST SUMMARY
+================================================================================
+Total runs executed : 16
+Passed              : 16
+Failed              : 0
+
+All battle-test runs passed. System survived institutional-level barrage.
+================================================================================
