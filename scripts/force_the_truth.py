@@ -43,9 +43,9 @@ os.makedirs("proof_logs", exist_ok=True)
 
 START_DATE = "2021-11-01"
 END_DATE = "2024-11-01"
-TARGET_SYMBOLS = 300
+TARGET_SYMBOLS = 200
 MIN_CANDLES = 50  # Polygon free tier returns ~235 bars max
-RATE_LIMIT_DELAY = 15  # Increased delay for free tier reliability
+RATE_LIMIT_DELAY = 12  # 5 calls/minute on free tier
 MAX_RETRIES = 3
 
 
