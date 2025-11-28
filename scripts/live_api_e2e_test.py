@@ -16,7 +16,7 @@ print("=" * 80)
 print(f"Started: {datetime.now().isoformat()}")
 print()
 
-base_url = "http://127.0.0.1:5000"
+base_url = "http://127.0.0.1:8000"
 client = httpx.Client(timeout=60.0)
 
 results = {"passed": 0, "failed": 0, "tests": []}

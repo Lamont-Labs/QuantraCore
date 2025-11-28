@@ -105,12 +105,35 @@ src/quantracore_apex/
 
 ### Key Technologies
 
-- **Language:** Python 3.11
-- **Web Framework:** FastAPI with Uvicorn
+- **Backend:** Python 3.11, FastAPI with Uvicorn
+- **Frontend:** React 19, Vite 7, Tailwind CSS v4, TypeScript
 - **ML:** scikit-learn (no PyTorch for disk space)
-- **Testing:** Pytest
+- **Testing:** Pytest (backend), Vitest (frontend)
 - **HTTP Client:** HTTPX
 - **Numerical:** NumPy, Pandas
+
+### Frontend Architecture (ApexDesk)
+
+```
+dashboard/
+├── public/assets/          # Brand assets (logos, icons)
+├── src/
+│   ├── components/
+│   │   ├── LeftRail.tsx   # Navigation sidebar
+│   │   ├── Header.tsx     # Top header with status
+│   │   ├── UniverseTable.tsx  # Scan results table
+│   │   └── DetailPanel.tsx    # Symbol detail view
+│   ├── lib/
+│   │   └── api.ts         # TypeScript API client
+│   ├── test/
+│   │   └── setup.ts       # Vitest setup
+│   ├── App.tsx            # Main application
+│   ├── App.test.tsx       # Component tests
+│   ├── main.tsx           # Entry point
+│   └── index.css          # Tailwind + custom styles
+├── index.html             # HTML template
+└── vite.config.ts         # Vite configuration
+```
 
 ---
 
@@ -195,6 +218,24 @@ All outputs are framed as **structural probabilities**, NOT trading advice.
 
 ## Recent Changes
 
+### 2025-11-28 — ApexDesk React UI Build
+
+**ApexDesk Frontend (React + Tailwind v4):**
+- Modern React 19 frontend with Vite 7 and Tailwind CSS v4
+- Lamont Labs + QuantraCore branding with dark navy theme
+- Left rail navigation: Dashboard, Research, ApexLab, Models, Logs
+- Header with status badges and action buttons
+- Universe Scanner table with score coloring and regime display
+- Detail Panel with tabbed interface (Overview, Trace, Monster, Signal)
+- Full API wiring to FastAPI backend via Vite proxy
+- **5 frontend tests passing** with Vitest
+- **331 backend tests + 23 live API tests passing**
+
+**Dual Workflow Configuration:**
+- Frontend: Vite dev server on port 5000 (webview)
+- Backend: FastAPI/Uvicorn on port 8000 (console)
+- Vite proxy forwards API calls to backend
+
 ### 2025-11-28 — v8.2 Complete System Build
 
 **Full Production System Completed:**
@@ -202,7 +243,7 @@ All outputs are framed as **structural probabilities**, NOT trading advice.
 - Order Management System (simulation mode)
 - Portfolio Management with sector exposure tracking
 - Signal Builder with entry/stop/target calculation
-- ApexDesk dashboard (HTML UI at /desk)
+- ApexDesk dashboard (React UI on port 5000)
 - 15 new API endpoints for full system coverage
 - 40 new tests for Risk/Broker/Portfolio/Signal modules
 - **331 tests passing** (5 skipped for sklearn internals)
@@ -276,6 +317,12 @@ All outputs are framed as **structural probabilities**, NOT trading advice.
 
 ## Deployment
 
+### Development
+- **Frontend:** `npm run dev` (Vite on port 5000)
+- **Backend:** `uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000`
+
+### Production
 - **Type:** Autoscale
-- **Run Command:** `uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 5000`
+- **Build:** `npm run build` (creates dist/)
+- **Run:** `uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 5000`
 - **Port:** 5000
