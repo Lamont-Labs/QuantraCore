@@ -15,58 +15,51 @@ const navItems: { id: NavItem; label: string; icon: string }[] = [
 
 export function LeftRail({ activeNav, onNavChange }: LeftRailProps) {
   return (
-    <aside className="w-64 bg-slate-900/70 border-r border-slate-700/30 flex flex-col">
-      <div className="p-5 border-b border-slate-700/30">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-violet-600 flex items-center justify-center overflow-hidden">
+    <aside className="w-72 bg-gradient-to-b from-[#0a0f1a] to-[#050810] border-r border-[#1e3a5f]/40 flex flex-col">
+      <div className="p-5 border-b border-[#1e3a5f]/40">
+        <div className="flex items-center gap-4 mb-5">
+          <div className="w-14 h-14 rounded-lg overflow-hidden ring-2 ring-cyan-500/30 shadow-lg shadow-cyan-500/20">
             <img
-              src="/assets/lamont-labs-logo.png"
+              src="/assets/lamont_labs_logo.png"
               alt="Lamont Labs"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-                e.currentTarget.parentElement!.innerHTML = '<span class="text-white font-bold text-lg">L</span>'
-              }}
             />
           </div>
           <div>
-            <div className="text-sm font-semibold text-slate-100">Lamont Labs</div>
-            <div className="text-xs text-slate-500">Research Division</div>
+            <div className="text-sm font-bold text-white tracking-wide">LAMONT LABS</div>
+            <div className="text-xs text-cyan-400/70 italic">Obsession turned into systems.</div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-800 border border-cyan-500/30 flex items-center justify-center overflow-hidden">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-lg overflow-hidden ring-2 ring-cyan-400/40 shadow-lg shadow-cyan-400/20">
             <img
-              src="/assets/quantracore-disk.png"
+              src="/assets/quantracore_disk.png"
               alt="QuantraCore"
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none'
-                e.currentTarget.parentElement!.innerHTML = '<span class="text-cyan-400 font-bold text-lg">Q</span>'
-              }}
+              className="w-full h-full object-cover"
             />
           </div>
           <div>
-            <div className="text-sm font-semibold text-cyan-400">QuantraCore</div>
-            <div className="text-xs text-slate-500">Apex Engine v8.2</div>
+            <div className="text-sm font-bold text-cyan-400 tracking-wider">QUANTRACORE</div>
+            <div className="text-xs text-slate-400">AI Trading Intelligence Engine</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Apex Engine v8.2</div>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 p-3">
-        <ul className="space-y-1">
+      <nav className="flex-1 p-4 mt-2">
+        <ul className="space-y-2">
           {navItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => onNavChange(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300
                   ${activeNav === item.id
-                    ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/10 text-cyan-400 border border-cyan-500/40 shadow-lg shadow-cyan-500/10'
+                    : 'text-slate-400 hover:text-cyan-300 hover:bg-[#0d1526] border border-transparent hover:border-cyan-500/20'
                   }`}
               >
-                <span className="text-lg opacity-70">{item.icon}</span>
+                <span className={`text-lg ${activeNav === item.id ? 'text-cyan-400' : 'text-cyan-500/50'}`}>{item.icon}</span>
                 <span>{item.label}</span>
               </button>
             </li>
@@ -74,10 +67,10 @@ export function LeftRail({ activeNav, onNavChange }: LeftRailProps) {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-slate-700/30">
-        <div className="text-xs text-slate-500 text-center">
-          <div className="mb-1">Desktop Build Only</div>
-          <div className="text-slate-600">GMKtec NucBox K6</div>
+      <div className="p-4 border-t border-[#1e3a5f]/40">
+        <div className="text-center">
+          <div className="text-[10px] uppercase tracking-widest text-cyan-500/50 mb-1">Desktop Build Only</div>
+          <div className="text-xs text-slate-500 font-mono">GMKtec NucBox K6</div>
         </div>
       </div>
     </aside>

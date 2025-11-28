@@ -61,12 +61,12 @@ describe('App', () => {
 
   it('renders the Lamont Labs branding', () => {
     render(<App />)
-    expect(screen.getByText('Lamont Labs')).toBeInTheDocument()
+    expect(screen.getByText('LAMONT LABS')).toBeInTheDocument()
   })
 
   it('renders the QuantraCore branding', () => {
     render(<App />)
-    expect(screen.getByText('QuantraCore')).toBeInTheDocument()
+    expect(screen.getAllByText('QUANTRACORE').length).toBeGreaterThan(0)
   })
 
   it('renders the navigation items', () => {
