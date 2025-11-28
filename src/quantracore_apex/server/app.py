@@ -1117,6 +1117,7 @@ def create_app() -> FastAPI:
                 "drift_detector": True,
                 "decision_gates": True,
                 "replay_engine": True,
+                "universal_scanner": True,
             },
             "v9_hardening": {
                 "redundant_scoring": True,
@@ -1124,12 +1125,181 @@ def create_app() -> FastAPI:
                 "fail_closed_gates": True,
                 "sandbox_replay": True,
                 "research_only_fence": True,
+                "universal_scanner": True,
             },
             "simulation_mode": True,
             "compliance_mode": True,
             "desktop_only": True,
             "timestamp": datetime.utcnow().isoformat()
         }
+    
+    @app.get("/modes")
+    async def list_scan_modes():
+        """List all available scan modes (v9.0-A Universal Scanner)."""
+        try:
+            from src.quantracore_apex.config.scan_modes import list_scan_modes, load_scan_mode
+            
+            modes_list = list_scan_modes()
+            modes_detail = []
+            
+            for mode_name in modes_list:
+                config = load_scan_mode(mode_name)
+                modes_detail.append({
+                    "name": config.name,
+                    "description": config.description,
+                    "buckets": config.buckets,
+                    "max_symbols": config.max_symbols,
+                    "chunk_size": config.chunk_size,
+                    "is_smallcap_focused": config.is_smallcap_focused,
+                    "is_extreme_risk": config.is_extreme_risk,
+                    "risk_flags": config.risk_flags,
+                    "filters": config.filters.model_dump() if config.filters else None,
+                })
+            
+            return {
+                "modes": modes_detail,
+                "total_modes": len(modes_detail),
+                "smallcap_modes": sum(1 for m in modes_detail if m["is_smallcap_focused"]),
+                "extreme_risk_modes": sum(1 for m in modes_detail if m["is_extreme_risk"]),
+                "compliance_note": "Research tool only - not financial advice",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error listing modes: {e}")
+            return {
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/universe_stats")
+    async def get_universe_stats():
+        """Get statistics about symbol universe (v9.0-A Universal Scanner)."""
+        try:
+            from src.quantracore_apex.config.symbol_universe import (
+                get_all_symbols,
+                get_symbols_by_bucket,
+                ALL_BUCKETS,
+                SMALLCAP_BUCKETS,
+            )
+            
+            all_symbols = get_all_symbols()
+            bucket_counts = {}
+            
+            for bucket in ALL_BUCKETS:
+                bucket_symbols = get_symbols_by_bucket([bucket])
+                bucket_counts[bucket] = len(bucket_symbols)
+            
+            smallcap_symbols = get_symbols_by_bucket(list(SMALLCAP_BUCKETS))
+            
+            return {
+                "total_symbols": len(all_symbols),
+                "bucket_counts": bucket_counts,
+                "buckets": list(ALL_BUCKETS),
+                "smallcap_buckets": list(SMALLCAP_BUCKETS),
+                "smallcap_count": len(smallcap_symbols),
+                "largecap_count": len(all_symbols) - len(smallcap_symbols),
+                "version": "9.0-A",
+                "compliance_note": "Research tool only - not financial advice",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting universe stats: {e}")
+            return {
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/symbol_info/{symbol}")
+    async def get_symbol_info(symbol: str):
+        """Get detailed info for a specific symbol (v9.0-A Universal Scanner)."""
+        try:
+            from src.quantracore_apex.config.symbol_universe import (
+                get_symbol_info as _get_symbol_info,
+                is_smallcap,
+                SMALLCAP_BUCKETS,
+            )
+            
+            info = _get_symbol_info(symbol.upper())
+            
+            if info is None:
+                return {
+                    "symbol": symbol.upper(),
+                    "found": False,
+                    "message": "Symbol not in configured universe - may still be scannable via dynamic loading",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            return {
+                "symbol": info.symbol,
+                "found": True,
+                "name": info.name,
+                "market_cap_bucket": info.market_cap_bucket,
+                "sector": info.sector,
+                "float_millions": info.float_millions,
+                "is_smallcap": info.is_smallcap,
+                "risk_category": info.risk_category,
+                "active": info.active,
+                "allow_smallcap_scan": info.allow_smallcap_scan,
+                "compliance_note": "Research tool only - not financial advice",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting symbol info for {symbol}: {e}")
+            return {
+                "error": str(e),
+                "symbol": symbol,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    class UniverseScanModeRequest(BaseModel):
+        mode: str = "demo"
+        max_results: int = 100
+        include_mr_fuse: bool = True
+    
+    @app.post("/scan_universe_mode")
+    async def scan_universe_by_mode(request: UniverseScanModeRequest):
+        """Scan universe using a pre-defined mode (v9.0-A Universal Scanner)."""
+        try:
+            from src.quantracore_apex.config.scan_modes import load_scan_mode
+            from src.quantracore_apex.config.symbol_universe import get_symbols_for_mode
+            from src.quantracore_apex.core.universe_scan import create_universe_scanner
+            
+            mode_config = load_scan_mode(request.mode)
+            symbols = get_symbols_for_mode(request.mode)[:request.max_results]
+            
+            scanner = create_universe_scanner()
+            scan_result = scanner.scan(
+                symbols=symbols,
+                mode_config=mode_config,
+                include_mr_fuse=request.include_mr_fuse,
+            )
+            
+            return {
+                "mode": request.mode,
+                "mode_description": mode_config.description,
+                "buckets": mode_config.buckets,
+                "requested_symbols": len(symbols),
+                "scan_count": scan_result.scan_count,
+                "success_count": scan_result.success_count,
+                "error_count": scan_result.error_count,
+                "smallcap_count": scan_result.smallcap_count,
+                "extreme_risk_count": scan_result.extreme_risk_count,
+                "runner_candidate_count": scan_result.runner_candidate_count,
+                "results": [r.__dict__ for r in scan_result.results[:request.max_results]],
+                "errors": scan_result.errors[:10],
+                "is_smallcap_mode": mode_config.is_smallcap_focused,
+                "is_extreme_risk_mode": mode_config.is_extreme_risk,
+                "risk_flags": mode_config.risk_flags,
+                "compliance_note": "Research tool only - not financial advice. Small-cap and penny stocks carry extreme risk.",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error scanning universe with mode {request.mode}: {e}")
+            return {
+                "error": str(e),
+                "mode": request.mode,
+                "timestamp": datetime.utcnow().isoformat()
+            }
     
     return app
 
