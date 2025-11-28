@@ -43,18 +43,3 @@ class TierProtocol:
         )
 
 
-def create_stub_result(protocol_id: str, description: str) -> ProtocolResult:
-    """
-    Create a stub result for unimplemented protocols.
-    """
-    return ProtocolResult(
-        protocol_id=protocol_id,
-        fired=False,
-        confidence=0.0,
-        signal_type=None,
-        details={
-            "status": "stub",
-            "description": description,
-            "message": "Protocol not yet implemented"
-        }
-    )
