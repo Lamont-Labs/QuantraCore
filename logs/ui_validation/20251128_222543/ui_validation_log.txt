@@ -1,0 +1,48 @@
+===============================================================================
+QuantraCore Apex — ApexDesk UI Deep Validation Harness
+===============================================================================
+Repo root        : /home/runner/workspace
+Output directory : /home/runner/workspace/logs/ui_validation/20251128_222543
+Timestamp (UTC)  : 20251128_222543
+
+Detected UI commands for validation:
+  • ui_test_default: npm test -- --run
+  • ui_build_prod: npm run build
+
+-------------------------------------------------------------------------------
+ENV PROFILE: ci
+-------------------------------------------------------------------------------
+[RUN 001] [ci] round=1 label=ui_test_default
+          cmd=npm test -- --run
+[RUN 001] [ci] round=1 label=ui_test_default → exit=0 duration=3.67s log=/home/runner/workspace/logs/ui_validation/20251128_222543/run_001_ui_test_default_env-ci_r1.log
+[RUN 002] [ci] round=1 label=ui_build_prod
+          cmd=npm run build
+[RUN 002] [ci] round=1 label=ui_build_prod → exit=0 duration=6.76s log=/home/runner/workspace/logs/ui_validation/20251128_222543/run_002_ui_build_prod_env-ci_r1.log
+-------------------------------------------------------------------------------
+ENV PROFILE: dashboard
+-------------------------------------------------------------------------------
+[RUN 003] [dashboard] round=1 label=ui_test_default
+          cmd=npm test -- --run
+[RUN 003] [dashboard] round=1 label=ui_test_default → exit=0 duration=3.61s log=/home/runner/workspace/logs/ui_validation/20251128_222543/run_003_ui_test_default_env-dashboard_r1.log
+[RUN 004] [dashboard] round=1 label=ui_build_prod
+          cmd=npm run build
+[RUN 004] [dashboard] round=1 label=ui_build_prod → exit=0 duration=6.91s log=/home/runner/workspace/logs/ui_validation/20251128_222543/run_004_ui_build_prod_env-dashboard_r1.log
+-------------------------------------------------------------------------------
+ENV PROFILE: stress
+-------------------------------------------------------------------------------
+[RUN 005] [stress] round=1 label=ui_test_default
+          cmd=npm test -- --run
+[RUN 005] [stress] round=1 label=ui_test_default → exit=0 duration=3.82s log=/home/runner/workspace/logs/ui_validation/20251128_222543/run_005_ui_test_default_env-stress_r1.log
+[RUN 006] [stress] round=1 label=ui_build_prod
+          cmd=npm run build
+[RUN 006] [stress] round=1 label=ui_build_prod → exit=0 duration=6.50s log=/home/runner/workspace/logs/ui_validation/20251128_222543/run_006_ui_build_prod_env-stress_r1.log
+
+===============================================================================
+UI DEEP VALIDATION SUMMARY
+===============================================================================
+Total UI runs executed : 6
+Passing runs           : 6
+Failing runs           : 0
+
+All UI validation runs passed. Dashboard and UI stack are healthy.
+===============================================================================
