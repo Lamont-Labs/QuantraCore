@@ -79,3 +79,18 @@ class SectorContext:
             "base_volatility": self.profile["base_vol"],
             "sensitivity": self.profile["sensitivity"],
         }
+
+
+def apply_sector_context(score: float, sector: Optional[str] = None) -> float:
+    """
+    Convenience function to apply sector context to a score.
+    
+    Args:
+        score: The QuantraScore to adjust
+        sector: Optional sector name
+        
+    Returns:
+        Adjusted score based on sector characteristics
+    """
+    ctx = SectorContext(sector)
+    return ctx.adjust_score_for_sector(score)
