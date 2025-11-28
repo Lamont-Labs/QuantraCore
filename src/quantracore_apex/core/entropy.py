@@ -114,15 +114,21 @@ def compute_entropy(window: OhlcvWindow) -> EntropyMetrics:
     
     Returns:
         EntropyMetrics with price, volume, combined entropy and state.
+    All values are clamped to valid bounds [0, 1] for robustness.
     """
     bars = window.bars
     
-    price_entropy = compute_price_entropy(bars)
-    volume_entropy = compute_volume_entropy(bars)
+    def clamp_01(val: float) -> float:
+        if np.isnan(val) or np.isinf(val):
+            return 0.0
+        return max(0.0, min(1.0, float(val)))
     
-    combined_entropy = (price_entropy * 0.7 + volume_entropy * 0.3)
+    price_entropy = clamp_01(compute_price_entropy(bars))
+    volume_entropy = clamp_01(compute_volume_entropy(bars))
     
-    entropy_floor = compute_entropy_floor(bars)
+    combined_entropy = clamp_01(price_entropy * 0.7 + volume_entropy * 0.3)
+    
+    entropy_floor = clamp_01(compute_entropy_floor(bars))
     entropy_state = determine_entropy_state(combined_entropy, entropy_floor)
     
     return EntropyMetrics(

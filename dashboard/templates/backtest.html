@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Backtest Results - QuantraCore Apex{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 20px;">Backtest Results</h1>
+
+{% if summary %}
+<div class="grid grid-4" style="margin-bottom: 30px;">
+    <div class="card stat-card">
+        <div class="stat-value">{{ summary.symbols_processed }}</div>
+        <div class="stat-label">Symbols Processed</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value">{{ "%.1f"|format(summary.mean_score) }}</div>
+        <div class="stat-label">Mean Score</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value">{{ summary.high_conviction_count }}</div>
+        <div class="stat-label">High Conviction (≥70)</div>
+    </div>
+    <div class="card stat-card">
+        <div class="stat-value">{{ "%.1f"|format(summary.runtime_minutes) }}m</div>
+        <div class="stat-label">Runtime</div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <div class="card">
+        <div class="card-header">Top 15 Signals</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Score</th>
+                    <th>Regime</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in summary.top_15 %}
+                <tr>
+                    <td><a href="/scan/{{ item.symbol }}" style="color: var(--accent); text-decoration: none;">{{ item.symbol }}</a></td>
+                    <td>
+                        <span class="score {% if item.score >= 60 %}score-high{% elif item.score >= 45 %}score-mid{% else %}score-low{% endif %}">
+                            {{ "%.1f"|format(item.score) }}
+                        </span>
+                    </td>
+                    <td><span class="regime regime-{{ item.regime }}">{{ item.regime }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">Regime Distribution</div>
+        {% for regime, count in summary.regime_distribution.items() %}
+        <div class="detail-row">
+            <span class="detail-label">
+                <span class="regime regime-{{ regime }}">{{ regime }}</span>
+            </span>
+            <span class="detail-value">{{ count }} ({{ "%.1f"|format(count / summary.symbols_processed * 100) }}%)</span>
+        </div>
+        {% endfor %}
+        
+        <div class="card-header" style="margin-top: 20px;">Statistics</div>
+        <div class="detail-row">
+            <span class="detail-label">Standard Deviation</span>
+            <span class="detail-value">{{ "%.2f"|format(summary.std_score) }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Moderate Conviction (60-69)</span>
+            <span class="detail-value">{{ summary.moderate_count }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Backtest Period</span>
+            <span class="detail-value">{{ summary.backtest_period }}</span>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="card">
+    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <p>No backtest results found.</p>
+        <p style="margin-top: 10px;">Run <code>python scripts/force_the_truth.py</code> to generate backtest data.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

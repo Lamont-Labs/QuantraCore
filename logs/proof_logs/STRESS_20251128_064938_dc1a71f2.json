@@ -1,0 +1,1035 @@
+{
+  "proof_hash": "dc1a71f2585f855326045f46bfaeee669718e6d551dda7c3e2ee56ef1793a0bb",
+  "timestamp": "2025-11-28T06:49:38.888990",
+  "result": {
+    "symbol": "STRESS",
+    "timestamp": "2025-11-28T06:49:38.887535",
+    "window_hash": "a032151c488f0bb1",
+    "quantrascore": 51.149111362246416,
+    "score_bucket": "neutral",
+    "regime": "volatile",
+    "risk_tier": "high",
+    "entropy_state": "stable",
+    "suppression_state": "none",
+    "drift_state": "critical",
+    "microtraits": {
+      "wick_ratio": 0.5229074607832603,
+      "body_ratio": 0.4150766560432528,
+      "bullish_pct_last20": 0.45,
+      "compression_score": 0.0,
+      "noise_score": 0.625,
+      "strength_slope": -0.041075545859985636,
+      "range_density": 0.2406528311531115,
+      "volume_intensity": 1.2414638281147226,
+      "trend_consistency": -0.10204081632653061,
+      "volatility_ratio": 0.9844712947958519
+    },
+    "entropy_metrics": {
+      "price_entropy": 0.8510378612556679,
+      "volume_entropy": 0.8643982287253683,
+      "combined_entropy": 0.855045971496578,
+      "entropy_state": "stable",
+      "entropy_floor": 0.7276204074373208
+    },
+    "suppression_metrics": {
+      "suppression_level": 0.032297903401874994,
+      "suppression_state": "none",
+      "coil_factor": 0.06255119166138579,
+      "breakout_probability": 0.1
+    },
+    "drift_metrics": {
+      "drift_magnitude": 0.20951888246212094,
+      "drift_direction": -1.0,
+      "drift_state": "critical",
+      "mean_reversion_pressure": 0.10475944123106047
+    },
+    "continuation_metrics": {
+      "continuation_probability": 0.0,
+      "momentum_strength": 0.0,
+      "exhaustion_signal": false,
+      "reversal_risk": 0.2
+    },
+    "volume_metrics": {
+      "volume_spike_detected": true,
+      "spike_magnitude": 2.2346173645933742,
+      "volume_trend": "increasing",
+      "relative_volume": 2.2346173645933742
+    },
+    "protocol_results": [
+      {
+        "protocol_id": "T01",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "trend_unclear",
+        "details": {
+          "current_price": 87.52351700715653,
+          "sma20": 97.89419524714938,
+          "sma50": 98.98150823229804,
+          "trend_consistency": -0.10204081632653061
+        }
+      },
+      {
+        "protocol_id": "T02",
+        "fired": true,
+        "confidence": 0.4290235196503779,
+        "signal_type": "moderate_trend",
+        "details": {
+          "adx": 23.079188708753616,
+          "combined_strength": 0.22902351965037784,
+          "body_consistency": 0.4150766560432528
+        }
+      },
+      {
+        "protocol_id": "T03",
+        "fired": true,
+        "confidence": 0.9,
+        "signal_type": "momentum_aligned_down",
+        "details": {
+          "roc_5": -6.998922336873563,
+          "roc_10": -13.694237036362257,
+          "roc_20": -19.206023153243297,
+          "momentum_aligned": true
+        }
+      },
+      {
+        "protocol_id": "T04",
+        "fired": false,
+        "confidence": 0.2,
+        "signal_type": "no_clear_channel",
+        "details": {
+          "channel_direction": "ascending",
+          "position_in_channel": -0.4944277929505533,
+          "channel_width": 13.767124354466091,
+          "parallel_score": 0.9269982318194164
+        }
+      },
+      {
+        "protocol_id": "T05",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "bearish_crossover",
+        "details": {
+          "current_fast_ma": 97.79648633971227,
+          "current_slow_ma": 97.89419524714938,
+          "bars_since_cross": 0
+        }
+      },
+      {
+        "protocol_id": "T06",
+        "fired": true,
+        "confidence": 0.4,
+        "signal_type": "expansion_without_compression",
+        "details": {
+          "expansion_ratio": 1.7463760256552823,
+          "was_compressed": false,
+          "compression_score": 0.0
+        }
+      },
+      {
+        "protocol_id": "T07",
+        "fired": false,
+        "confidence": 0.2,
+        "signal_type": "no_squeeze",
+        "details": {
+          "current_bb_width": 0.30714128867531937,
+          "squeeze_ratio": 0.9386822112688554,
+          "near_minimum": true
+        }
+      },
+      {
+        "protocol_id": "T08",
+        "fired": false,
+        "confidence": 0.15,
+        "signal_type": "no_contraction",
+        "details": {
+          "current_atr": 18.229607558685046,
+          "average_atr": 17.925756144707453,
+          "contraction_ratio": 1.0169505493394377,
+          "atr_declining": false
+        }
+      },
+      {
+        "protocol_id": "T09",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_compression",
+        "details": {
+          "narrowing_bars": 3,
+          "compression_pct": -1.11013470414857,
+          "microtraits_compression": 0.0
+        }
+      },
+      {
+        "protocol_id": "T10",
+        "fired": true,
+        "confidence": 0.7,
+        "signal_type": "vol_contraction",
+        "details": {
+          "realized_vol": 1.7411129809817725,
+          "vol_ratio": 0.51562385521768,
+          "vol_skew": -0.8524676363212138
+        }
+      },
+      {
+        "protocol_id": "T11",
+        "fired": false,
+        "confidence": 0.15,
+        "signal_type": "no_bullish_continuation",
+        "details": {
+          "in_uptrend": false,
+          "recent_pullback": false,
+          "bullish_pct": 0.45
+        }
+      },
+      {
+        "protocol_id": "T12",
+        "fired": false,
+        "confidence": 0.15,
+        "signal_type": "no_bearish_continuation",
+        "details": {
+          "in_downtrend": true,
+          "recent_bounce": false,
+          "bearish_pct": 0.55
+        }
+      },
+      {
+        "protocol_id": "T13",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_flag",
+        "details": {
+          "pole_move_pct": 18.24904532255463,
+          "flag_slope": -0.8394856123328518,
+          "flag_tight": false
+        }
+      },
+      {
+        "protocol_id": "T14",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_pennant",
+        "details": {
+          "converging": false,
+          "range_contraction": -0.8845897349063627,
+          "prior_move_pct": 18.24904532255463
+        }
+      },
+      {
+        "protocol_id": "T15",
+        "fired": true,
+        "confidence": 0.65,
+        "signal_type": "rising_wedge",
+        "details": {
+          "high_slope": 0.28837451370117395,
+          "low_slope": 0.2491353436898367,
+          "both_up": true,
+          "both_down": false
+        }
+      },
+      {
+        "protocol_id": "T16",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_double_bottom",
+        "details": {
+          "low1": 76.2519608009402,
+          "low2": 81.49158964825736,
+          "similar_lows": false,
+          "neckline": 125.69066407435636
+        }
+      },
+      {
+        "protocol_id": "T17",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "double_top_forming",
+        "details": {
+          "high1": 115.976914725938,
+          "high2": 118.0740120877129,
+          "similar_highs": true,
+          "neckline": 78.89873147799662
+        }
+      },
+      {
+        "protocol_id": "T18",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_hs",
+        "details": {
+          "left_shoulder": 130.3720745994525,
+          "head": 115.976914725938,
+          "right_shoulder": 118.0740120877129,
+          "neckline": 81.24818575387422
+        }
+      },
+      {
+        "protocol_id": "T19",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_ihs",
+        "details": {
+          "left_shoulder": 74.57478194663942,
+          "head": 76.2519608009402,
+          "right_shoulder": 81.49158964825736,
+          "neckline": 120.21084509364174
+        }
+      },
+      {
+        "protocol_id": "T20",
+        "fired": true,
+        "confidence": 0.85,
+        "signal_type": "volume_climax_reversal",
+        "details": {
+          "volume_zscore": 2.630180403161946,
+          "relative_volume": 2.4189101196083107,
+          "wide_range": true,
+          "reversal_wick": true
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      },
+      {
+        "protocol_id": "PROTOCOL_ID",
+        "fired": false,
+        "confidence": 0.0,
+        "signal_type": null,
+        "details": {
+          "status": "stub",
+          "name": "PROTOCOL_NAME",
+          "category": "CATEGORY",
+          "message": "Protocol not yet implemented"
+        }
+      }
+    ],
+    "verdict": {
+      "action": "neutral_observation",
+      "confidence": 0.8022982227244928,
+      "primary_signal": "Volatile structure",
+      "risk_factors": [
+        "Critical drift from mean",
+        "Volatile regime active"
+      ],
+      "compliance_note": "Structural analysis only - not trading advice"
+    },
+    "omega_overrides": {
+      "omega_1_safety": false,
+      "omega_2_entropy": false,
+      "omega_3_drift": true,
+      "omega_4_compliance": true
+    },
+    "proof_hash": "dc1a71f2585f855326045f46bfaeee669718e6d551dda7c3e2ee56ef1793a0bb"
+  },
+  "context": {
+    "seed": 42,
+    "run_id": null,
+    "sector": null,
+    "market_hours": true,
+    "compliance_mode": true
+  }
+}
