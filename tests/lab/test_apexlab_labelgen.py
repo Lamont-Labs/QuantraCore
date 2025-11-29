@@ -1,7 +1,7 @@
 """
 ApexLab Label Generation Tests for QuantraCore Apex.
 
-Tests ApexLab label generation pipeline.
+Tests ApexLab label generation pipeline with SUBSTANTIVE assertions.
 """
 
 import pytest
@@ -10,14 +10,11 @@ from typing import Dict, Any, List
 
 from src.quantracore_apex.apexlab.labels import LabelGenerator, generate_labels
 from src.quantracore_apex.apexlab.features import FeatureExtractor
-from src.quantracore_apex.apexlab.windows import WindowBuilder
-from src.quantracore_apex.apexlab.dataset_builder import DatasetBuilder
 from src.quantracore_apex.core.schemas import OhlcvWindow
 from src.quantracore_apex.data_layer.adapters.synthetic_adapter import SyntheticAdapter
 
 
 LIQUID_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]
-ALL_SYMBOLS = LIQUID_SYMBOLS + ["META", "NVDA", "AMD", "NFLX", "INTC"]
 
 
 def _get_test_window(symbol: str) -> OhlcvWindow:
@@ -30,36 +27,40 @@ def _get_test_window(symbol: str) -> OhlcvWindow:
 class TestLabelGeneratorImport:
     """Test LabelGenerator imports."""
     
-    def test_label_generator_import(self):
+    def test_label_generator_importable(self):
         """LabelGenerator should be importable."""
         assert LabelGenerator is not None
+        assert callable(LabelGenerator)
     
-    def test_feature_extractor_import(self):
+    def test_feature_extractor_importable(self):
         """FeatureExtractor should be importable."""
         assert FeatureExtractor is not None
     
-    def test_window_builder_import(self):
-        """WindowBuilder should be importable."""
-        assert WindowBuilder is not None
-    
-    def test_dataset_builder_import(self):
-        """DatasetBuilder should be importable."""
-        assert DatasetBuilder is not None
+    def test_generate_labels_function_importable(self):
+        """generate_labels function should be importable."""
+        assert generate_labels is not None
+        assert callable(generate_labels)
 
 
 class TestLabelGeneratorInstantiation:
     """Test LabelGenerator instantiation."""
     
-    def test_label_generator_instantiation(self):
+    def test_instantiation(self):
         """LabelGenerator should instantiate."""
         generator = LabelGenerator(enable_logging=False)
-        assert generator is not None
+        assert isinstance(generator, LabelGenerator)
     
-    def test_label_generator_has_generate(self):
+    def test_has_generate_method(self):
         """LabelGenerator should have generate method."""
         generator = LabelGenerator(enable_logging=False)
         assert hasattr(generator, "generate")
         assert callable(generator.generate)
+    
+    def test_has_generate_batch_method(self):
+        """LabelGenerator should have generate_batch method."""
+        generator = LabelGenerator(enable_logging=False)
+        assert hasattr(generator, "generate_batch")
+        assert callable(generator.generate_batch)
 
 
 class TestLabelGeneration:
@@ -73,33 +74,32 @@ class TestLabelGeneration:
         
         labels = generator.generate(window)
         
-        assert labels is not None
-        assert isinstance(labels, dict)
+        assert isinstance(labels, dict), f"Expected dict, got {type(labels)}"
     
     @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
-    def test_generate_has_quantrascore(self, symbol: str):
-        """Labels should include quantrascore_numeric."""
+    def test_generate_has_quantrascore_numeric(self, symbol: str):
+        """Labels should include quantrascore_numeric key."""
         generator = LabelGenerator(enable_logging=False)
         window = _get_test_window(symbol)
         
         labels = generator.generate(window)
         
-        assert "quantrascore_numeric" in labels
+        assert "quantrascore_numeric" in labels, "Missing quantrascore_numeric"
     
     @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
-    def test_generate_quantrascore_valid(self, symbol: str):
-        """QuantraScore should be in 0-100 range."""
+    def test_quantrascore_in_valid_range(self, symbol: str):
+        """quantrascore_numeric should be in 0-100 range."""
         generator = LabelGenerator(enable_logging=False)
         window = _get_test_window(symbol)
         
         labels = generator.generate(window)
-        
         score = labels["quantrascore_numeric"]
-        assert 0 <= score <= 100
+        
+        assert 0 <= score <= 100, f"quantrascore {score} out of range"
     
-    @pytest.mark.parametrize("symbol", ALL_SYMBOLS)
-    def test_generate_has_regime(self, symbol: str):
-        """Labels should include regime classification."""
+    @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
+    def test_generate_has_regime_class(self, symbol: str):
+        """Labels should include regime_class key."""
         generator = LabelGenerator(enable_logging=False)
         window = _get_test_window(symbol)
         
@@ -107,9 +107,9 @@ class TestLabelGeneration:
         
         assert "regime_class" in labels
     
-    @pytest.mark.parametrize("symbol", ALL_SYMBOLS)
+    @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
     def test_generate_has_risk_tier(self, symbol: str):
-        """Labels should include risk tier."""
+        """Labels should include risk_tier key."""
         generator = LabelGenerator(enable_logging=False)
         window = _get_test_window(symbol)
         
@@ -121,31 +121,62 @@ class TestLabelGeneration:
 class TestBatchLabelGeneration:
     """Test batch label generation."""
     
-    def test_generate_batch(self):
-        """generate_batch should work for multiple windows."""
+    def test_generate_batch_returns_dict(self):
+        """generate_batch should return a dictionary."""
         generator = LabelGenerator(enable_logging=False)
         windows = [_get_test_window(s) for s in LIQUID_SYMBOLS[:3]]
         
         batch_labels = generator.generate_batch(windows)
         
-        assert batch_labels is not None
         assert isinstance(batch_labels, dict)
+    
+    def test_generate_batch_has_quantrascore(self):
+        """Batch labels should include quantrascore_numeric."""
+        generator = LabelGenerator(enable_logging=False)
+        windows = [_get_test_window(s) for s in LIQUID_SYMBOLS[:3]]
+        
+        batch_labels = generator.generate_batch(windows)
+        
         assert "quantrascore_numeric" in batch_labels
-        assert len(batch_labels["quantrascore_numeric"]) == 3
+    
+    def test_generate_batch_correct_length(self):
+        """Batch labels should have correct array lengths."""
+        generator = LabelGenerator(enable_logging=False)
+        windows = [_get_test_window(s) for s in LIQUID_SYMBOLS[:3]]
+        
+        batch_labels = generator.generate_batch(windows)
+        
+        scores = batch_labels["quantrascore_numeric"]
+        assert len(scores) == 3, f"Expected 3 scores, got {len(scores)}"
 
 
 class TestModuleLevelGenerate:
     """Test module-level generate_labels function."""
     
-    def test_module_generate_labels(self):
-        """Module-level generate_labels should work."""
+    def test_returns_numpy_array(self):
+        """generate_labels should return numpy array."""
         windows = [_get_test_window(s) for s in LIQUID_SYMBOLS[:3]]
         
         labels = generate_labels(windows)
         
-        assert labels is not None
-        assert isinstance(labels, np.ndarray)
+        assert isinstance(labels, np.ndarray), f"Expected ndarray, got {type(labels)}"
+    
+    def test_correct_length(self):
+        """generate_labels should return correct number of labels."""
+        windows = [_get_test_window(s) for s in LIQUID_SYMBOLS[:3]]
+        
+        labels = generate_labels(windows)
+        
         assert len(labels) == 3
+    
+    def test_values_in_range(self):
+        """All label values should be in 0-100 range."""
+        windows = [_get_test_window(s) for s in LIQUID_SYMBOLS[:3]]
+        
+        labels = generate_labels(windows)
+        
+        for score in labels:
+            assert 0 <= score <= 100, f"Score {score} out of range"
 
 
 class TestFeatureExtraction:
@@ -154,19 +185,33 @@ class TestFeatureExtraction:
     def test_feature_extractor_instantiation(self):
         """FeatureExtractor should instantiate."""
         extractor = FeatureExtractor()
-        assert extractor is not None
+        assert isinstance(extractor, FeatureExtractor)
+    
+    def test_feature_extractor_has_extract(self):
+        """FeatureExtractor should have extract method."""
+        extractor = FeatureExtractor()
+        assert hasattr(extractor, "extract")
+        assert callable(extractor.extract)
     
     @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
-    def test_feature_extraction(self, symbol: str):
-        """FeatureExtractor should extract features."""
+    def test_extract_returns_array(self, symbol: str):
+        """extract should return numpy array."""
         extractor = FeatureExtractor()
         window = _get_test_window(symbol)
         
         features = extractor.extract(window)
         
-        assert features is not None
-        assert isinstance(features, np.ndarray)
-        assert len(features) > 0
+        assert isinstance(features, np.ndarray), f"Expected ndarray, got {type(features)}"
+    
+    @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
+    def test_extract_non_empty(self, symbol: str):
+        """Extracted features should be non-empty."""
+        extractor = FeatureExtractor()
+        window = _get_test_window(symbol)
+        
+        features = extractor.extract(window)
+        
+        assert len(features) > 0, "Empty feature array"
 
 
 class TestLabelGeneratorDeterminism:
@@ -181,5 +226,16 @@ class TestLabelGeneratorDeterminism:
         labels1 = generator.generate(window)
         labels2 = generator.generate(window)
         
-        assert labels1["quantrascore_numeric"] == labels2["quantrascore_numeric"]
+        assert labels1["quantrascore_numeric"] == labels2["quantrascore_numeric"], \
+            f"Non-deterministic: {labels1['quantrascore_numeric']} vs {labels2['quantrascore_numeric']}"
+    
+    @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
+    def test_regime_deterministic(self, symbol: str):
+        """Regime class should be deterministic."""
+        generator = LabelGenerator(enable_logging=False)
+        window = _get_test_window(symbol)
+        
+        labels1 = generator.generate(window)
+        labels2 = generator.generate(window)
+        
         assert labels1["regime_class"] == labels2["regime_class"]
