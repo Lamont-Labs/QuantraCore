@@ -1,0 +1,49 @@
+# QuantraCore Apex Broker Configuration
+# SAFETY: Live trading is DISABLED by default. Paper trading only.
+# Version: 1.0
+# Date: November 2025
+
+execution:
+  mode: "RESEARCH"  # RESEARCH | PAPER | LIVE
+  default_account: "primary"
+
+accounts:
+  primary:
+    description: "Default account for paper/live"
+    broker: "ALPACA"
+    mode: "PAPER"  # LIVE not allowed until explicitly enabled
+    risk_profile: "standard"
+
+brokers:
+  alpaca:
+    paper:
+      base_url: "https://paper-api.alpaca.markets"
+      api_key_env: "ALPACA_PAPER_API_KEY"
+      api_secret_env: "ALPACA_PAPER_API_SECRET"
+      data_base_url: "https://data.alpaca.markets"
+      enabled: true
+    live:
+      base_url: "https://api.alpaca.markets"
+      api_key_env: "ALPACA_LIVE_API_KEY"
+      api_secret_env: "ALPACA_LIVE_API_SECRET"
+      enabled: false  # Must remain false until institution flips
+
+risk:
+  # Global risk limits (tunable)
+  max_notional_exposure_usd: 50000
+  max_position_notional_per_symbol_usd: 5000
+  max_positions: 30
+  max_daily_turnover_usd: 100000
+  max_order_notional_usd: 3000
+  max_leverage: 2.0
+  per_trade_risk_fraction: 0.01  # 1% of equity per trade
+  # Safety switches
+  block_short_selling: true
+  block_margin: true
+  require_positive_equity: true
+
+logging:
+  execution_log_dir: "logs/execution/"
+  audit_log_dir: "logs/execution_audit/"
+  broker_raw_dir: "logs/execution_broker_raw/"
+  log_level: "INFO"
