@@ -10,7 +10,7 @@ QuantraCore Apex v9.0-A is an institutional-grade deterministic AI trading intel
 |-----------|--------|---------|
 | ApexEngine | Operational | Deterministic core with 80 Tier protocols |
 | ApexDesk UI | Operational | React 18 + Vite 5 + Tailwind CSS 3 |
-| FastAPI Backend | Operational | Port 8000, 27 REST endpoints |
+| FastAPI Backend | Operational | Port 8000, 36 REST endpoints |
 | Test Suite | **970+ tests passing** | Regulatory excellence + institutional + predictive tests |
 | Universal Scanner | Operational | 7 market cap buckets, 8 scan modes |
 | ApexLab | Operational | V1 + V2 offline training environment |
@@ -65,7 +65,8 @@ tests/              # 803 institutional-grade tests
 
 dashboard/          # React 18 + Vite 5 + Tailwind CSS 3 frontend
 config/             # symbol_universe.yaml, scan_modes.yaml, mode.yaml
-docs/               # 40+ documentation files
+docs/               # 50+ documentation files
+docs/investor_due_diligence/  # 8 investor-ready due diligence documents
 ```
 
 ### Key Technologies
