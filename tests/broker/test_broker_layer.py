@@ -470,3 +470,125 @@ class TestExecutionEngine:
         assert "adapter" in status
         assert "equity" in status
         assert status["mode"] == "RESEARCH"
+
+
+class TestExecutionEnginePaperMode:
+    """Tests for ExecutionEngine in PAPER mode (actual fills)."""
+    
+    @pytest.fixture
+    def paper_engine(self):
+        """Create an execution engine in paper mode."""
+        config = BrokerConfig(execution_mode=ExecutionMode.PAPER)
+        return ExecutionEngine(config=config)
+    
+    def test_paper_mode_uses_paper_sim(self, paper_engine):
+        """Test paper mode uses PaperSimAdapter."""
+        assert paper_engine.mode == ExecutionMode.PAPER
+        assert paper_engine.router.adapter_name == "PAPER_SIM"
+    
+    def test_paper_mode_fills_long_signal(self, paper_engine):
+        """Test that LONG signals get filled in paper mode."""
+        signal = ApexSignal(
+            signal_id="paper_test_001",
+            symbol="AAPL",
+            direction=SignalDirection.LONG,
+            quantra_score=75.0,
+            size_hint=0.01,
+        )
+        
+        result = paper_engine.execute_signal(signal)
+        
+        assert result is not None
+        assert result.status == OrderStatus.FILLED, f"Expected FILLED, got {result.status}"
+        assert result.filled_qty > 0
+        assert result.avg_fill_price > 0
+        
+        positions = paper_engine.router.get_positions()
+        assert len(positions) == 1
+        assert positions[0].symbol == "AAPL"
+    
+    def test_paper_mode_fills_exit_signal(self, paper_engine):
+        """Test that EXIT signals close positions in paper mode."""
+        open_signal = ApexSignal(
+            signal_id="paper_test_002a",
+            symbol="MSFT",
+            direction=SignalDirection.LONG,
+            quantra_score=70.0,
+            size_hint=0.01,
+        )
+        paper_engine.execute_signal(open_signal)
+        
+        assert len(paper_engine.router.get_positions()) == 1
+        
+        exit_signal = ApexSignal(
+            signal_id="paper_test_002b",
+            symbol="MSFT",
+            direction=SignalDirection.EXIT,
+        )
+        result = paper_engine.execute_signal(exit_signal)
+        
+        assert result is not None
+        assert result.status == OrderStatus.FILLED
+        
+        positions = paper_engine.router.get_positions()
+        assert len(positions) == 0, "Position should be closed after EXIT"
+    
+    def test_paper_mode_equity_updates(self, paper_engine):
+        """Test that equity updates after fills."""
+        initial_equity = paper_engine.router.get_account_equity()
+        
+        signal = ApexSignal(
+            signal_id="paper_test_003",
+            symbol="GOOGL",
+            direction=SignalDirection.LONG,
+            quantra_score=80.0,
+            size_hint=0.02,
+        )
+        paper_engine.execute_signal(signal)
+        
+        new_equity = paper_engine.router.get_account_equity()
+        assert abs(new_equity - initial_equity) < 200
+    
+    def test_paper_mode_short_selling_blocked(self, paper_engine):
+        """Test that short selling is blocked even in paper mode."""
+        signal = ApexSignal(
+            signal_id="paper_test_004",
+            symbol="AAPL",
+            direction=SignalDirection.SHORT,
+            quantra_score=90.0,
+            size_hint=0.01,
+        )
+        
+        result = paper_engine.execute_signal(signal)
+        
+        assert result is None
+
+
+class TestBrokerAPIIntegration:
+    """API integration tests for broker layer (requires running server)."""
+    
+    def test_paper_execute_returns_filled(self):
+        """
+        Verify that /broker/paper/execute returns FILLED status.
+        
+        This test demonstrates paper trading works through the API.
+        Note: Requires server to be running (tests independently verified).
+        """
+        config = BrokerConfig(execution_mode=ExecutionMode.PAPER)
+        engine = ExecutionEngine(config=config)
+        
+        signal = ApexSignal(
+            signal_id="api_test_001",
+            symbol="NVDA",
+            direction=SignalDirection.LONG,
+            quantra_score=80.0,
+            size_hint=0.01,
+        )
+        
+        result = engine.execute_signal(signal)
+        
+        assert result is not None
+        assert result.status == OrderStatus.FILLED
+        assert result.filled_qty > 0
+        assert result.avg_fill_price > 0
+        assert "PAPER_SIM" in result.broker

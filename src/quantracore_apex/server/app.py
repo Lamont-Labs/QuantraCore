@@ -2038,6 +2038,103 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    paper_config = BrokerConfig(execution_mode=ExecutionMode.PAPER)
+    paper_engine: Optional[BrokerExecutionEngine] = None
+    
+    def get_paper_engine() -> BrokerExecutionEngine:
+        """Get or create paper trading execution engine."""
+        nonlocal paper_engine
+        if paper_engine is None:
+            paper_engine = BrokerExecutionEngine(config=paper_config)
+        return paper_engine
+    
+    @app.get("/broker/paper/status")
+    async def paper_broker_status():
+        """
+        Get paper trading engine status.
+        
+        This endpoint uses PAPER mode with PaperSimAdapter for actual fills.
+        """
+        try:
+            engine = get_paper_engine()
+            status = engine.get_status()
+            return {
+                **status,
+                "safety_note": "Paper trading mode - simulated fills only.",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/broker/paper/execute")
+    async def execute_paper_signal(request: ExecuteSignalRequest):
+        """
+        Execute a trading signal using PAPER mode (actual fills).
+        
+        This endpoint uses PaperSimAdapter which fills orders immediately.
+        Use this for paper trading testing and demonstration.
+        """
+        try:
+            engine = get_paper_engine()
+            
+            import uuid
+            signal = ApexSignal(
+                signal_id=str(uuid.uuid4()),
+                symbol=request.symbol.upper(),
+                direction=SignalDirection[request.direction.upper()],
+                quantra_score=request.quantra_score,
+                runner_prob=request.runner_prob,
+                size_hint=request.size_hint,
+            )
+            
+            result = engine.execute_signal(signal)
+            
+            if result is None:
+                return {
+                    "executed": False,
+                    "reason": "Signal filtered (no position to exit, already in position, or short blocked)",
+                    "mode": engine.mode.value,
+                    "adapter": engine.router.adapter_name,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            return {
+                "executed": True,
+                "result": result.to_dict(),
+                "mode": engine.mode.value,
+                "adapter": engine.router.adapter_name,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/broker/paper/positions")
+    async def paper_positions():
+        """Get positions from paper trading engine."""
+        try:
+            engine = get_paper_engine()
+            positions = engine.router.get_positions()
+            return {
+                "positions": [p.to_dict() for p in positions],
+                "count": len(positions),
+                "mode": engine.mode.value,
+                "adapter": engine.router.adapter_name,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/broker/paper/reset")
+    async def reset_paper_engine():
+        """Reset paper trading engine to initial state."""
+        nonlocal paper_engine
+        paper_engine = None
+        return {
+            "message": "Paper trading engine reset to initial state",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
     return app
 
 
