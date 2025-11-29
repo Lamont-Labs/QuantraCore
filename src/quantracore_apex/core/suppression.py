@@ -75,7 +75,7 @@ def compute_bollinger_squeeze(bars: List[OhlcvBar], period: int = 20) -> float:
     if sma == 0:
         return 0.0
     
-    bb_width = (2 * std * 2) / sma
+    (2 * std * 2) / sma
     
     historical_closes = [bar.close for bar in bars[:-period]] if len(bars) > period else closes
     historical_std = np.std(historical_closes) if len(historical_closes) > 1 else std

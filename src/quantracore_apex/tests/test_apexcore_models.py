@@ -6,8 +6,6 @@ Tests ApexCore Full and Mini models for correctness.
 
 import pytest
 import numpy as np
-from datetime import datetime
-from typing import List
 
 from src.quantracore_apex.apexcore.models import (
     ApexCoreConfig, ApexCoreFullConfig, ApexCoreMiniConfig,

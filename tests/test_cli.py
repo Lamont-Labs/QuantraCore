@@ -1,5 +1,3 @@
-from pathlib import Path
-import json
 from src.core.engine import generate_signal
 
 def test_engine_local_hash():

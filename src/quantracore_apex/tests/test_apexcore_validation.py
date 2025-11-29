@@ -9,7 +9,6 @@ Validates the offline training pipeline and neural inference loop:
 """
 
 import pytest
-import os
 from datetime import datetime, timedelta
 from typing import List
 

@@ -13,7 +13,7 @@ import pytest
 import hashlib
 import json
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import List
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import ApexContext

@@ -14,7 +14,6 @@ All functionality is for research and simulation only.
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
-from enum import Enum
 
 
 class Position(BaseModel):

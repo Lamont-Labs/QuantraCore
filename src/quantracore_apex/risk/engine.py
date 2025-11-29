@@ -264,7 +264,6 @@ class RiskEngine:
     ) -> tuple[RiskPermission, Optional[str], list[str]]:
         """Determine permission based on risk factors."""
         reasons = []
-        override_code = None
         
         if composite_risk >= self.denial_threshold:
             reasons.append(f"Composite risk {composite_risk:.2f} exceeds threshold")

@@ -4,13 +4,10 @@ Comprehensive Scheduler Tests
 Tests the scheduler system for correctness.
 """
 
-import pytest
-import time
 from datetime import datetime, timedelta
 
 from src.quantracore_apex.scheduler.scheduler import (
-    ApexScheduler, ScheduledTask, TaskPriority, TaskStatus, TaskResult,
-    create_scan_task
+    ApexScheduler, ScheduledTask, TaskPriority, TaskStatus, create_scan_task
 )
 
 

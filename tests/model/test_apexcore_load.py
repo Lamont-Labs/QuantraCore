@@ -7,7 +7,6 @@ All assertions are SUBSTANTIVE - they will fail if behavior regresses.
 
 import pytest
 import numpy as np
-from typing import Dict, Any
 
 from src.quantracore_apex.apexcore.models import (
     ApexCoreFull, ApexCoreMini,

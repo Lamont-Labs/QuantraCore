@@ -6,7 +6,6 @@ Tests ApexLab label generation pipeline with SUBSTANTIVE assertions.
 
 import pytest
 import numpy as np
-from typing import Dict, Any, List
 
 from src.quantracore_apex.apexlab.labels import LabelGenerator, generate_labels
 from src.quantracore_apex.apexlab.features import FeatureExtractor

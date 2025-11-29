@@ -28,7 +28,7 @@ class TierProtocolRunner:
         """
         Auto-discover and load all T01-T80 protocol modules.
         """
-        protocol_dir = Path(__file__).parent
+        Path(__file__).parent
         
         for i in range(1, 81):
             protocol_id = f"T{i:02d}"

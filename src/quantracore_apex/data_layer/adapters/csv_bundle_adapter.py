@@ -7,7 +7,6 @@ Used as fallback when live data providers are unavailable.
 Version: 9.0-A
 """
 
-import os
 from pathlib import Path
 from typing import List, Optional, Dict
 from datetime import datetime

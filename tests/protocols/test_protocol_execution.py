@@ -6,7 +6,6 @@ All assertions are SUBSTANTIVE - they will fail if behavior regresses.
 """
 
 import pytest
-from typing import List
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import OhlcvWindow, ApexResult

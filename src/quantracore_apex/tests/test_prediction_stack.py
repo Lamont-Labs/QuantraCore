@@ -4,7 +4,6 @@ Comprehensive Prediction Stack Tests
 Tests all prediction modules for correctness and determinism.
 """
 
-import pytest
 import numpy as np
 from datetime import datetime
 from typing import List

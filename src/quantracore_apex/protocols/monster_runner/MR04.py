@@ -57,7 +57,7 @@ def run_MR04(bars: List[OhlcvBar], lookback: int = 20) -> MR04Result:
         return MR04Result(notes="Insufficient data (need 30+ bars)")
     
     closes = np.array([b.close for b in bars])
-    opens = np.array([b.open for b in bars])
+    np.array([b.open for b in bars])
     highs = np.array([b.high for b in bars])
     lows = np.array([b.low for b in bars])
     volumes = np.array([b.volume for b in bars], dtype=float)

@@ -12,8 +12,7 @@ import pytest
 import time
 import psutil
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
-from unittest.mock import patch, MagicMock
+from typing import List
 import yaml
 
 from src.quantracore_apex.core.engine import ApexEngine

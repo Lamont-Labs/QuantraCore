@@ -8,7 +8,7 @@ Version: 8.1
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 import numpy as np
 
 from ..core.schemas import OhlcvBar

@@ -6,9 +6,8 @@ Defines the standard interface for ApexCore models.
 
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from dataclasses import dataclass
-from pathlib import Path
 import pickle
 import logging
 

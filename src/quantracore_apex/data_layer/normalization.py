@@ -5,8 +5,8 @@ Handles timestamp normalization, scaling, and data cleaning.
 """
 
 import numpy as np
-from typing import List, Optional
-from datetime import datetime, timezone
+from typing import List
+from datetime import timezone
 from copy import deepcopy
 
 from src.quantracore_apex.core.schemas import OhlcvBar, OhlcvWindow

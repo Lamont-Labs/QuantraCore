@@ -53,7 +53,7 @@ def predict_instability(
     closes = np.array([b.close for b in bars])
     highs = np.array([b.high for b in bars])
     lows = np.array([b.low for b in bars])
-    volumes = np.array([b.volume for b in bars], dtype=float)
+    np.array([b.volume for b in bars], dtype=float)
     
     returns = np.diff(np.log(closes + 1e-10))
     recent_vol = float(np.std(returns[-10:]))

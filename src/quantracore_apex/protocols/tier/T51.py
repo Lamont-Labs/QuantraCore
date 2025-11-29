@@ -5,7 +5,6 @@ Detects common candlestick patterns.
 Category: Pattern Recognition
 """
 
-import numpy as np
 from src.quantracore_apex.core.schemas import OhlcvWindow, Microtraits, ProtocolResult
 
 
@@ -55,7 +54,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
         if is_bearish and body_ratio > 0.7:
             patterns_detected.append("bearish_marubozu")
     
-    prev_body = abs(prev.close - prev.open)
+    abs(prev.close - prev.open)
     if prev.close < prev.open and last.close > last.open:
         if last.open < prev.close and last.close > prev.open:
             patterns_detected.append("bullish_engulfing")

@@ -2,8 +2,6 @@
 Tests for v9.0-A Engine Hardening modules.
 """
 
-import pytest
-from typing import Dict, Any, List
 
 
 class TestRedundantScorer:

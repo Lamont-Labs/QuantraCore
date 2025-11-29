@@ -4,7 +4,6 @@ Stress and Performance Tests
 Tests system under load and measures performance.
 """
 
-import pytest
 import numpy as np
 import time
 import gc
@@ -12,7 +11,6 @@ from datetime import datetime
 from typing import List
 
 from src.quantracore_apex.core.schemas import OhlcvBar
-from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.protocols.monster_runner import MonsterRunnerLoader
 from src.quantracore_apex.prediction.volatility_projection import project_volatility
 from src.quantracore_apex.prediction.compression_forecast import forecast_compression

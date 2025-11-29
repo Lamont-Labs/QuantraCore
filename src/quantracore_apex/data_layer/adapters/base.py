@@ -5,7 +5,7 @@ Defines the standard interface for all data providers.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 from datetime import datetime
 from src.quantracore_apex.core.schemas import OhlcvBar
 

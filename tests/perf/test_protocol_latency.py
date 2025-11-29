@@ -6,7 +6,6 @@ Performance tests with SUBSTANTIVE timing assertions.
 
 import pytest
 import time
-from typing import List
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import OhlcvWindow

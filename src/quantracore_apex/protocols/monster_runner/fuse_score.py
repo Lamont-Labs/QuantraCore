@@ -161,7 +161,7 @@ def calculate_trend_strength(
     closes = np.array([b.close for b in bars[-lookback:]])
     
     x = np.arange(len(closes))
-    slope = np.polyfit(x, closes, 1)[0]
+    np.polyfit(x, closes, 1)[0]
     
     pct_change = (closes[-1] - closes[0]) / closes[0] * 100 if closes[0] > 0 else 0
     

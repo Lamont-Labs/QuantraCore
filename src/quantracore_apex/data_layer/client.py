@@ -7,11 +7,10 @@ failover between multiple data providers.
 Version: 9.0-A
 """
 
-import os
 import time
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from enum import Enum

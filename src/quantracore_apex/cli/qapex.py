@@ -6,7 +6,6 @@ Command-line interface for health checks, scans, replays, and training.
 
 import argparse
 import sys
-import json
 from pathlib import Path
 from typing import Optional
 import logging
@@ -26,7 +25,7 @@ def cmd_health(args):
     checks_total += 1
     try:
         from src.quantracore_apex.core.engine import ApexEngine
-        engine = ApexEngine()
+        ApexEngine()
         print("[OK] Engine loaded successfully")
         checks_passed += 1
     except Exception as e:
@@ -58,7 +57,7 @@ def cmd_health(args):
     checks_total += 1
     try:
         from src.quantracore_apex.core.decision_gates import DecisionGateRunner
-        runner = DecisionGateRunner()
+        DecisionGateRunner()
         print("[OK] Decision gates ready")
         checks_passed += 1
     except Exception as e:
@@ -67,7 +66,7 @@ def cmd_health(args):
     checks_total += 1
     try:
         from src.quantracore_apex.replay.replay_engine import ReplayEngine
-        replay = ReplayEngine()
+        ReplayEngine()
         print("[OK] Replay engine ready")
         checks_passed += 1
     except Exception as e:
@@ -176,7 +175,7 @@ def cmd_scan_mode(args):
     max_symbols = args.max_symbols
     lookback = args.lookback
     
-    print(f"QuantraCore Apex v9.0-A Mode Scan")
+    print("QuantraCore Apex v9.0-A Mode Scan")
     print(f"Mode: {mode}")
     print("=" * 50)
     
@@ -212,7 +211,7 @@ def cmd_scan_mode(args):
         )
         
         print("-" * 50)
-        print(f"SCAN RESULTS")
+        print("SCAN RESULTS")
         print(f"  Symbols scanned: {result.scan_count}")
         print(f"  Successful: {result.success_count}")
         print(f"  Errors: {result.error_count}")
@@ -294,7 +293,7 @@ def cmd_lab_train_mini(args):
         from src.quantracore_apex.apexcore.models import ApexCoreMini
         
         print("Building demo dataset...")
-        builder = ApexLabDatasetBuilder()
+        ApexLabDatasetBuilder()
         
         demo_features = []
         demo_labels = []

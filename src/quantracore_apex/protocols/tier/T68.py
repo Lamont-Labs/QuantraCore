@@ -34,7 +34,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     
     recent_highs = highs[-5:]
     recent_lows = lows[-5:]
-    recent_closes = closes[-5:]
+    closes[-5:]
     
     broke_above = np.any(recent_highs > prior_high)
     broke_below = np.any(recent_lows < prior_low)

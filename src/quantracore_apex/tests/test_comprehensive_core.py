@@ -4,7 +4,6 @@ Comprehensive Core Engine Tests
 Tests all core engine modules for correctness and determinism.
 """
 
-import pytest
 import numpy as np
 from datetime import datetime
 from typing import List
@@ -17,7 +16,6 @@ from src.quantracore_apex.core.drift import compute_drift
 from src.quantracore_apex.core.continuation import compute_continuation
 from src.quantracore_apex.core.volume_spike import compute_volume_metrics
 from src.quantracore_apex.core.regime import classify_regime
-from src.quantracore_apex.core.quantrascore import compute_quantrascore
 from src.quantracore_apex.core.microtraits import compute_microtraits
 from src.quantracore_apex.core.sector_context import apply_sector_context, SectorContext
 

@@ -9,17 +9,13 @@ Version: 9.0-A
 
 import time
 import logging
-from pathlib import Path
 from typing import List, Dict, Optional, Any, Generator, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from src.quantracore_apex.config.symbol_universe import (
     get_symbols_for_mode,
     get_symbol_info,
-    is_smallcap,
-    SymbolInfo,
 )
 from src.quantracore_apex.config.scan_modes import (
     load_scan_mode,

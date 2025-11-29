@@ -187,7 +187,7 @@ class PolygonAdapter:
                     )
                     if agg and len(agg) > 0 and agg[0].volume >= min_volume:
                         symbols.append(ticker.ticker)
-                except:
+                except Exception:
                     continue
                     
         except Exception as e:

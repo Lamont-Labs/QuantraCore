@@ -32,7 +32,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     vol_50d = np.std(returns[-50:]) * np.sqrt(252)
     
     vol_ratio_short = vol_5d / max(vol_50d, 0.0001)
-    vol_ratio_medium = vol_20d / max(vol_50d, 0.0001)
+    vol_20d / max(vol_50d, 0.0001)
     
     z_score = (vol_5d - vol_50d) / max(np.std([vol_5d, vol_20d, vol_50d]), 0.0001)
     

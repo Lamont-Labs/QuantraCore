@@ -2,12 +2,10 @@
 Tests for Risk Engine, OMS, Portfolio, and Signal Builder modules.
 """
 
-import pytest
-from datetime import datetime
 
-from src.quantracore_apex.risk.engine import RiskEngine, RiskPermission, RiskAssessment
-from src.quantracore_apex.broker.oms import OrderManagementSystem, Order, OrderSide, OrderType, OrderStatus
-from src.quantracore_apex.portfolio.portfolio import Portfolio, Position
+from src.quantracore_apex.risk.engine import RiskEngine, RiskPermission
+from src.quantracore_apex.broker.oms import OrderManagementSystem, OrderSide, OrderType, OrderStatus
+from src.quantracore_apex.portfolio.portfolio import Portfolio
 from src.quantracore_apex.signal.signal_builder import SignalBuilder, SignalDirection, SignalStrength
 
 
@@ -111,7 +109,7 @@ class TestOrderManagementSystem:
     def test_oms_initialization(self):
         oms = OrderManagementSystem(initial_cash=50000.0)
         assert oms.cash == 50000.0
-        assert oms.simulation_mode == True
+        assert oms.simulation_mode
         assert len(oms.orders) == 0
     
     def test_place_market_order(self):
@@ -127,7 +125,7 @@ class TestOrderManagementSystem:
         assert order.side == OrderSide.BUY
         assert order.quantity == 100
         assert order.status == OrderStatus.PENDING
-        assert order.simulation_mode == True
+        assert order.simulation_mode
     
     def test_place_limit_order(self):
         oms = OrderManagementSystem()

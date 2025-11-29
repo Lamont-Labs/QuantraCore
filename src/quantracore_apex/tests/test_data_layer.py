@@ -7,7 +7,6 @@ Tests caching, hashing, and normalization.
 import pytest
 import tempfile
 import shutil
-from pathlib import Path
 from datetime import datetime, timedelta
 
 from src.quantracore_apex.data_layer.adapters.synthetic_adapter import SyntheticAdapter

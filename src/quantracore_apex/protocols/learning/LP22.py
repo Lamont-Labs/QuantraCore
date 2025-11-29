@@ -38,7 +38,7 @@ def generate_label(window: OhlcvWindow, apex_result: ApexResult) -> LearningLabe
     trend = np.polyfit(range(len(closes)), closes, 1)[0]
     trend_pct = trend / (np.mean(closes) + 1e-10)
     
-    range_expansion = (highs.max() - lows.min()) / (np.mean(closes) + 1e-10)
+    (highs.max() - lows.min()) / (np.mean(closes) + 1e-10)
     
     vol_trend = np.polyfit(range(len(volumes)), volumes, 1)[0]
     vol_trend_pct = vol_trend / (np.mean(volumes) + 1e-10)

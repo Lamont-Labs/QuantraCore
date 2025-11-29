@@ -5,7 +5,6 @@ Analyzes price relative to psychological round numbers.
 Category: Support/Resistance
 """
 
-import numpy as np
 from src.quantracore_apex.core.schemas import OhlcvWindow, Microtraits, ProtocolResult
 
 

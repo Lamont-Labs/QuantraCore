@@ -110,7 +110,7 @@ class TestOMSEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert "positions" in data
-        assert data["simulation_mode"] == True
+        assert data["simulation_mode"]
     
     def test_reset_oms(self, client):
         client.post("/oms/place", json={"symbol": "AAPL", "side": "buy", "quantity": 100})
@@ -200,6 +200,6 @@ class TestDashboardEndpoint:
         assert data["version"] == "9.0-A"
         assert data["protocols"]["tier"] == 80
         assert data["protocols"]["learning"] == 25
-        assert data["simulation_mode"] == True
+        assert data["simulation_mode"]
         assert "v9_hardening" in data
-        assert data["v9_hardening"]["redundant_scoring"] == True
+        assert data["v9_hardening"]["redundant_scoring"]

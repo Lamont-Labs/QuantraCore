@@ -6,7 +6,6 @@ All assertions are substantive - they WILL fail if behavior regresses.
 """
 
 import pytest
-from typing import List, Optional
 
 from src.quantracore_apex.protocols.tier.tier_loader import TierProtocolRunner
 from src.quantracore_apex.protocols.learning import LearningProtocolRunner
@@ -89,7 +88,7 @@ class TestTierProtocolExecution:
             assert hasattr(r, "fired"), "ProtocolResult missing fired"
             assert hasattr(r, "confidence"), "ProtocolResult missing confidence"
             assert isinstance(r.fired, bool), f"fired should be bool, got {type(r.fired)}"
-            assert isinstance(r.confidence, (int, float)), f"confidence should be numeric"
+            assert isinstance(r.confidence, (int, float)), "confidence should be numeric"
             assert 0.0 <= r.confidence <= 1.0, f"confidence {r.confidence} out of [0,1] range"
     
     @pytest.mark.parametrize("start,end,expected_min", [
