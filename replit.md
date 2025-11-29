@@ -101,6 +101,52 @@ python institutional_loop.py  # Start 24/7 research loop
 - Equities: AAPL, NVDA, TSLA, AMD, SMCI, ARM, META, GOOGL, MSFT, AMZN, SPY, QQQ, IWM
 - Crypto: BTCUSDT, ETHUSDT, SOLUSDT, XRPUSDT, DOGEUSDT
 
+**Self-Learning Feedback Loop:**
+- Trade entry context captured: features, protocols, QuantraScore
+- Exit outcomes tracked: P&L, holding time, exit reason
+- Completed trades → ApexLab training samples
+- Automatic retraining when batch threshold (50 trades) reached
+
+### Universal Broker Router
+
+One environment variable controls broker routing. Located in `src/quantracore_apex/broker/universal.py`.
+
+**Supported Brokers:**
+
+| BROKER Value | Description | Mode |
+|--------------|-------------|------|
+| `alpaca_paper` | Alpaca paper trading (default) | Paper |
+| `alpaca_live` | Alpaca live trading | LIVE (requires enable) |
+| `binance` | Binance spot live | LIVE (requires enable) |
+| `binance_testnet` | Binance testnet | Paper |
+| `ibkr` | Interactive Brokers | Depends on port |
+| `ibkr_paper` | IBKR paper (port 7497) | Paper |
+| `bybit` | Bybit live | LIVE (requires enable) |
+| `bybit_testnet` | Bybit testnet | Paper |
+| `tradier` | Tradier live | LIVE (requires enable) |
+| `tradier_sandbox` | Tradier sandbox | Paper |
+| `paper_sim` | Internal paper simulator | Paper |
+
+**Usage:**
+```bash
+# Paper trading (default)
+export BROKER=alpaca_paper
+export APEX_MODE=PAPER
+
+# Switch to Binance testnet
+export BROKER=binance_testnet
+
+# Enable LIVE trading (CAUTION: real money!)
+export BROKER=alpaca_live
+export APEX_MODE=LIVE
+export APEX_LIVE_ENABLED=true
+```
+
+**Safety Controls:**
+- LIVE mode disabled by default
+- Requires explicit `APEX_LIVE_ENABLED=true`
+- PAPER mode auto-switches to testnet variants
+
 ## External Dependencies
 
 - **Data Providers:**

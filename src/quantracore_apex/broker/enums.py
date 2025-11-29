@@ -16,14 +16,18 @@ class ExecutionMode(str, Enum):
 
 class BrokerType(str, Enum):
     """Supported broker types for universal routing."""
-    ALPACA_PAPER = "alpaca_paper"   # Alpaca paper trading (default)
-    ALPACA_LIVE = "alpaca_live"     # Alpaca live trading
-    BINANCE = "binance"             # Binance spot/futures
-    BINANCE_FUTURES = "binance_futures"  # Binance USDT-M futures
-    IBKR = "ibkr"                   # Interactive Brokers TWS/Gateway
-    BYBIT = "bybit"                 # Bybit exchange
-    TRADIER = "tradier"             # Tradier brokerage
-    PAPER_SIM = "paper_sim"         # Internal paper simulator
+    ALPACA_PAPER = "alpaca_paper"           # Alpaca paper trading (default)
+    ALPACA_LIVE = "alpaca_live"             # Alpaca live trading
+    BINANCE = "binance"                     # Binance spot live
+    BINANCE_TESTNET = "binance_testnet"     # Binance testnet (paper)
+    BINANCE_FUTURES = "binance_futures"     # Binance USDT-M futures
+    IBKR = "ibkr"                           # Interactive Brokers TWS/Gateway
+    IBKR_PAPER = "ibkr_paper"               # IBKR paper (port 7497)
+    BYBIT = "bybit"                         # Bybit live
+    BYBIT_TESTNET = "bybit_testnet"         # Bybit testnet (paper)
+    TRADIER = "tradier"                     # Tradier live
+    TRADIER_SANDBOX = "tradier_sandbox"     # Tradier sandbox (paper)
+    PAPER_SIM = "paper_sim"                 # Internal paper simulator
 
 
 class OrderSide(str, Enum):
