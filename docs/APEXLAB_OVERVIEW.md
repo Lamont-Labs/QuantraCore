@@ -1,7 +1,7 @@
 # ApexLab — Offline Training and Distillation Lab
 
-**Version:** 8.0  
-**Component:** ApexLab  
+**Version:** 9.0-A  
+**Component:** ApexLab (V1 + V2)  
 **Role:** Self-contained offline local training environment
 
 ---
@@ -214,6 +214,43 @@ ApexLab includes comprehensive testing:
 
 ---
 
-## 12. Summary
+## 12. ApexLab V2 (Enhanced Generation)
 
-ApexLab is the controlled, offline environment where QuantraCore Apex's neural models are born. Using 100-bar OHLCV windows and Apex-native features, ApexLab ensures that ApexCore Full and Mini remain aligned with the authoritative core while providing efficient inference for deployment scenarios. The fail-closed design guarantees that no degraded model ever reaches production.
+ApexLab V2 provides enhanced labeling with 40+ fields:
+
+### 12.1 ApexLabV2Row Schema
+
+| Category | Fields |
+|----------|--------|
+| **Structural Inputs** | quantra_score, regime, tier assignments, entropy, suppression, drift |
+| **Future Outcomes** | ret_5d, ret_10d (5-day and 10-day forward returns) |
+| **Quality Labels** | A, B, C, D, A_PLUS (based on return buckets) |
+| **Runner Flags** | hit_runner_threshold (15%+), hit_monster_threshold (25%+) |
+| **Safety Labels** | future_crash, high_chop, avoid_trade |
+| **Protocol Vector** | 115-dimensional encoded engine results |
+
+### 12.2 V2 Training Pipeline
+
+```
+ApexLabV2Builder → Walk-Forward Splits → ApexCoreV2Trainer → Manifest
+```
+
+Features:
+- Time-aware train/val/test splits (no look-ahead bias)
+- Sample weighting for balanced learning
+- Ensemble training with bootstrap aggregation
+- Automatic manifest generation with metrics
+
+### 12.3 V2 Evaluation Harness
+
+The ApexCoreV2Evaluator provides:
+- Calibration curves per output head
+- Ranking quality metrics (AUC, Precision@K)
+- Regime-segmented analysis
+- Model comparison reports
+
+---
+
+## 13. Summary
+
+ApexLab is the controlled, offline environment where QuantraCore Apex's neural models are born. Using 100-bar OHLCV windows and Apex-native features, ApexLab V1 ensures that ApexCore Full and Mini remain aligned with the authoritative core. ApexLab V2 extends this with 40+ field labeling, runner/safety flags, and enhanced training pipelines for ApexCore V2 Big/Mini models. The fail-closed design guarantees that no degraded model ever reaches production.

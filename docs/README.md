@@ -25,9 +25,15 @@ Welcome to the QuantraCore Apex documentation. This folder contains comprehensiv
 - [Architecture](ARCHITECTURE.md) — System architecture
 - [ApexLab Overview](APEXLAB_OVERVIEW.md) — Offline training and distillation lab
 - [ApexLab Training](APEXLAB_TRAINING.md) — Training environment guide
-- [ApexCore Models](APEXCORE_MODELS.md) — Model family documentation (Full/Mini)
+- [ApexCore Models](APEXCORE_MODELS.md) — Model family documentation (V1 Full/Mini + V2 Big/Mini)
 - [Prediction Stack](PREDICTION_STACK.md) — Forward-looking analysis
 - [MonsterRunner](MONSTERRUNNER.md) — Extreme move detection
+
+### Predictive Layer V2 (New)
+
+- [ApexLab V2](APEXLAB_V2.md) — Enhanced labeling with 40+ fields
+- [ApexCore V2](APEXCORE_V2.md) — Multi-head models (Big/Mini)
+- [PredictiveAdvisor](PREDICTIVE_ADVISOR.md) — Fail-closed engine integration
 
 ### Protocols
 
@@ -77,10 +83,13 @@ Welcome to the QuantraCore Apex documentation. This folder contains comprehensiv
 | ApexEngine | Operational |
 | ApexDesk UI | Operational (React 18 + Vite 5) |
 | FastAPI Backend | Operational (27 endpoints) |
-| Test Suite | **640 tests passing** |
+| Test Suite | **970+ tests passing** |
 | Universal Scanner | Operational |
-| ApexLab | Operational |
-| ApexCore Models | Operational |
+| ApexLab | Operational (V1 + V2) |
+| ApexCore Models | Operational (V1 + V2) |
+| **ApexLab V2** | Operational (40+ field schema) |
+| **ApexCore V2** | Operational (Big/Mini, 5 heads) |
+| **PredictiveAdvisor** | Operational (fail-closed integration) |
 
 ---
 

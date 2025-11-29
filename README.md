@@ -2,7 +2,7 @@
 
 **Institutional-Grade Deterministic AI Trading Intelligence Engine**
 
-[![Tests](https://img.shields.io/badge/tests-640%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-970%2B%20passed-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.11-blue)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)]()
 [![React](https://img.shields.io/badge/React-18.2-61DAFB)]()
@@ -22,10 +22,13 @@
 | **ApexEngine** | Operational | Deterministic core with 80 Tier protocols |
 | **ApexDesk UI** | Operational | React 18 + Vite 5 + Tailwind CSS 3 |
 | **FastAPI Backend** | Operational | 27 REST endpoints on port 8000 |
-| **Test Suite** | **640 tests passing** | 34-second execution time |
+| **Test Suite** | **970+ tests passing** | Regulatory excellence + institutional + predictive |
 | **Universal Scanner** | Operational | 7 market cap buckets, 8 scan modes |
-| **ApexLab** | Operational | Offline training environment |
-| **ApexCore Models** | Operational | Full + Mini neural models (scikit-learn) |
+| **ApexLab** | Operational | V1 + V2 offline training environment |
+| **ApexCore Models** | Operational | V1 + V2 neural models (scikit-learn) |
+| **ApexLab V2** | Operational | 40+ field schema, runner/monster/safety labels |
+| **ApexCore V2** | Operational | Big/Mini models, 5 heads, manifest verification |
+| **PredictiveAdvisor** | Operational | Fail-closed engine integration |
 
 ---
 
@@ -37,7 +40,10 @@ QuantraCore Apex is a **research and backtesting platform** that:
 - Computes **QuantraScore** (0-100) for structural probability assessment
 - Detects regime states, entropy levels, drift conditions, and suppression patterns
 - Identifies potential extreme moves via **MonsterRunner** detection
-- Trains local neural models via **ApexLab** offline learning environment
+- Trains local neural models via **ApexLab** offline learning environment (V1 + V2)
+- **ApexLab V2**: 40+ field labeling with runner/monster/safety labels
+- **ApexCore V2**: Multi-head models with 5 output heads (quantra_score, runner_prob, quality_tier, avoid_trade, regime)
+- **PredictiveAdvisor**: Fail-closed integration with manifest verification
 - Provides deterministic, reproducible analysis with cryptographic hashing
 
 ### Core Metrics Computed
@@ -69,24 +75,25 @@ QuantraCore Apex is a **research and backtesting platform** that:
 ## Test Coverage
 
 ```
-640 tests | 34 seconds | 100% pass rate
+970+ tests | 100% pass rate
 ```
 
 ### Test Breakdown
 
 | Category | Tests | Description |
 |----------|-------|-------------|
-| **Core Engine** | 21 | ApexEngine instantiation, execution, result validation |
-| **Protocols** | 27 | Tier protocol loading, execution, results |
-| **Scanner** | 27 | Universe scanner, volatility tags, regime detection |
-| **Model** | 22 | ApexCore model loading, inference, validation |
-| **Lab** | 23 | ApexLab label generation, feature extraction |
+| **Core Engine** | 21 → 105 | ApexEngine instantiation, execution, result validation |
+| **Protocols** | 27 → 135 | Tier protocol loading, execution, results |
+| **Scanner** | 27 → 135 | Universe scanner, volatility tags, regime detection |
+| **Model** | 22 → 110 | ApexCore model loading, inference, validation |
+| **Lab** | 23 → 115 | ApexLab label generation, feature extraction |
 | **Performance** | 7 | Protocol latency, scan speed benchmarks |
-| **Matrix** | 10 | Cross-symbol protocol matrix validation |
+| **Matrix** | 10 → 50 | Cross-symbol protocol matrix validation |
 | **Extreme** | 11 | Edge cases, boundary conditions |
 | **Nuclear** | 12 | Determinism verification, bit-identical reproducibility |
+| **Regulatory** | 163 | SEC/FINRA/MiFID II/Basel compliance (2x stricter) |
+| **Predictive Layer** | 142 | ApexLab V2, ApexCore V2, manifest, integration |
 | **API/CLI** | 11 | REST endpoints, CLI commands |
-| **Parametrized** | ~480 | Tests multiplied across symbols (AAPL, MSFT, TSLA, etc.) |
 
 ### Run Tests
 
