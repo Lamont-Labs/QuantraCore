@@ -49,7 +49,7 @@ QuantraCore Apex is a **research and backtesting platform** that:
 - Analyzes market structure using **80 Tier Protocols** (T01-T80)
 - Computes **QuantraScore** (0-100) for structural probability assessment
 - Detects regime states, entropy levels, drift conditions, and suppression patterns
-- Identifies potential extreme moves via **MonsterRunner** detection
+- Identifies potential extreme moves via **20 MonsterRunner protocols** (MR01-MR20)
 - Trains local neural models via **ApexLab** offline learning environment (V1 + V2)
 - **ApexLab V2**: 40+ field labeling with runner/monster/safety labels
 - **ApexCore V2**: Multi-head models with 5 output heads (quantra_score, runner_prob, quality_tier, avoid_trade, regime)
@@ -143,19 +143,23 @@ make test-smoke
 
 Label generation for ApexLab training pipelines.
 
-### 5 MonsterRunner Protocols (MR01-MR05)
+### 20 MonsterRunner Protocols (MR01-MR20)
 
-Extreme move detection: phase compression, volume ignition, entropy collapse.
+| Range | Category | Description |
+|-------|----------|-------------|
+| MR01-MR05 | Core | Compression, volume, regime, institutional, alignment |
+| MR06-MR10 | Breakout | Bollinger, volume explosion, gap, VWAP, NR7 |
+| MR11-MR15 | Extreme | Short squeeze, pump, catalyst, fractal, 100% day |
+| MR16-MR20 | Parabolic | Phase 3, meme frenzy, gamma ramp, FOMO, nuclear |
 
-### 5 Omega Directives (Ω1-Ω5)
+### 20 Omega Directives (Ω1-Ω20)
 
-| Directive | Trigger | Effect |
-|-----------|---------|--------|
-| Ω1 | Extreme risk tier | Hard safety lock |
-| Ω2 | Chaotic entropy | Entropy override |
-| Ω3 | Critical drift | Drift override |
-| Ω4 | Always active | Compliance mode |
-| Ω5 | Strong suppression | Signal suppression lock |
+| Range | Category | Description |
+|-------|----------|-------------|
+| Ω1-Ω5 | Core Safety | Risk lock, entropy, drift, compliance, suppression |
+| Ω6-Ω10 | Volatility | Vol cap, divergence, squeeze, MACD, fear spike |
+| Ω11-Ω15 | Indicators | RSI extreme, volume spike, trend, gap, tail risk |
+| Ω16-Ω20 | Advanced | Overnight, fractal, liquidity, correlation, nuclear |
 
 ---
 

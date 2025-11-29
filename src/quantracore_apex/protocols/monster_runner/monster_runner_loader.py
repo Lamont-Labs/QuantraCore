@@ -4,7 +4,7 @@ MonsterRunner Protocol Loader
 Discovers and executes all MRxx protocols in deterministic order.
 Aggregates results into a unified MonsterRunnerResult.
 
-Version: 8.1
+Version: 9.0-A
 """
 
 from dataclasses import dataclass, field
@@ -50,13 +50,18 @@ class MonsterRunnerLoader:
     """
     Loads and executes MonsterRunner protocols.
     
-    Protocols MR01-MR05 are executed in deterministic order.
+    Protocols MR01-MR20 are executed in deterministic order.
     Results are aggregated into a single MonsterRunnerResult.
     
     All analysis is deterministic and research-only.
     """
     
-    PROTOCOL_IDS = ["MR01", "MR02", "MR03", "MR04", "MR05"]
+    PROTOCOL_IDS = [
+        "MR01", "MR02", "MR03", "MR04", "MR05",
+        "MR06", "MR07", "MR08", "MR09", "MR10",
+        "MR11", "MR12", "MR13", "MR14", "MR15",
+        "MR16", "MR17", "MR18", "MR19", "MR20",
+    ]
     
     def __init__(self):
         """Initialize the loader and discover protocols."""
@@ -110,8 +115,15 @@ class MonsterRunnerLoader:
                     confidences.append(protocol_result.confidence)
                 
                 score_attr = None
-                for attr in ['compression_score', 'volume_anomaly_score', 
-                           'regime_shift_score', 'institutional_score', 'alignment_score']:
+                for attr in [
+                    'compression_score', 'volume_anomaly_score', 
+                    'regime_shift_score', 'institutional_score', 'alignment_score',
+                    'breakout_score', 'explosion_score', 'runner_score',
+                    'vwap_score', 'nr7_score', 'squeeze_score', 'pump_score',
+                    'catalyst_score', 'fractal_score', 'extreme_score',
+                    'parabolic_score', 'frenzy_score', 'gamma_score',
+                    'fomo_score', 'nuclear_score'
+                ]:
                     if hasattr(protocol_result, attr):
                         score_attr = getattr(protocol_result, attr)
                         break

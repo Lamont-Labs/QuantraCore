@@ -27,7 +27,7 @@ The architecture prioritizes determinism, fail-closed operations, and local-only
 
 ### Feature Specifications
 
-- **ApexEngine:** The deterministic core, implementing 80 Tier protocols (T01-T80), 25 Learning Protocols (LP01-LP25), and 5 MonsterRunner protocols (MR01-MR05).
+- **ApexEngine:** The deterministic core, implementing 80 Tier protocols (T01-T80), 25 Learning Protocols (LP01-LP25), and 20 MonsterRunner protocols (MR01-MR20).
 - **ApexLab (V1 & V2):** An offline training environment supporting 40+ field schema for feature and label generation.
 - **ApexCore (V1 & V2):** On-device neural models (Big/Mini) with 5 prediction heads, utilizing scikit-learn. Includes manifest verification for model integrity.
 - **PredictiveAdvisor:** A fail-closed engine integrated with ApexCore for predictive insights.
@@ -35,7 +35,7 @@ The architecture prioritizes determinism, fail-closed operations, and local-only
 - **Broker Layer v1:** Institutional execution engine with pluggable broker adapters (Alpaca paper, PaperSim), 9-check risk engine, and fail-closed safety controls. LIVE trading disabled by default. See [`docs/BROKER_LAYER_SPEC.md`](docs/BROKER_LAYER_SPEC.md).
 - **Entry/Exit Optimization Engine (EEO):** Calculates best entry zones, exit targets, stops, and position sizing using deterministic + model-assisted methods. Supports three policy profiles (conservative, balanced, aggressive_research). See [`docs/ENTRY_EXIT_OPTIMIZATION_ENGINE_SPEC.md`](docs/ENTRY_EXIT_OPTIMIZATION_ENGINE_SPEC.md).
 - **Universal Scanner:** Supports 7 market cap buckets and 8 scan modes for comprehensive market analysis.
-- **Omega Directives (Ω1-Ω5):** Five safety override protocols, with Ω4 enforcing a permanent research-only compliance mode.
+- **Omega Directives (Ω1-Ω20):** Twenty safety override protocols including volatility cap, divergence, squeeze, fear spike, RSI extreme, gap risk, tail risk, overnight drift, liquidity void, correlation breakdown, and nuclear killswitch. Ω4 enforces permanent research-only compliance mode.
 - **Regulatory Compliance:** Over 1,099 tests (as of Nov 2025), including 163+ dedicated regulatory tests that exceed SEC/FINRA/MiFID II/Basel requirements by 2x-5x, ensuring institutional-grade safety margins. This includes determinism verification, stress testing, market abuse detection, and risk controls. See [`docs/SECURITY_COMPLIANCE/TEST_COVERAGE_REPORT.md`](docs/SECURITY_COMPLIANCE/TEST_COVERAGE_REPORT.md).
 - **Hardening Infrastructure:** Global hardening system implementing fail-closed behavior, protocol manifest verification (SHA-256 with execution order), config validation, mode enforcement (RESEARCH/PAPER/LIVE), incident logging, and kill switch management. Integrated into ExecutionEngine for order-level enforcement. See [`docs/SECURITY_COMPLIANCE/hardening_blueprint.md`](docs/SECURITY_COMPLIANCE/hardening_blueprint.md).
 
