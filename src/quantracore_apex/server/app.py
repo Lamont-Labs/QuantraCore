@@ -3019,6 +3019,184 @@ def create_app() -> FastAPI:
             logger.error(f"Stress test error: {e}")
             raise HTTPException(status_code=500, detail=str(e))
     
+    from src.quantracore_apex.integrations.google_docs.automated_pipeline import automated_pipeline
+    from src.quantracore_apex.integrations.google_docs.trade_journal import trade_journal
+    from src.quantracore_apex.integrations.google_docs.investor_updates import investor_updates
+    
+    class InvestorReportRequest(BaseModel):
+        report_type: str = "weekly"
+        custom_notes: Optional[str] = None
+    
+    class DueDiligenceRequest(BaseModel):
+        investor_name: Optional[str] = None
+        include_financials: bool = True
+    
+    class TradeLogExportRequest(BaseModel):
+        start_date: Optional[str] = None
+        end_date: Optional[str] = None
+    
+    class JournalEntryRequest(BaseModel):
+        title: str
+        content: str
+        symbol: Optional[str] = None
+    
+    @app.get("/google-docs/status")
+    async def google_docs_status():
+        """Check Google Docs connection status."""
+        try:
+            status = await automated_pipeline.check_connection()
+            return {
+                "google_docs": status,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            return {
+                "google_docs": {
+                    "connected": False,
+                    "error": str(e)
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/google-docs/export/investor-report")
+    async def export_investor_report(request: InvestorReportRequest):
+        """
+        Generate and export investor report to Google Docs.
+        
+        Report types: daily, weekly, monthly
+        """
+        try:
+            result = await automated_pipeline.generate_investor_report(
+                report_type=request.report_type,
+                custom_notes=request.custom_notes
+            )
+            return {
+                "success": True,
+                "document": result,
+                "message": f"Investor report exported to Google Docs",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Investor report export error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/google-docs/export/due-diligence")
+    async def export_due_diligence(request: DueDiligenceRequest):
+        """
+        Generate and export due diligence package to Google Docs.
+        
+        Comprehensive package for investors and acquirers.
+        """
+        try:
+            result = await automated_pipeline.export_due_diligence_package(
+                investor_name=request.investor_name,
+                include_financials=request.include_financials
+            )
+            return {
+                "success": True,
+                "document": result,
+                "message": "Due diligence package exported to Google Docs",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Due diligence export error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/google-docs/export/trade-log")
+    async def export_trade_log(request: TradeLogExportRequest):
+        """
+        Export complete trade log to Google Docs.
+        """
+        try:
+            result = await automated_pipeline.export_trade_log()
+            return {
+                "success": True,
+                "document": result,
+                "message": "Trade log exported to Google Docs",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Trade log export error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/google-docs/documents")
+    async def list_google_docs():
+        """List all exported QuantraCore documents in Google Docs."""
+        try:
+            docs = await automated_pipeline.list_exported_documents()
+            return {
+                "documents": docs,
+                "count": len(docs),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"List documents error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/google-docs/journal/entry")
+    async def add_journal_entry(request: JournalEntryRequest):
+        """
+        Add a research note to today's trade journal.
+        """
+        try:
+            result = await trade_journal.log_research_note(
+                title=request.title,
+                content=request.content,
+                symbol=request.symbol
+            )
+            return {
+                "success": True,
+                "entry": result,
+                "message": "Journal entry added",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Journal entry error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/google-docs/journal/today")
+    async def get_today_journal():
+        """Get URL for today's trade journal."""
+        try:
+            url = await trade_journal.get_journal_url()
+            return {
+                "url": url,
+                "date": datetime.utcnow().strftime('%Y-%m-%d'),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Get journal error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/google-docs/journal/list")
+    async def list_journals():
+        """List all trade journals."""
+        try:
+            journals = await trade_journal.list_journals()
+            return {
+                "journals": journals,
+                "count": len(journals),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"List journals error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/google-docs/investor-update/monthly")
+    async def generate_monthly_investor_update():
+        """Generate a monthly investor update document."""
+        try:
+            result = await investor_updates.generate_monthly_update()
+            return {
+                "success": True,
+                "document": result,
+                "message": "Monthly investor update generated",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Monthly update error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     return app
 
 
