@@ -85,6 +85,21 @@ Full specification: [`docs/APEXLAB_CONTINUOUS_DATA_ENGINE_SPEC.md`](docs/APEXLAB
 
 **Volume Targets:** 10k–100k+ labeled events/day depending on hardware tier.
 
+### Investor Due Diligence Requirements
+
+Full specification: [`docs/INVESTOR_DUE_DILIGENCE_REQUIREMENTS.md`](docs/INVESTOR_DUE_DILIGENCE_REQUIREMENTS.md)
+
+| Category | Key Items |
+|----------|-----------|
+| Technical Infrastructure | 500-700+ tests, CI/CD, API docs, build scripts |
+| Documentation | Master spec, architecture diagrams, protocol index |
+| Model Artifacts | Manifests, calibration curves, determinism proof |
+| Product Proof | Screenshots, demo videos, end-to-end pipeline |
+| Compliance | Safety policies, fail-closed guarantees, disclaimers |
+| Business | Pitch deck, market analysis, roadmap, exit paths |
+| Security & Legal | Ownership, licensing, threat modeling |
+| Founder Package | Profile, vision, execution philosophy, progress proof |
+
 ---
 
 *QuantraCore Apex v9.0-A | Lamont Labs | November 2025*
