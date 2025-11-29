@@ -1,7 +1,7 @@
 """Core data schemas for QuantraCore Apex."""
 
 from typing import List, Dict, Optional, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from enum import Enum
 from datetime import datetime
 import hashlib
@@ -209,7 +209,8 @@ class ApexResult(BaseModel):
     omega_overrides: Dict[str, bool] = Field(default_factory=dict)
     proof_hash: Optional[str] = None
     
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    @field_serializer('timestamp')
+    def serialize_timestamp(self, value: datetime) -> str:
+        return value.isoformat()
