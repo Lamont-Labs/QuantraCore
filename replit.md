@@ -186,6 +186,17 @@ Connected via Replit OAuth2 connector for automated export pipeline:
 
 ## Recent Changes
 
+- **2025-11-29:** Added HyperLearner — Hyper-Velocity Learning System
+  - **EventBus**: Universal event capture with priority queuing
+  - **OutcomeTracker**: Links events to outcomes, creates learning pairs
+  - **PatternMiner**: Discovers win/loss patterns from historical data
+  - **ContinuousTrainer**: Prioritized retraining with batch processing
+  - **MetaLearner**: Optimizes the learning process itself
+  - Added 12 new API endpoints for learning management
+  - Decorator hooks for automatic learning capture (@learn_from_scan, etc.)
+  - Every action, outcome, win, loss, pass, fail feeds the learning loop
+  - Updated MASTER_SPEC.md with Section 23: HyperLearner
+
 - **2025-11-29:** Added Battle Simulator — Competitive Intelligence
   - **100% Legal & Compliant**: Uses only public SEC EDGAR filings
   - **SECEdgarClient**: Fetches 13F institutional holdings from SEC

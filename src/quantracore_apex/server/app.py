@@ -3505,6 +3505,369 @@ def create_app() -> FastAPI:
             logger.error(f"Integration spec error: {e}")
             raise HTTPException(status_code=500, detail=str(e))
     
+    # =========================================================================
+    # HYPERLEARNER ENDPOINTS
+    # Hyper-Velocity Learning System
+    # =========================================================================
+    
+    try:
+        from src.quantracore_apex.hyperlearner import (
+            HyperLearner,
+            get_hyperlearner,
+            EventCategory,
+            EventType,
+            OutcomeType,
+            LearningPriority,
+        )
+        
+        hyperlearner = get_hyperlearner()
+        HYPERLEARNER_AVAILABLE = True
+        logger.info("[HyperLearner] Initialized - capturing ALL events for accelerated learning")
+    except ImportError as e:
+        HYPERLEARNER_AVAILABLE = False
+        logger.warning(f"[HyperLearner] Not available: {e}")
+    
+    class TradeRecordRequest(BaseModel):
+        symbol: str
+        entry_price: float
+        exit_price: float
+        direction: str = "LONG"
+        quantrascore: float = 75.0
+        regime: str = "neutral"
+        protocols_fired: List[str] = []
+    
+    class SignalOutcomeRequest(BaseModel):
+        symbol: str
+        quantrascore: float
+        was_taken: bool
+        outcome: str
+        return_pct: Optional[float] = None
+    
+    class BattleResultRequest(BaseModel):
+        symbol: str
+        institution: str
+        outcome: str
+        our_return: float
+        their_return: float
+    
+    class PredictionRecordRequest(BaseModel):
+        prediction_type: str
+        predicted: str
+        actual: str
+        symbol: Optional[str] = None
+    
+    @app.get("/hyperlearner/status")
+    async def get_hyperlearner_status():
+        """
+        Get HyperLearner status and health.
+        
+        The HyperLearner captures EVERYTHING the system does
+        and learns from it at an accelerated rate.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            return {
+                "available": False,
+                "message": "HyperLearner not initialized",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        
+        try:
+            stats = hyperlearner.get_stats()
+            health = hyperlearner.get_learning_health()
+            
+            return {
+                "available": True,
+                "running": stats["running"],
+                "health": health,
+                "total_events": stats["total_events"],
+                "total_learnings": stats["total_learnings"],
+                "learning_velocity": round(stats["learning_velocity"], 2),
+                "uptime_hours": stats["uptime_hours"],
+                "patterns_discovered": stats["patterns"]["total_patterns"],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"HyperLearner status error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/hyperlearner/stats")
+    async def get_hyperlearner_stats():
+        """Get comprehensive HyperLearner statistics."""
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            stats = hyperlearner.get_stats()
+            return {
+                "stats": stats,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"HyperLearner stats error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/hyperlearner/record/trade")
+    async def record_trade_for_learning(request: TradeRecordRequest):
+        """
+        Record a complete trade for learning.
+        
+        Every trade teaches the system what works and what doesn't.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            event_id = hyperlearner.record_trade(
+                symbol=request.symbol,
+                entry_price=request.entry_price,
+                exit_price=request.exit_price,
+                direction=request.direction,
+                quantrascore=request.quantrascore,
+                regime=request.regime,
+                protocols_fired=request.protocols_fired,
+            )
+            
+            return_pct = ((request.exit_price - request.entry_price) / request.entry_price) * 100
+            if request.direction.upper() == "SHORT":
+                return_pct = -return_pct
+            
+            return {
+                "event_id": event_id,
+                "return_pct": round(return_pct, 2),
+                "learned": True,
+                "message": "Trade recorded for learning",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Record trade error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/hyperlearner/record/signal")
+    async def record_signal_for_learning(request: SignalOutcomeRequest):
+        """
+        Record a signal outcome for learning.
+        
+        Learns from both taken and rejected signals.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            event_id = hyperlearner.record_signal_outcome(
+                symbol=request.symbol,
+                quantrascore=request.quantrascore,
+                was_taken=request.was_taken,
+                outcome=request.outcome,
+                return_pct=request.return_pct,
+            )
+            
+            return {
+                "event_id": event_id,
+                "learned": True,
+                "message": "Signal outcome recorded for learning",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Record signal error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/hyperlearner/record/battle")
+    async def record_battle_for_learning(request: BattleResultRequest):
+        """
+        Record a battle result for learning.
+        
+        Learns from wins and losses against institutions.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            event_id = hyperlearner.record_battle_result(
+                symbol=request.symbol,
+                institution=request.institution,
+                outcome=request.outcome,
+                our_return=request.our_return,
+                their_return=request.their_return,
+            )
+            
+            return {
+                "event_id": event_id,
+                "alpha": round(request.our_return - request.their_return, 2),
+                "learned": True,
+                "message": "Battle result recorded for learning",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Record battle error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/hyperlearner/record/prediction")
+    async def record_prediction_for_learning(request: PredictionRecordRequest):
+        """
+        Record a prediction outcome for learning.
+        
+        Learns from prediction accuracy.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            event_id = hyperlearner.record_prediction(
+                prediction_type=request.prediction_type,
+                predicted=request.predicted,
+                actual=request.actual,
+                symbol=request.symbol,
+            )
+            
+            was_correct = (request.predicted == request.actual)
+            
+            return {
+                "event_id": event_id,
+                "was_correct": was_correct,
+                "learned": True,
+                "message": "Prediction recorded for learning",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Record prediction error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/hyperlearner/patterns/wins")
+    async def get_win_patterns(limit: int = 10):
+        """
+        Get discovered winning patterns.
+        
+        These are patterns that consistently lead to success.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            patterns = hyperlearner.get_win_patterns(limit=limit)
+            
+            return {
+                "win_patterns": [p.to_dict() for p in patterns],
+                "count": len(patterns),
+                "message": "Patterns that lead to wins - reinforce these",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Get win patterns error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/hyperlearner/patterns/losses")
+    async def get_loss_patterns(limit: int = 10):
+        """
+        Get discovered losing patterns.
+        
+        These are patterns to avoid.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            patterns = hyperlearner.get_loss_patterns(limit=limit)
+            
+            return {
+                "loss_patterns": [p.to_dict() for p in patterns],
+                "count": len(patterns),
+                "message": "Patterns that lead to losses - AVOID these",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Get loss patterns error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/hyperlearner/insights")
+    async def get_learning_insights():
+        """
+        Get meta-learning optimization insights.
+        
+        These are recommendations for improving the learning process.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            insights = hyperlearner.get_optimization_insights()
+            
+            return {
+                "insights": [i.to_dict() for i in insights],
+                "count": len(insights),
+                "message": "Meta-learning insights for accelerating improvement",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Get insights error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/hyperlearner/optimal-params")
+    async def get_optimal_learning_parameters():
+        """
+        Get optimized learning parameters.
+        
+        These are parameters tuned by the meta-learner.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            params = hyperlearner.get_optimal_parameters()
+            
+            return {
+                "optimal_parameters": params,
+                "message": "Parameters optimized by meta-learning",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Get optimal params error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/hyperlearner/force-learning")
+    async def force_learning_cycle():
+        """
+        Force an immediate learning cycle.
+        
+        Triggers immediate processing of all pending learnings.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            result = hyperlearner.force_learning_cycle()
+            
+            return {
+                "result": result,
+                "message": "Forced learning cycle completed",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Force learning error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/hyperlearner/export")
+    async def export_training_data():
+        """
+        Export all training data for ApexLab.
+        
+        Returns training data compatible with the ApexLab pipeline.
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            data = hyperlearner.export_training_data()
+            
+            return {
+                "training_data": data,
+                "sample_count": len(data),
+                "message": "Training data exported for ApexLab",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Export training data error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     return app
 
 
