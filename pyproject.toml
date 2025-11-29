@@ -1,3 +1,7 @@
 [tool.pytest.ini_options]
 addopts = "-q"
 pythonpath = ["."]
+filterwarnings = [
+    "ignore::pydantic.warnings.PydanticDeprecatedSince20",
+    "ignore::DeprecationWarning:pydantic.*:",
+]

@@ -172,6 +172,7 @@ class TestProtocolDeterminism:
         results = []
         for _ in range(10):
             r = runner.run_single(first_protocol, window, microtraits)
+            assert r is not None, "run_single returned None"
             results.append((r.fired, r.confidence))
         
         first = results[0]
