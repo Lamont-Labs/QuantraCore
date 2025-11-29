@@ -77,7 +77,7 @@ quantracore-apex/
 │   │   ├── drift_detector.py    # Drift framework (NEW)
 │   │   ├── decision_gates.py    # Fail-closed gates (NEW)
 │   │   └── ... (existing v8.2 modules)
-│   ├── protocols/             # T01-T80, LP01-LP25, MR01-MR05
+│   ├── protocols/             # T01-T80, LP01-LP25, MR01-MR20, Ω01-Ω20
 │   ├── data_layer/
 │   │   ├── adapters/          # Multi-provider adapters
 │   │   ├── failover.py        # Failover logic (NEW)
@@ -287,27 +287,25 @@ All 25 learning protocols fully implemented for ApexLab labels.
 
 ---
 
-## 10. MonsterRunner Protocols (MR01-MR05)
+## 10. MonsterRunner Protocols (MR01-MR20)
 
-| Protocol | Name | Detection |
-|----------|------|-----------|
-| MR01 | Compression Explosion | Extreme compression release |
-| MR02 | Volume Anomaly | Unusual volume patterns |
-| MR03 | Volatility Regime Shift | Regime transitions |
-| MR04 | Institutional Footprint | Large-block activity |
-| MR05 | Multi-Timeframe Alignment | Cross-timeframe confluence |
+| Range | Category | Description |
+|-------|----------|-------------|
+| MR01-MR05 | Core | Compression, volume, regime, institutional, alignment |
+| MR06-MR10 | Breakout | Bollinger, volume explosion, gap, VWAP, NR7 |
+| MR11-MR15 | Extreme | Short squeeze, pump, catalyst, fractal, 100% day |
+| MR16-MR20 | Parabolic | Phase 3, meme frenzy, gamma ramp, FOMO, nuclear |
 
 ---
 
-## 11. Omega Directives (Ω1-Ω5)
+## 11. Omega Directives (Ω1-Ω20)
 
-| Directive | Trigger | Action |
-|-----------|---------|--------|
-| Ω1 | Extreme risk tier | Hard safety lock |
-| Ω2 | Chaotic entropy state | Entropy override |
-| Ω3 | Critical drift state | Drift override |
-| Ω4 | Always | Compliance override |
-| Ω5 | Strong suppression | Signal suppression lock |
+| Range | Category | Description |
+|-------|----------|-------------|
+| Ω1-Ω5 | Core Safety | Risk lock, entropy, drift, compliance, suppression |
+| Ω6-Ω10 | Volatility | Vol cap, divergence, squeeze, MACD, fear spike |
+| Ω11-Ω15 | Indicators | RSI extreme, volume spike, trend, gap, tail risk |
+| Ω16-Ω20 | Advanced | Overnight, fractal, liquidity, correlation, nuclear |
 
 ---
 

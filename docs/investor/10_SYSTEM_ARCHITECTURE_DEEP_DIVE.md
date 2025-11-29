@@ -69,8 +69,8 @@ Candidate symbols → ApexEngine → Structural signals + traces
 **ApexEngine** executes:
 - 80 Tier Protocols (T01-T80): Structural analysis
 - 25 Learning Protocols (LP01-LP25): Label generation
-- 5 MonsterRunner Protocols (MR01-MR05): Extreme move detection
-- 5 Omega Directives (Ω1-Ω5): Safety overrides
+- 20 MonsterRunner Protocols (MR01-MR20): Extreme move detection
+- 20 Omega Directives (Ω1-Ω20): Safety overrides
 
 **Key Properties:**
 - 100% deterministic (hash-verified)

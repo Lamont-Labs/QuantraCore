@@ -69,7 +69,7 @@ tests/regulatory/             188 tests
 tests/predictive/             142 tests
 tests/test_*.py                11 tests
 
-======================== 970 tests collected ========================
+======================== 1145 tests collected ========================
 ```
 
 ### Full Test Execution
@@ -333,7 +333,7 @@ All critical execution paths have 100% test coverage:
 
 ### Release Criteria
 
-- [ ] All 970 tests pass
+- [ ] All 1145 tests pass
 - [ ] No ruff errors
 - [ ] No mypy errors
 - [ ] No security vulnerabilities

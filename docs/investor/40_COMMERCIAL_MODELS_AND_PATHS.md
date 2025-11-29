@@ -20,7 +20,7 @@ This document outlines the commercial paths for QuantraCore Apex, without inflat
 
 **What's Included:**
 - Full source code and specifications
-- 115 protocols and documentation
+- 145 protocols and documentation
 - ApexLab v2 labeling system
 - ApexCore v2 model architecture
 - Test suite and documentation

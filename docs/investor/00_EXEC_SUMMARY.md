@@ -33,7 +33,7 @@ Quantitative trading infrastructure faces critical challenges:
 
 The deterministic-to-neural pipeline represents a novel approach:
 
-1. **Deterministic Teacher (ApexEngine):** 115 protocols analyze market structure with guaranteed reproducibility
+1. **Deterministic Teacher (ApexEngine):** 145 protocols analyze market structure with guaranteed reproducibility
 2. **Offline Lab (ApexLab v2):** Generates labeled datasets from historical data without lookahead
 3. **On-Device Models (ApexCore v2):** Lightweight neural models that rank candidates, never override engine
 4. **Safety Gating (PredictiveAdvisor):** Fail-closed ranker with disagreement detection and avoid-trade gates
@@ -70,7 +70,7 @@ This creates a dual-market opportunity: institutional desktop (QuantraCore) and 
 |--------|-------|--------------|
 | **Automated Tests** | 989+ tests, 100% pass | `pytest` suite |
 | **Compliance Score** | 99.25% (EXCEPTIONAL) | `/compliance/score` API |
-| **Protocol Inventory** | 115 protocols | Codebase count |
+| **Protocol Inventory** | 145 protocols | Codebase count |
 | **API Endpoints** | 41 REST endpoints | OpenAPI spec |
 | **Determinism Iterations** | 150 (3x FINRA requirement) | Compliance metrics |
 | **Model Manifests** | SHA256-verified Big/Mini | `models/apexcore_v2/` |
@@ -85,7 +85,7 @@ This creates a dual-market opportunity: institutional desktop (QuantraCore) and 
 | **Institutional Licensing** | Small/mid quant funds, prop shops seeking auditable infrastructure |
 | **Platform Integration** | Brokers and platforms wanting embedded intelligence layer |
 | **Retail Mobile** | QuantraVision Apex as educational/structural copilot |
-| **IP Acquisition** | 115 protocols, lab/model architecture, provenance system |
+| **IP Acquisition** | 145 protocols, lab/model architecture, provenance system |
 
 Market sizing is intentionally conservative — this is infrastructure IP, not a consumer app with inflated TAM claims.
 

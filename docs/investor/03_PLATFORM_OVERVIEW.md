@@ -32,15 +32,15 @@ QuantraCore Apex v9.x is a modular system where each component has a specific ro
 
 ### 2. Deterministic Engine (ApexEngine)
 
-**Purpose:** The core analysis engine that applies 115 protocols to generate structural signals.
+**Purpose:** The core analysis engine that applies 145 protocols to generate structural signals.
 
 **Status:** Implemented
 
 **Capabilities:**
 - 80 Tier Protocols (T01-T80): Structural analysis rules
 - 25 Learning Protocols (LP01-LP25): Label generation for training
-- 5 MonsterRunner Protocols (MR01-MR05): Extreme move detection
-- 5 Omega Directives (Ω1-Ω5): Safety overrides
+- 20 MonsterRunner Protocols (MR01-MR20): Extreme move detection
+- 20 Omega Directives (Ω1-Ω20): Safety overrides
 
 **Key Properties:**
 - 100% deterministic (same inputs → same outputs)

@@ -43,7 +43,7 @@ QuantraCore Apex delivers:
 
 | Metric | Value |
 |--------|-------|
-| **Test Suite** | 970 tests, 100% pass rate |
+| **Test Suite** | 1145 tests, 100% pass rate |
 | **Compliance Score** | 99.25% (EXCEPTIONAL) |
 | **Protocol Inventory** | 115 proprietary protocols |
 | **API Endpoints** | 36 REST endpoints |
@@ -57,8 +57,8 @@ QuantraCore Apex delivers:
 ### Proprietary Protocol System (115+ Protocols)
 - 80 Tier Protocols (T01-T80) — Structural analysis rules
 - 25 Learning Protocols (LP01-LP25) — Training label generation
-- 5 MonsterRunner Protocols (MR01-MR05) — Rare event detection
-- 5 Omega Directives (Ω1-Ω5) — Safety override system
+- 20 MonsterRunner Protocols (MR01-MR20) — Rare event detection
+- 20 Omega Directives (Ω1-Ω20) — Safety override system
 
 ### Neural Models (ApexCore V2)
 - Desktop and lightweight variants
@@ -122,7 +122,7 @@ QuantraCore Apex delivers:
 |-------|------------|
 | Backend | Python 3.11, FastAPI, scikit-learn |
 | Frontend | React 18, Vite 5, TypeScript |
-| Testing | pytest (970 tests), mypy, ruff |
+| Testing | pytest (1145 tests), mypy, ruff |
 | ML | scikit-learn (lightweight, efficient) |
 
 ---
@@ -155,7 +155,7 @@ QuantraCore Apex delivers:
 
 1. **Differentiated Technology** — Unique determinism and safety architecture
 2. **Regulatory Moat** — Exceeds all major compliance standards
-3. **Institutional Quality** — 970 tests, comprehensive documentation
+3. **Institutional Quality** — 1145 tests, comprehensive documentation
 4. **Scalable Platform** — Desktop to enterprise deployment
 5. **Strong IP Portfolio** — 115 proprietary protocols, novel algorithms
 

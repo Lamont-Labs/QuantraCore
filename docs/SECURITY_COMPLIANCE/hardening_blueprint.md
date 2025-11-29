@@ -80,7 +80,7 @@ Location: `config/protocol_manifest.yaml`
 
 Contains:
 - Version and engine snapshot ID
-- All 115 protocols with execution order
+- All 145 protocols with execution order
 - SHA-256 hash for integrity verification
 - Inputs, outputs, failure modes, and assumptions for each protocol
 

@@ -21,7 +21,7 @@ QuantraCore Apex v9.0-A represents significant intellectual property investment 
 | Category | Assets | Protection |
 |----------|--------|------------|
 | Proprietary Algorithms | 9+ signal engines | Trade secret |
-| Analysis Protocols | 115 protocols | Trade secret |
+| Analysis Protocols | 145 protocols | Trade secret |
 | Neural Architectures | 4 model designs | Trade secret |
 | Training Methodology | ApexLab pipeline | Trade secret |
 | Software Implementation | 25,000+ LOC | Copyright |
@@ -83,7 +83,7 @@ Each protocol represents original research and implementation.
 - Safety label generation
 - Walk-forward validation
 
-### MonsterRunner Protocols (MR01-MR05)
+### MonsterRunner Protocols (MR01-MR20)
 
 5 proprietary rare event detection protocols:
 - Compression trace analysis

@@ -66,7 +66,7 @@ docs/investor_due_diligence/
 | File | `04_CODE_QUALITY_TESTING_REPORT.md` |
 | Purpose | Test coverage and quality metrics |
 | Audience | Technical due diligence teams |
-| Key Sections | 970 tests, determinism verification, performance |
+| Key Sections | 1145 tests, determinism verification, performance |
 
 ### 5. Product Specifications
 
