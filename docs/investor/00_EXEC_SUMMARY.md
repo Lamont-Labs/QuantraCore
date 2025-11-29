@@ -68,12 +68,13 @@ This creates a dual-market opportunity: institutional desktop (QuantraCore) and 
 
 | Metric | Value | Verification |
 |--------|-------|--------------|
-| **Automated Tests** | 970 tests, 100% pass | `pytest` suite |
+| **Automated Tests** | 989+ tests, 100% pass | `pytest` suite |
 | **Compliance Score** | 99.25% (EXCEPTIONAL) | `/compliance/score` API |
 | **Protocol Inventory** | 115 protocols | Codebase count |
-| **API Endpoints** | 36 REST endpoints | OpenAPI spec |
+| **API Endpoints** | 41 REST endpoints | OpenAPI spec |
 | **Determinism Iterations** | 150 (3x FINRA requirement) | Compliance metrics |
 | **Model Manifests** | SHA256-verified Big/Mini | `models/apexcore_v2/` |
+| **Estimated Move Module** | Statistical range analysis with safety gates | New v9.0-A feature |
 
 ---
 
