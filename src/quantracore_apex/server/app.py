@@ -2871,6 +2871,154 @@ def create_app() -> FastAPI:
         df = _alpha_factory.portfolio.get_equity_curve()
         return {"data": df.to_dict('records') if not df.empty else []}
     
+    from src.quantracore_apex.simulator import (
+        MarketSimulator,
+        SimulatedTradeRunner,
+        ScenarioType,
+        RunnerConfig,
+    )
+    
+    _simulator = MarketSimulator()
+    _trade_runner = SimulatedTradeRunner(simulator=_simulator)
+    
+    class SimulationRunRequest(BaseModel):
+        scenario_type: str = "flash_crash"
+        symbol: str = "SIM"
+        initial_price: float = 100.0
+        num_bars: int = 100
+        intensity: float = 1.0
+    
+    class ChaosTrainingRequest(BaseModel):
+        num_scenarios: int = 50
+        symbols: Optional[List[str]] = None
+        connect_feedback: bool = True
+    
+    class StressTestRequest(BaseModel):
+        symbol: str = "TEST"
+        initial_price: float = 100.0
+        scenarios_per_type: int = 5
+    
+    @app.get("/simulator/scenarios")
+    async def list_scenarios():
+        """List all available chaos scenarios."""
+        scenarios = _simulator.get_available_scenarios()
+        return {
+            "scenarios": scenarios,
+            "count": len(scenarios),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.post("/simulator/run")
+    async def run_single_simulation(request: SimulationRunRequest):
+        """
+        Run a single chaos scenario simulation.
+        
+        Generates synthetic market data for extreme conditions
+        and executes simulated trades against it.
+        """
+        try:
+            st = ScenarioType(request.scenario_type)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid scenario type: {request.scenario_type}. "
+                       f"Valid types: {[s.value for s in ScenarioType]}"
+            )
+        
+        try:
+            result = _simulator.run_scenario(
+                scenario_type=st,
+                symbol=request.symbol,
+                initial_price=request.initial_price,
+                num_bars=request.num_bars,
+                intensity=request.intensity,
+            )
+            
+            trades = _trade_runner.run_single_scenario(result)
+            
+            return {
+                "simulation": result.to_dict(),
+                "trades": [
+                    {
+                        "trade_id": t.trade_id,
+                        "side": t.side,
+                        "entry_price": t.entry_price,
+                        "exit_price": t.exit_price,
+                        "pnl_percent": t.pnl_percent,
+                        "exit_reason": t.exit_reason,
+                        "label": t.compute_label(),
+                    }
+                    for t in trades
+                ],
+                "trade_count": len(trades),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Simulation error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/simulator/chaos-training")
+    async def run_chaos_training(request: ChaosTrainingRequest):
+        """
+        Run full chaos training batch.
+        
+        Generates multiple extreme market scenarios and runs
+        trading simulation on each. Results are fed to the
+        feedback loop for model improvement.
+        """
+        try:
+            config = RunnerConfig(
+                num_scenarios=request.num_scenarios,
+                symbols=request.symbols or ["AAPL", "NVDA", "TSLA", "AMD", "META"],
+                connect_feedback_loop=request.connect_feedback,
+            )
+            
+            result = _trade_runner.run_chaos_training(config)
+            
+            return {
+                "summary": {
+                    "num_scenarios": result.num_scenarios,
+                    "num_trades": result.num_trades,
+                    "total_pnl": result.total_pnl,
+                    "win_rate": result.win_rate,
+                    "profit_factor": result.profit_factor,
+                    "run_time_seconds": result.run_time_seconds,
+                },
+                "by_scenario": result.by_scenario,
+                "by_label": result.by_label,
+                "training_samples_generated": len(result.training_samples),
+                "feedback_connected": connect_feedback,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Chaos training error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/simulator/stress-test")
+    async def run_stress_test(request: StressTestRequest):
+        """
+        Run comprehensive stress test across all scenarios.
+        
+        Tests how the trading system performs under various
+        extreme market conditions at different intensity levels.
+        """
+        try:
+            results = _simulator.run_stress_test(
+                symbol=request.symbol,
+                initial_price=request.initial_price,
+                scenarios_per_type=request.scenarios_per_type,
+                intensity_levels=[0.5, 1.0, 1.5, 2.0],
+            )
+            
+            return {
+                "stress_test_results": results,
+                "scenarios_tested": len(results),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Stress test error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     return app
 
 
