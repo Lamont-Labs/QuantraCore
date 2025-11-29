@@ -1,0 +1,255 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2025-11-29T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "Lamont Labs",
+        "name": "QuantraCore Apex SBOM Generator",
+        "version": "1.0.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "name": "quantracore-apex",
+      "version": "9.0.0-A",
+      "description": "Institutional-grade deterministic AI trading intelligence engine",
+      "licenses": [
+        {
+          "license": {
+            "id": "Proprietary"
+          }
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "python",
+      "version": "3.11",
+      "purl": "pkg:generic/python@3.11",
+      "description": "Python programming language runtime"
+    },
+    {
+      "type": "library",
+      "name": "numpy",
+      "version": "1.24.0",
+      "purl": "pkg:pypi/numpy@1.24.0",
+      "description": "Fundamental package for scientific computing",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "pandas",
+      "version": "2.0.0",
+      "purl": "pkg:pypi/pandas@2.0.0",
+      "description": "Data analysis and manipulation library",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "scikit-learn",
+      "version": "1.3.0",
+      "purl": "pkg:pypi/scikit-learn@1.3.0",
+      "description": "Machine learning library",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "fastapi",
+      "version": "0.104.0",
+      "purl": "pkg:pypi/fastapi@0.104.0",
+      "description": "Modern web framework for building APIs",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "uvicorn",
+      "version": "0.24.0",
+      "purl": "pkg:pypi/uvicorn@0.24.0",
+      "description": "ASGI server implementation",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "pydantic",
+      "version": "2.5.0",
+      "purl": "pkg:pypi/pydantic@2.5.0",
+      "description": "Data validation using Python type hints",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "httpx",
+      "version": "0.25.0",
+      "purl": "pkg:pypi/httpx@0.25.0",
+      "description": "HTTP client library",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "python-dotenv",
+      "version": "1.0.0",
+      "purl": "pkg:pypi/python-dotenv@1.0.0",
+      "description": "Environment variable management",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "pytest",
+      "version": "7.4.0",
+      "purl": "pkg:pypi/pytest@7.4.0",
+      "description": "Testing framework",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react",
+      "version": "18.2.0",
+      "purl": "pkg:npm/react@18.2.0",
+      "description": "JavaScript library for building user interfaces",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "react-dom",
+      "version": "18.2.0",
+      "purl": "pkg:npm/react-dom@18.2.0",
+      "description": "React DOM rendering",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "vite",
+      "version": "5.0.0",
+      "purl": "pkg:npm/vite@5.0.0",
+      "description": "Next generation frontend build tool",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "typescript",
+      "version": "5.3.0",
+      "purl": "pkg:npm/typescript@5.3.0",
+      "description": "TypeScript language",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "tailwindcss",
+      "version": "3.4.0",
+      "purl": "pkg:npm/tailwindcss@3.4.0",
+      "description": "Utility-first CSS framework",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "quantracore-apex",
+      "dependsOn": [
+        "python",
+        "numpy",
+        "pandas",
+        "scikit-learn",
+        "fastapi",
+        "uvicorn",
+        "pydantic",
+        "httpx",
+        "python-dotenv",
+        "pytest",
+        "react",
+        "react-dom",
+        "vite",
+        "typescript",
+        "tailwindcss"
+      ]
+    }
+  ]
+}

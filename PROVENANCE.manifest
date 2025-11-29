@@ -1,0 +1,135 @@
+# QuantraCore Apex Provenance Manifest
+# Version: 9.0.0-A
+# Generated: 2025-11-29
+# 
+# This manifest contains SHA256 hashes for critical files.
+# Use to verify file integrity and detect tampering.
+#
+# Verification command:
+#   sha256sum -c PROVENANCE.manifest
+#
+# Format: <hash>  <filepath>
+
+# =============================================================================
+# CORE ENGINE
+# =============================================================================
+
+# Engine core modules
+# sha256:<hash>  src/quantracore_apex/engine/__init__.py
+# sha256:<hash>  src/quantracore_apex/engine/core.py
+# sha256:<hash>  src/quantracore_apex/engine/analyzer.py
+
+# Protocol implementations
+# sha256:<hash>  src/quantracore_apex/protocols/__init__.py
+# sha256:<hash>  src/quantracore_apex/protocols/tier/__init__.py
+# sha256:<hash>  src/quantracore_apex/protocols/learning/__init__.py
+# sha256:<hash>  src/quantracore_apex/protocols/monster_runner/__init__.py
+# sha256:<hash>  src/quantracore_apex/protocols/omega/__init__.py
+
+# =============================================================================
+# APEXLAB V2
+# =============================================================================
+
+# Lab modules
+# sha256:<hash>  src/quantracore_apex/apexlab/__init__.py
+# sha256:<hash>  src/quantracore_apex/apexlab/labeler.py
+# sha256:<hash>  src/quantracore_apex/apexlab/window_builder.py
+# sha256:<hash>  src/quantracore_apex/apexlab/outcome_calculator.py
+
+# =============================================================================
+# APEXCORE V2
+# =============================================================================
+
+# Model modules
+# sha256:<hash>  src/quantracore_apex/apexcore/__init__.py
+# sha256:<hash>  src/quantracore_apex/apexcore/model.py
+# sha256:<hash>  src/quantracore_apex/apexcore/inference.py
+# sha256:<hash>  src/quantracore_apex/apexcore/manifest.py
+
+# =============================================================================
+# MODEL ARTIFACTS
+# =============================================================================
+
+# ApexCore v2 Big
+# sha256:<hash>  models/apexcore_v2/big/model.pkl
+# sha256:<hash>  models/apexcore_v2/big/scaler.pkl
+# sha256:<hash>  models/apexcore_v2/big/calibrator.pkl
+# sha256:<hash>  models/apexcore_v2/big/manifests/production_v2.0.0.json
+
+# ApexCore v2 Mini
+# sha256:<hash>  models/apexcore_v2/mini/model.pkl
+# sha256:<hash>  models/apexcore_v2/mini/scaler.pkl
+# sha256:<hash>  models/apexcore_v2/mini/manifests/production_v2.0.0.json
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# Default configurations
+# sha256:<hash>  config/defaults.yaml
+# sha256:<hash>  config/mode.yaml
+# sha256:<hash>  config/protocols.yaml
+
+# =============================================================================
+# SERVER
+# =============================================================================
+
+# FastAPI application
+# sha256:<hash>  src/quantracore_apex/server/__init__.py
+# sha256:<hash>  src/quantracore_apex/server/app.py
+# sha256:<hash>  src/quantracore_apex/server/routes.py
+
+# =============================================================================
+# DASHBOARD
+# =============================================================================
+
+# Frontend build
+# sha256:<hash>  dashboard/dist/index.html
+# sha256:<hash>  dashboard/dist/assets/index.js
+# sha256:<hash>  dashboard/dist/assets/index.css
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+
+# Investor documentation
+# sha256:<hash>  docs/investor/README_INVESTOR_PORTAL.md
+# sha256:<hash>  docs/investor/00_EXEC_SUMMARY.md
+# sha256:<hash>  docs/investor/INVESTOR_READINESS_BLUEPRINT.md
+
+# =============================================================================
+# TESTS
+# =============================================================================
+
+# Determinism tests (critical)
+# sha256:<hash>  tests/nuclear/test_determinism.py
+# sha256:<hash>  tests/nuclear/test_compliance.py
+# sha256:<hash>  tests/nuclear/test_safety.py
+
+# =============================================================================
+# ROOT ASSETS
+# =============================================================================
+
+# Repository root
+# sha256:<hash>  SBOM.json
+# sha256:<hash>  CHANGELOG.md
+# sha256:<hash>  LICENSE
+# sha256:<hash>  replit.md
+
+# =============================================================================
+# NOTES
+# =============================================================================
+#
+# Placeholder hashes above (sha256:<hash>) should be replaced with actual
+# hashes when generating the production manifest.
+#
+# To generate actual hashes:
+#   find . -name "*.py" -exec sha256sum {} \; >> PROVENANCE.manifest
+#
+# To verify:
+#   sha256sum -c PROVENANCE.manifest
+#
+# Hash format: 64 hex characters (256 bits)
+# Example: a3f8b2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2
+#
+# =============================================================================
