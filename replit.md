@@ -67,6 +67,40 @@ Full Google Docs integration for document management and collaboration. Located 
 - Notes Importer: Extracts stock symbols and watchlists from documents
 - Doc Sync: Exports project specifications to Google Docs for sharing
 
+### Alpha Factory (Live Research Engine)
+
+24/7 live research engine that streams real-time data and tracks simulated portfolio performance. Located in `src/quantracore_apex/alpha_factory/`.
+
+| Component | Purpose | Location |
+|-----------|---------|----------|
+| `loop.py` | Main 24/7 loop orchestrating feeds, scans, and portfolio | `src/quantracore_apex/alpha_factory/` |
+| `dashboard.py` | Equity curve plotting and HTML dashboard generation | `src/quantracore_apex/alpha_factory/` |
+| `polygon_ws.py` | Polygon.io WebSocket for US equity real-time data | `src/quantracore_apex/data_layer/live/` |
+| `binance_ws.py` | Binance WebSocket for crypto real-time data | `src/quantracore_apex/data_layer/live/` |
+| `portfolio/core.py` | Portfolio engine with risk-based position sizing | `src/quantracore_apex/portfolio/` |
+
+**Key Features:**
+- Real-time data streaming from Polygon (equities) and Binance (crypto)
+- Automatic ApexEngine scanning on each tick
+- Risk-based portfolio rebalancing with volatility adjustment
+- NAV tracking and equity curve generation
+- Live dashboard with auto-refresh (accessible at `/dashboard`)
+
+**API Endpoints:**
+- `GET /alpha-factory/status` - Get factory status and portfolio summary
+- `GET /alpha-factory/portfolio` - Get current portfolio summary
+- `GET /alpha-factory/positions` - Get active positions
+- `GET /alpha-factory/equity-curve` - Get equity curve data
+
+**Usage:**
+```bash
+python institutional_loop.py  # Start 24/7 research loop
+```
+
+**Universe:**
+- Equities: AAPL, NVDA, TSLA, AMD, SMCI, ARM, META, GOOGL, MSFT, AMZN, SPY, QQQ, IWM
+- Crypto: BTCUSDT, ETHUSDT, SOLUSDT, XRPUSDT, DOGEUSDT
+
 ## External Dependencies
 
 - **Data Providers:**
