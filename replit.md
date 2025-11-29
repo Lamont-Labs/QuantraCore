@@ -1,8 +1,21 @@
-# QuantraCore Apex — Replit Project Documentation (Compressed)
+# QuantraCore Apex — Replit Project Documentation
+
+**Version:** 9.0-A | **Updated:** 2025-11-29
+
+> For complete technical specifications, see [MASTER_SPEC.md](./MASTER_SPEC.md)
 
 ## Overview
 
-QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading intelligence engine designed for desktop use. It features a complete offline learning ecosystem (ApexLab) and on-device neural assistant models (ApexCore). The system is strictly for **research and backtesting only**, providing structural probabilities rather than trading advice. Key capabilities include a deterministic core with 80 Tier protocols, a universal scanner, and comprehensive regulatory compliance testing.
+QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading intelligence engine designed for desktop use. It features a complete offline learning ecosystem (ApexLab) and on-device neural assistant models (ApexCore). The system is strictly for **research and backtesting only**, providing structural probabilities rather than trading advice.
+
+### Key Capabilities
+- **145+ Protocols:** 80 Tier + 25 Learning + 20 MonsterRunner + 20 Omega
+- **QuantraScore:** 0-100 probability-weighted composite score
+- **Deterministic Core:** Same inputs always produce identical outputs
+- **Offline ML:** On-device ApexCore v2 neural models (scikit-learn)
+- **Paper Trading:** Alpaca integration (LIVE mode disabled)
+- **Self-Learning:** Alpha Factory feedback loop with automatic retraining
+- **Google Docs Export:** Automated investor/acquirer reporting pipeline
 
 ## User Preferences
 
@@ -13,78 +26,187 @@ QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading inte
 
 ## System Architecture
 
-### Core Principles
+### Directory Structure
+```
+quantracore-apex/
+├── src/quantracore_apex/    # Main source code
+│   ├── core/               # ApexEngine core modules
+│   ├── protocols/          # 145+ protocol implementations
+│   ├── apexcore/           # Neural models (v2)
+│   ├── apexlab/            # Training pipeline (v2)
+│   ├── broker/             # Broker adapters
+│   ├── eeo_engine/         # Entry/Exit Optimization
+│   ├── alpha_factory/      # 24/7 live research loop
+│   ├── simulator/          # MarketSimulator chaos engine
+│   ├── data_layer/         # Data providers
+│   ├── hardening/          # Safety infrastructure
+│   ├── integrations/       # External integrations
+│   └── server/             # FastAPI server
+├── config/                  # Configuration files
+├── data/                    # Training data and caches
+├── dashboard/               # React frontend (ApexDesk)
+├── tests/                   # 1,145+ tests
+├── MASTER_SPEC.md           # Complete technical specification
+└── replit.md                # This file
+```
 
-The architecture emphasizes determinism, fail-closed operations, and local-only learning with no cloud dependencies. All outputs include a QuantraScore (0–100), and a rule engine consistently overrides AI decisions. The system is desktop-only and enforces a research-only mode.
+### Technology Stack
+| Layer | Technology |
+|-------|------------|
+| Backend | Python 3.11, FastAPI, Uvicorn |
+| Frontend | React 18.2, Vite 5, Tailwind CSS 3.4, TypeScript |
+| Machine Learning | scikit-learn (GradientBoosting), joblib |
+| Numerical | NumPy, Pandas |
+| Testing | pytest (backend), vitest (frontend) |
 
-### UI/UX Decisions
+## Protocol System
 
-The frontend is built with React 18, Vite 5, and Tailwind CSS 3, providing a modern and responsive user interface for the ApexDesk desktop application.
+### Tier Protocols (T01-T80)
+80 deterministic analysis protocols covering:
+- **Trend Analysis (T01-T05):** Direction, strength, momentum, channels, crossovers
+- **Volatility (T06-T10, T21-T30):** Expansion, compression, squeezes
+- **Continuation (T11-T15):** Bull/bear flags, pennants, wedges
+- **Reversal (T16-T20):** Double tops/bottoms, H&S patterns
+- **Momentum (T31-T40):** RSI, MACD, stochastics, divergences
+- **Volume (T41-T50):** Spikes, OBV, VWAP, climax detection
+- **Patterns (T51-T60):** Candlesticks, triangles, cup/handle
+- **S/R Levels (T61-T70):** Support/resistance, Fibonacci, pivots
+- **Assessment (T71-T80):** Regime, trend maturity, composite
 
-### Technical Implementations
+### Learning Protocols (LP01-LP25)
+Label generation for supervised training: regime, volatility, risk tier, momentum, quality, runner detection.
 
-- **Backend:** Python 3.11, FastAPI, Uvicorn
-- **Frontend:** React 18.2, Vite 5, Tailwind CSS 3.4, TypeScript
-- **Machine Learning:** scikit-learn
-- **Testing:** pytest (backend), vitest (frontend)
-- **Numerical:** NumPy, Pandas
+### MonsterRunner Protocols (MR01-MR20)
+Explosive move detection: compression explosion, volume anomaly, squeeze detection, gamma ramp, nuclear runners.
 
-### Feature Specifications
+### Omega Directives (Ω1-Ω20)
+Safety overrides: hard locks, entropy/drift/compliance overrides, kill switches.
 
-- **ApexEngine:** The deterministic core, implementing 80 Tier protocols, 25 Learning Protocols, and 20 MonsterRunner protocols.
-- **ApexLab (V1 & V2):** An offline training environment supporting 40+ field schema for feature and label generation.
-- **ApexCore (V1 & V2):** On-device neural models with 5 prediction heads, utilizing scikit-learn and manifest verification for model integrity.
-- **PredictiveAdvisor:** A fail-closed engine integrated with ApexCore for predictive insights.
-- **Estimated Move Module:** Statistical move range analysis with 4 mandatory safety gates.
-- **Broker Layer v1:** Institutional execution engine with pluggable broker adapters and a 9-check risk engine. LIVE trading is disabled by default.
-- **Entry/Exit Optimization Engine (EEO):** Calculates best entry zones, exit targets, stops, and position sizing using deterministic and model-assisted methods.
-- **Universal Scanner:** Supports 7 market cap buckets and 8 scan modes.
-- **Omega Directives (Ω1-Ω20):** Twenty safety override protocols, including a nuclear killswitch and a permanent research-only compliance mode (Ω4).
-- **Regulatory Compliance:** Over 1,145 tests, including 163+ dedicated regulatory tests exceeding industry standards.
-- **Hardening Infrastructure:** Global hardening system implementing fail-closed behavior, protocol manifest verification, config validation, mode enforcement, incident logging, and kill switch management.
-- **Alpha Factory:** A 24/7 live research engine streaming real-time data, tracking simulated portfolio performance, and integrating a self-learning feedback loop for continuous model improvement.
-- **MarketSimulator:** A synthetic market simulation engine for stress-testing and accelerated learning through 8 chaos scenarios.
-- **Universal Broker Router:** Manages routing to various paper and live trading brokers via environment variables, with robust safety controls.
+## Core Systems
+
+### ApexEngine
+Primary analysis engine processing 100-bar OHLCV windows:
+1. Compute microtraits (15+ features)
+2. Calculate entropy, suppression, drift, continuation metrics
+3. Classify regime
+4. Generate QuantraScore (0-100)
+5. Build verdict with risk tier
+6. Run 80 Tier protocols
+7. Apply 20 Omega directives
+
+### ApexCore v2
+Multi-head neural models with 5 prediction heads:
+- QuantraScore regression (0-100)
+- Runner probability classification
+- Quality tier (A+, A, B, C, D)
+- Avoid-trade probability
+- Regime classification
+
+### ApexLab v2
+Training pipeline with walk-forward validation, bootstrap ensembles, and 40+ field schema.
+
+### EEO Engine
+Entry/Exit Optimization with:
+- Entry strategies (baseline, high-vol, low-liquidity, runner, ZDE-aware)
+- Exit optimization (stops, targets, trailing, time-based)
+- Position sizing (fixed-fraction risk model)
+
+### Alpha Factory
+24/7 live research loop with:
+- Polygon (equities) and Binance (crypto) WebSockets
+- Self-learning feedback loop
+- Automatic retraining on batch threshold
+
+### MarketSimulator
+8 chaos scenarios for stress testing: flash crash, volatility spike, gap event, liquidity void, momentum exhaustion, squeeze, correlation breakdown, black swan.
+
+### Broker Layer
+- **NullAdapter:** Research mode (logs only)
+- **PaperSimAdapter:** Offline simulation
+- **AlpacaPaperAdapter:** Alpaca paper trading
+- **LIVE mode:** Disabled
 
 ## External Dependencies
 
-- **Data Providers:**
-    - Polygon.io
-    - Alpha Vantage (optional)
-    - Yahoo Finance (backup)
-    - CSV Bundle (historical data import)
-    - Synthetic (for testing)
-- **Broker Integration (Paper Trading Only):**
-    - Alpaca Paper
-    - PaperSim (internal)
-- **Google Docs Integration:**
-    - Connected via Replit OAuth2 connector
-    - Scopes: `docs`, `documents`, `documents.readonly`
-    - **Automated Export Pipeline** (NEW):
-        - Investor reports (daily/weekly/monthly)
-        - Due diligence packages for acquirers
-        - Trade log exports
-        - Trade journals with research notes
-        - Monthly investor updates
-    - **API Endpoints:**
-        - `GET /google-docs/status` - Check connection
-        - `POST /google-docs/export/investor-report` - Generate investor report
-        - `POST /google-docs/export/due-diligence` - Generate DD package
-        - `POST /google-docs/export/trade-log` - Export trade history
-        - `GET /google-docs/documents` - List exported documents
-        - `POST /google-docs/journal/entry` - Add journal entry
-        - `GET /google-docs/journal/today` - Get today's journal
-        - `POST /google-docs/investor-update/monthly` - Monthly update
-- **Environment Variables:**
-    - `POLYGON_API_KEY`
-    - `ALPHA_VANTAGE_API_KEY`
-    - `ALPACA_PAPER_API_KEY`
-    - `ALPACA_PAPER_API_SECRET`
+### Data Providers
+- **Polygon.io:** Primary (requires `POLYGON_API_KEY`)
+- **Alpha Vantage:** Backup (optional)
+- **Yahoo Finance:** Fallback
+- **Synthetic:** Testing/demo
+
+### Broker Integration
+- **Alpaca Paper:** Requires `ALPACA_PAPER_API_KEY`, `ALPACA_PAPER_API_SECRET`
+- **PaperSim:** Internal simulator
+
+### Google Docs Integration
+Connected via Replit OAuth2 connector for automated export pipeline:
+
+**Export Types:**
+- Investor reports (daily/weekly/monthly)
+- Due diligence packages for acquirers
+- Trade log exports
+- Trade journals with research notes
+- Monthly investor updates
+
+**API Endpoints:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/google-docs/status` | GET | Connection status |
+| `/google-docs/export/investor-report` | POST | Generate investor report |
+| `/google-docs/export/due-diligence` | POST | Generate DD package |
+| `/google-docs/export/trade-log` | POST | Export trade history |
+| `/google-docs/documents` | GET | List exported documents |
+| `/google-docs/journal/entry` | POST | Add journal entry |
+| `/google-docs/journal/today` | GET | Get today's journal |
+| `/google-docs/journal/list` | GET | List all journals |
+| `/google-docs/investor-update/monthly` | POST | Monthly update |
+
+## Environment Variables
+
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `POLYGON_API_KEY` | Polygon.io data | For live data |
+| `ALPHA_VANTAGE_API_KEY` | Backup data | Optional |
+| `ALPACA_PAPER_API_KEY` | Alpaca paper trading | For paper mode |
+| `ALPACA_PAPER_API_SECRET` | Alpaca auth | For paper mode |
+
+## Testing
+
+- **Total Tests:** 1,145+
+- **Regulatory Tests:** 163+
+- **Run:** `pytest tests/ -v`
+
+## Workflows
+
+| Workflow | Command | Port |
+|----------|---------|------|
+| FastAPI Backend | `uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000` | 8000 |
+| ApexDesk Frontend | `cd dashboard && npm run dev` | 5000 |
+| Alpha Factory Dashboard | `cd static && python -m http.server 8080` | 8080 |
 
 ## Recent Changes
 
-- **2025-11-29:** Added automated Google Docs export pipeline for investor/acquirer reporting
+- **2025-11-29:** Created MASTER_SPEC.md with complete system documentation
+  - 80 Tier protocols documented with descriptions
+  - 25 Learning Protocols with output types
+  - 20 MonsterRunner protocols with risk multipliers
+  - 20 Omega Directives with trigger conditions
+  - Full broker layer, EEO engine, ApexCore/Lab documentation
+  - API reference with all endpoints
+  - Configuration and deployment guides
+
+- **2025-11-29:** Added automated Google Docs export pipeline
   - Created `automated_pipeline.py` with performance metrics collection
   - Added 9 new API endpoints for document export
   - Exports include live trading data, broker snapshots, ML training progress
   - Successfully tested with live export to Google Docs
+
+## Documentation
+
+- **MASTER_SPEC.md:** Complete technical specification (update on every change)
+- **replit.md:** Quick reference and project overview
+- **config/*.yaml:** Configuration files with inline documentation
+
+---
+
+**Classification:** Research Only | **Mode:** Paper Trading | **Live Trading:** Disabled
