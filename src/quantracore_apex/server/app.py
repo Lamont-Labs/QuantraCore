@@ -6,10 +6,13 @@ Provides REST API for Apex engine functionality.
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import logging
+import os
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import ApexContext
@@ -110,6 +113,10 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "static")
+    if os.path.exists(static_dir):
+        app.mount("/dashboard", StaticFiles(directory=static_dir, html=True), name="dashboard")
     
     engine = ApexEngine(enable_logging=True)
     data_adapter = SyntheticAdapter(seed=42)
@@ -2821,6 +2828,48 @@ def create_app() -> FastAPI:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+    
+    _alpha_factory = None
+    
+    @app.get("/alpha-factory/status")
+    async def get_alpha_factory_status():
+        """Get alpha factory status and portfolio summary."""
+        global _alpha_factory
+        if _alpha_factory is None:
+            return {
+                "running": False,
+                "message": "Alpha factory not started",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        return {
+            **_alpha_factory.get_status(),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.get("/alpha-factory/portfolio")
+    async def get_portfolio_summary():
+        """Get current portfolio summary."""
+        global _alpha_factory
+        if _alpha_factory is None:
+            return {"error": "Alpha factory not running"}
+        return _alpha_factory.portfolio.get_summary()
+    
+    @app.get("/alpha-factory/positions")
+    async def get_active_positions():
+        """Get active positions."""
+        global _alpha_factory
+        if _alpha_factory is None:
+            return {"positions": [], "error": "Alpha factory not running"}
+        return {"positions": _alpha_factory.portfolio.get_active_positions()}
+    
+    @app.get("/alpha-factory/equity-curve")
+    async def get_equity_curve():
+        """Get equity curve data."""
+        global _alpha_factory
+        if _alpha_factory is None:
+            return {"data": [], "error": "Alpha factory not running"}
+        df = _alpha_factory.portfolio.get_equity_curve()
+        return {"data": df.to_dict('records') if not df.empty else []}
     
     return app
 
