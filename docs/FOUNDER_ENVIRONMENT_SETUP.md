@@ -342,22 +342,57 @@
 
 The following components are configured in the Replit cloud environment:
 
-### Installed & Operational
-| Component | Status |
-|-----------|--------|
-| Python 3.11 | Active |
-| FastAPI + Uvicorn | Running on port 8000 |
-| React 18 + Vite 5 | Running on port 5000 |
-| scikit-learn | Installed (ApexCore models) |
-| NumPy / Pandas | Installed |
-| HTTPX | Installed |
-| Polygon.io API | Configured (POLYGON_API_KEY) |
+### Core Stack
+| Component | Version | Status |
+|-----------|---------|--------|
+| Python | 3.11 | Active |
+| Node.js | 20.x | Active |
+| FastAPI + Uvicorn | 0.115.0 / 0.30.0 | Running on port 8000 |
+| React + Vite | 18.2 / 7.2.4 | Running on port 5000 |
+| Tailwind CSS | 3.4 | Configured |
+
+### ML/Data Science Packages
+| Package | Version | Purpose |
+|---------|---------|---------|
+| PyTorch | 2.9.1 | Deep learning framework |
+| scikit-learn | 1.7.2 | Classical ML models (ApexCore) |
+| NumPy | 1.26.4 | Numerical computing |
+| Pandas | 2.3.3 | Data manipulation |
+| SciPy | 1.16.3 | Scientific computing |
+| Polars | 1.35.2 | Fast dataframe operations |
+| DuckDB | 1.4.2 | Embedded analytics database |
+| PyArrow | 22.0.0 | Columnar data format |
+| ONNX Runtime | 1.23.2 | Cross-platform model inference |
+| MLflow | 3.6.0 | Experiment tracking |
+
+### Network & API
+| Package | Version | Purpose |
+|---------|---------|---------|
+| HTTPX | 0.27.0 | Async HTTP client |
+| Requests | 2.32.5 | HTTP library |
+
+### System Utilities
+| Tool | Purpose |
+|------|---------|
+| FFmpeg | Media processing |
+| OpenSSL | Cryptographic operations |
+| Git | Version control |
 
 ### Available Secrets
 | Secret | Purpose |
 |--------|---------|
-| POLYGON_API_KEY | Market data access |
-| GITHUB_PERSONAL_ACCESS_TOKEN | Repository access |
+| POLYGON_API_KEY | Polygon.io market data access |
+| GITHUB_PERSONAL_ACCESS_TOKEN | GitHub repository access |
+
+### Capabilities Enabled in Replit
+- Train ApexCore V2 models (scikit-learn based)
+- Run full ApexEngine deterministic analysis
+- Execute ApexLab V2 labeling pipeline
+- Process market data via Polygon adapter
+- Host ApexDesk React UI
+- Track experiments with MLflow
+- Fast data processing with Polars/DuckDB
+- Cross-platform model export via ONNX
 
 ---
 
