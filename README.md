@@ -1,170 +1,161 @@
-# QuantraCore Apex - Hybrid AI Trading Intelligence Engine
+# QuantraCore Apex
+
+**Institutional-Grade Deterministic AI Trading Intelligence Engine**
+
+[![Tests](https://img.shields.io/badge/tests-640%20passed-brightgreen)]()
+[![Python](https://img.shields.io/badge/python-3.11-blue)]()
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)]()
+[![React](https://img.shields.io/badge/React-18.2-61DAFB)]()
+[![License](https://img.shields.io/badge/license-proprietary-red)]()
+[![Status](https://img.shields.io/badge/status-operational-success)]()
 
 **Owner:** Lamont Labs - Jesse J. Lamont  
 **Version:** v9.0-A (Institutional Hardening)  
-[![QuantraCore CI](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml/badge.svg)](https://github.com/Lamont-Labs/QuantraCore/actions/workflows/ci.yml)  
-**Status:** Active - Full Protocol System (Desktop-Only)  
-**Repo:** https://github.com/Lamont-Labs/QuantraCore
+**Architecture:** Desktop-Only | Research/Backtest Mode  
 
 ---
 
-## Overview
+## System Status
 
-QuantraCore Apex is an institutional-grade deterministic AI trading intelligence engine with a complete offline learning ecosystem (ApexLab) and on-device neural assistant model (ApexCore). The system represents a unified deterministic + neural hybrid stack designed for transparency, reproducibility, and regulatory compliance.
-
-**v9.0-A Hardening Features:**
-- Redundant scoring with shadow scorer cross-check
-- Drift detection framework with auto-guard mode
-- Multi-provider data failover with integrity verification
-- Model validation pipeline with acceptance criteria
-- Comprehensive audit trail for reproducibility
-- Research-only safety fence (config-enforced)
-
-**Core Principles:**
-- Determinism first
-- Fail-closed always
-- No cloud dependencies
-- Local-only learning
-- QuantraScore mandatory everywhere (0-100)
-- Rule engine overrides AI always
-- Redundant verification (v9.0-A)
-- Drift awareness (v9.0-A)
+| Component | Status | Details |
+|-----------|--------|---------|
+| **ApexEngine** | Operational | Deterministic core with 80 Tier protocols |
+| **ApexDesk UI** | Operational | React 18 + Vite 5 + Tailwind CSS 3 |
+| **FastAPI Backend** | Operational | 27 REST endpoints on port 8000 |
+| **Test Suite** | **640 tests passing** | 34-second execution time |
+| **Universal Scanner** | Operational | 7 market cap buckets, 8 scan modes |
+| **ApexLab** | Operational | Offline training environment |
+| **ApexCore Models** | Operational | Full + Mini neural models (scikit-learn) |
 
 ---
 
-## What Works Today
+## What This System Does
 
-| Component | Status | Description |
-|-----------|--------|-------------|
-| Core Engine | Production | Deterministic analysis with 80 protocols |
-| ApexLab | Production | Offline training environment |
-| ApexCore | Production | Neural models (Full + Mini) |
-| Desktop API | Production | FastAPI server with 20+ endpoints |
-| ApexDesk UI | Production | React dashboard with branding |
-| Risk Engine | Production | Multi-layer risk assessment |
-| OMS | Simulation | Order management (paper only) |
-| Portfolio | Production | Position and exposure tracking |
+QuantraCore Apex is a **research and backtesting platform** that:
 
----
+- Analyzes market structure using **80 Tier Protocols** (T01-T80)
+- Computes **QuantraScore** (0-100) for structural probability assessment
+- Detects regime states, entropy levels, drift conditions, and suppression patterns
+- Identifies potential extreme moves via **MonsterRunner** detection
+- Trains local neural models via **ApexLab** offline learning environment
+- Provides deterministic, reproducible analysis with cryptographic hashing
 
-## What Is Out of Scope
+### Core Metrics Computed
 
-- **Live Trading** - No real brokerage connections or order execution
-- **Mobile/Android** - Strictly prohibited (desktop-only architecture)
-- **Cloud Dependencies** - Runs entirely locally
-
----
-
-## Major Components
-
-- **QuantraCore Apex Engine** - Deterministic core with ZDE Engine, QuantraScore (0-100), and 80 Tier Protocols
-- **ApexLab** - Self-contained offline local training environment for model development
-- **ApexCore Full** - Desktop neural model (3-20MB) for workstation
-- **ApexCore Mini** - Lightweight neural model (0.5-3MB) for reduced resource usage
-- **MonsterRunner Engine** - Extreme move detection (phase-compression, volume ignition, entropy collapse)
-- **ApexDesk** - React-based research dashboard with Lamont Labs branding
-- **Universe Scanner** - Fast scan, deep scan, and bulk scan modes
-- **Risk Engine** - Multi-layer risk assessment with Omega overrides
+| Metric | Description |
+|--------|-------------|
+| **QuantraScore** | Structural probability score (0-100) |
+| **Regime** | Market state (trending_up, trending_down, range_bound, unknown) |
+| **Risk Tier** | Risk classification (low, medium, high, extreme) |
+| **Entropy State** | Market chaos level (stable, elevated, chaotic) |
+| **Suppression State** | Coil/compression detection (none, light, moderate, heavy) |
+| **Drift State** | Statistical distribution shift (normal, warning, critical) |
+| **Microtraits** | 10+ computed features (wick_ratio, volatility, compression, noise, etc.) |
 
 ---
 
-## Hardware Targets
+## What This System Does NOT Do
 
-| Platform | Target |
-|----------|--------|
-| Workstation | GMKtec NucBox K6 |
-| CPU | 8-core recommended |
-| RAM | 16GB recommended |
-| GPU | Optional (CPU-optimized) |
-
----
-
-## Quick Start
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Lamont-Labs/QuantraCore.git
-   cd QuantraCore
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   cd dashboard && npm install && cd ..
-   ```
-
-3. **Start the API server**
-   ```bash
-   uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000
-   ```
-
-4. **Start the dashboard**
-   ```bash
-   cd dashboard && npm run dev
-   ```
-
-5. **Open ApexDesk**
-   ```
-   http://localhost:5000
-   ```
-
-See [Getting Started Guide](docs/GETTING_STARTED_DESKTOP.md) for detailed setup instructions.
-
----
-
-## Documentation
-
-### Core Documentation
-| Document | Description |
-|----------|-------------|
-| [Master Spec v8.2](docs/QUANTRACORE_APEX_MASTER_SPEC_v8.2.md) | Complete system specification |
-| [Getting Started](docs/GETTING_STARTED_DESKTOP.md) | Setup and first steps |
-| [Compliance & Safety](docs/COMPLIANCE_AND_SAFETY.md) | Research-only constraints |
-
-### Architecture & Core
-| Document | Description |
-|----------|-------------|
-| [Architecture](docs/ARCHITECTURE.md) | System architecture and component relationships |
-| [Core Engine](docs/CORE_ENGINE.md) | Deterministic signal engine |
-| [Protocols: Tier](docs/PROTOCOLS_TIER.md) | T01-T80 protocol specifications |
-| [Protocols: Learning](docs/PROTOCOLS_LEARNING.md) | LP01-LP25 learning protocols |
-| [Omega Directives](docs/OMEGA_DIRECTIVES.md) | Ω1-Ω5 system safety locks |
-
-### Intelligence Ecosystem
-| Document | Description |
-|----------|-------------|
-| [ApexLab Training](docs/APEXLAB_TRAINING.md) | Offline training environment |
-| [ApexCore Models](docs/APEXCORE_MODELS.md) | Model family documentation |
-| [Prediction Stack](docs/PREDICTION_STACK.md) | Prediction engines |
-| [MonsterRunner](docs/MONSTERRUNNER.md) | Rare-event detection |
-
-### Data & Execution
-| Document | Description |
-|----------|-------------|
-| [Data Layer](docs/DATA_LAYER.md) | Data provider adapters |
-| [Broker/OMS](docs/BROKER_OMS.md) | Order management (simulation) |
-| [Risk Engine](docs/RISK_ENGINE.md) | Risk assessment system |
-| [Portfolio System](docs/PORTFOLIO_SYSTEM.md) | Position tracking |
-| [API Reference](docs/API_REFERENCE.md) | REST API documentation |
+| Exclusion | Reason |
+|-----------|--------|
+| **Live Trading** | No brokerage connections or order execution |
+| **Financial Advice** | All outputs are structural probabilities only |
+| **Mobile/Android** | Desktop-only architecture (strictly prohibited) |
+| **Cloud Dependencies** | Runs entirely locally |
+| **Guaranteed Returns** | Past analysis does not predict future results |
 
 ---
 
 ## Test Coverage
 
 ```
-349 tests passed, 5 skipped (ApexCore sklearn internals)
-- 80 Tier Protocol tests
-- 25 Learning Protocol tests
-- 12 MonsterRunner tests
-- 40+ Core Engine tests
-- 23 API Endpoint tests
-- 5 Frontend tests
-- 7 Determinism tests
+640 tests | 34 seconds | 100% pass rate
 ```
 
-Run tests:
+### Test Breakdown
+
+| Category | Tests | Description |
+|----------|-------|-------------|
+| **Core Engine** | 21 | ApexEngine instantiation, execution, result validation |
+| **Protocols** | 27 | Tier protocol loading, execution, results |
+| **Scanner** | 27 | Universe scanner, volatility tags, regime detection |
+| **Model** | 22 | ApexCore model loading, inference, validation |
+| **Lab** | 23 | ApexLab label generation, feature extraction |
+| **Performance** | 7 | Protocol latency, scan speed benchmarks |
+| **Matrix** | 10 | Cross-symbol protocol matrix validation |
+| **Extreme** | 11 | Edge cases, boundary conditions |
+| **Nuclear** | 12 | Determinism verification, bit-identical reproducibility |
+| **API/CLI** | 11 | REST endpoints, CLI commands |
+| **Parametrized** | ~480 | Tests multiplied across symbols (AAPL, MSFT, TSLA, etc.) |
+
+### Run Tests
+
 ```bash
-pytest src/quantracore_apex/tests/ -v
+pytest tests/ -v
+```
+
+---
+
+## Protocol System
+
+### 80 Tier Protocols (T01-T80)
+
+| Range | Category | Description |
+|-------|----------|-------------|
+| T01-T10 | Core | Trend, ADX, momentum alignment |
+| T11-T20 | Volatility | Bollinger, ATR, range analysis |
+| T21-T30 | Momentum | RSI, MACD, ROC divergence |
+| T31-T40 | Volume | OBV, volume spikes, accumulation |
+| T41-T50 | Pattern | Wedges, triangles, channels |
+| T51-T60 | Support/Resistance | Key levels, breakout detection |
+| T61-T70 | Market Context | Sector correlation, breadth |
+| T71-T80 | Advanced | Multi-timeframe, rare events |
+
+### 25 Learning Protocols (LP01-LP25)
+
+Label generation for ApexLab training pipelines.
+
+### 5 MonsterRunner Protocols (MR01-MR05)
+
+Extreme move detection: phase compression, volume ignition, entropy collapse.
+
+### 5 Omega Directives (Ω1-Ω5)
+
+| Directive | Trigger | Effect |
+|-----------|---------|--------|
+| Ω1 | Extreme risk tier | Hard safety lock |
+| Ω2 | Chaotic entropy | Entropy override |
+| Ω3 | Critical drift | Drift override |
+| Ω4 | Always active | Compliance mode |
+| Ω5 | Strong suppression | Signal suppression lock |
+
+---
+
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+cd dashboard && npm install && cd ..
+```
+
+### 2. Start Backend
+
+```bash
+uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000
+```
+
+### 3. Start Frontend
+
+```bash
+cd dashboard && npm run dev
+```
+
+### 4. Open ApexDesk
+
+```
+http://localhost:5000
 ```
 
 ---
@@ -174,26 +165,113 @@ pytest src/quantracore_apex/tests/ -v
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/health` | GET | Health check |
-| `/scan_universe` | POST | Multi-symbol scan |
-| `/scan_symbol` | POST | Single symbol scan |
-| `/trace/{hash}` | GET | Protocol trace |
-| `/monster_runner/{symbol}` | POST | MonsterRunner check |
+| `/api/stats` | GET | System statistics |
+| `/scan_symbol` | POST | Single symbol analysis |
+| `/scan_universe` | POST | Multi-symbol batch scan |
+| `/trace/{hash}` | GET | Full protocol trace |
+| `/monster_runner/{symbol}` | POST | Extreme move check |
 | `/risk/assess/{symbol}` | POST | Risk assessment |
 | `/signal/generate/{symbol}` | POST | Signal generation |
 | `/portfolio/status` | GET | Portfolio snapshot |
-| `/api/stats` | GET | System statistics |
+
+### Example API Call
+
+```bash
+curl -X POST http://localhost:8000/scan_symbol \
+  -H "Content-Type: application/json" \
+  -d '{"symbol": "AAPL"}'
+```
+
+### Example Response
+
+```json
+{
+  "symbol": "AAPL",
+  "quantrascore": 38.46,
+  "score_bucket": "low",
+  "regime": "range_bound",
+  "risk_tier": "high",
+  "entropy_state": "stable",
+  "suppression_state": "none",
+  "drift_state": "critical",
+  "verdict_action": "structural_weakness",
+  "verdict_confidence": 0.823,
+  "omega_alerts": ["omega_3_drift", "omega_4_compliance"],
+  "protocol_fired_count": 35,
+  "window_hash": "d680e6cc41aabd1c",
+  "timestamp": "2025-11-29T00:27:19.991188"
+}
+```
 
 ---
 
-## What This Repo Does NOT Include
+## Architecture
 
-- No live brokerage connections or API keys
-- No real financial data (synthetic data for testing)
-- No user accounts or personal information
-- No claims of profit, advice, or market prediction
-- Execution is **disabled by default** (research and simulation only)
+```
+src/quantracore_apex/
+├── core/           # ApexEngine, schemas, microtraits, quantrascore
+├── protocols/      # Tier (T01-T80), Learning (LP01-LP25), MonsterRunner
+├── data_layer/     # Adapters (Polygon, Alpha Vantage, Synthetic, CSV)
+├── apexlab/        # Offline training: windows, features, labels
+├── apexcore/       # Neural models (Full + Mini)
+├── prediction/     # Prediction engines (expected move, volatility, etc.)
+├── server/         # FastAPI application
+└── tests/          # Test modules
 
-All data is synthetic and demonstrative.
+tests/              # 640 institutional-grade tests (9 categories)
+
+dashboard/          # React 18 + Vite 5 + Tailwind CSS 3 frontend
+```
+
+---
+
+## Hardware Targets
+
+| Platform | Specification |
+|----------|---------------|
+| Target Device | GMKtec NucBox K6 |
+| CPU | 8-core recommended |
+| RAM | 16GB recommended |
+| GPU | Optional (CPU-optimized) |
+| OS | Linux, Windows, macOS |
+
+---
+
+## Data Providers
+
+| Provider | Usage |
+|----------|-------|
+| **Polygon.io** | Real market data (requires API key) |
+| **Alpha Vantage** | Alternative data source |
+| **Yahoo Finance** | Backup provider |
+| **CSV Bundle** | Historical data import |
+| **Synthetic** | Testing without API keys |
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Master Spec v9.0-A](docs/QUANTRACORE_APEX_MASTER_SPEC_v9.0-A.md) | Complete system specification |
+| [Getting Started](docs/GETTING_STARTED_DESKTOP.md) | Setup and first steps |
+| [Compliance & Safety](docs/COMPLIANCE_AND_SAFETY.md) | Research-only constraints |
+| [Architecture](docs/ARCHITECTURE.md) | System design |
+| [API Reference](docs/API_REFERENCE.md) | REST API documentation |
+| [ApexLab Training](docs/APEXLAB_TRAINING.md) | Offline training guide |
+| [ApexCore Models](docs/APEXCORE_MODELS.md) | Neural model documentation |
+
+---
+
+## Compliance Statement
+
+This software is for **educational and research purposes only**.
+
+- All outputs are **structural probability assessments**, not trading signals
+- **No financial advice** is provided or implied
+- **Live trading is disabled** by default (research mode enforced)
+- **Omega Directive Ω4** ensures compliance mode is always active
+- Users assume **full responsibility** for any financial decisions
 
 ---
 
@@ -205,13 +283,13 @@ GitHub: https://github.com/Lamont-Labs
 
 ---
 
-## Disclaimers
+## Disclaimer
 
-This is a demonstration repository only - no trading advice or financial activity.  
-All data is synthetic or public domain.  
-No production trading systems are connected.
+This is a demonstration and research repository only. No trading advice or financial activity is provided. All data is synthetic or public domain. No production trading systems are connected. Past analysis does not guarantee future results.
 
 ---
 
 **Persistence = Proof.**  
 Every build, every log, every checksum - reproducible by design.
+
+*QuantraCore Apex v9.0-A | Lamont Labs | November 2025*

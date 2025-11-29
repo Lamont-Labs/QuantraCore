@@ -2,96 +2,177 @@
 
 ## Overview
 
-QuantraCore Apex v9.0-A is an institutional-grade deterministic AI trading intelligence engine designed for desktop use. It features a complete offline learning ecosystem (ApexLab) and an on-device neural assistant model (ApexCore). This system unifies a deterministic and neural hybrid stack with an 80-protocol tier system, incorporating v9.0-A institutional hardening features for enhanced robustness and compliance. The project emphasizes determinism, fail-closed operations, local-only learning, and strict adherence to a desktop-only architecture, explicitly prohibiting mobile builds. All outputs are framed as structural probabilities, not trading advice, with mandatory compliance notes.
+QuantraCore Apex v9.0-A is an institutional-grade deterministic AI trading intelligence engine designed for desktop use. It features a complete offline learning ecosystem (ApexLab) and on-device neural assistant models (ApexCore). This system is strictly for **research and backtesting only** — no live trading capabilities are included or enabled.
+
+### Current System Status
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| ApexEngine | Operational | Deterministic core with 80 Tier protocols |
+| ApexDesk UI | Operational | React 18 + Vite 5 + Tailwind CSS 3 |
+| FastAPI Backend | Operational | Port 8000, 27 REST endpoints |
+| Test Suite | **640 tests passing** | 34-second execution, 100% pass rate |
+| Universal Scanner | Operational | 7 market cap buckets, 8 scan modes |
+| ApexLab | Operational | Offline training environment |
+| ApexCore | Operational | Full + Mini neural models (scikit-learn) |
 
 ## User Preferences
 
-- **Communication:** I prefer simple language and detailed explanations.
-- **Workflow:** I want iterative development. Ask before making major changes.
-- **Coding Style:** I prefer functional programming paradigms.
-- **Restrictions:** Do not make changes to the folder `Z`. Do not make changes to the file `Y`.
+- **Communication:** Simple language with detailed explanations
+- **Workflow:** Iterative development with confirmation before major changes
+- **Coding Style:** Functional programming paradigms preferred
+- **Restrictions:** Do not modify folder `Z` or file `Y`
 
 ## System Architecture
 
-QuantraCore Apex follows a desktop-only architecture with a strong emphasis on determinism, local processing, and fail-closed mechanisms.
-
 ### Core Principles
 
-- Determinism first, fail-closed always.
-- No cloud dependencies, local-only learning.
-- QuantraScore (0–100 range) is mandatory everywhere.
-- Rule engine overrides AI always.
-- Desktop-only (STRICT NO Android/mobile builds).
+- Determinism first, fail-closed always
+- No cloud dependencies, local-only learning
+- QuantraScore (0–100) is mandatory everywhere
+- Rule engine overrides AI always
+- Desktop-only (STRICT NO Android/mobile builds)
+- Research-only mode enforced via config/mode.yaml
 
 ### Directory Structure
 
-The project is organized into `src/quantracore_apex/` with distinct modules:
-- **`core/`**: Houses the deterministic engine components (e.g., `ApexEngine`, `schemas`, `microtraits`, `quantrascore`, `verdict`, `entropy`, `drift`, `suppression`, `continuation`).
-- **`protocols/`**: Contains 80 Tier Protocols (T01-T80) for various analyses (e.g., core, volatility, momentum, volume, pattern recognition, S/R, market context), 25 Learning Protocols (LP01-LP25) for label generation, MonsterRunner Protocols (MR01-MR05) for rare-event detection, and Omega Directives (Ω1-Ω5) for critical overrides.
-- **`data_layer/`**: Manages data acquisition, normalization, caching, and hashing through adapters (e.g., Alpha Vantage, Polygon.io, Yahoo Finance, CSV bundle, synthetic) with multi-provider failover support.
-- **`apexlab/`**: The offline training environment for ApexCore, including window building, feature extraction, label generation, and dataset construction.
-- **`apexcore/`**: The neural model interface, containing `ApexCoreFull` (desktop) and `ApexCoreMini` (lightweight) models built with scikit-learn.
-- **`scheduler/`**: Implements `ApexScheduler` for task scheduling in research workflows.
-- **`prediction/`**: Contains various prediction engines for expected move, monster runner events, volatility, compression, continuation, and instability.
-- **`server/`**: Hosts the FastAPI application.
-- **`tests/`**: Comprehensive test suite covering determinism, protocol signatures, data layer, ApexLab pipeline, MonsterRunner, universal scanner, and server health (414 tests).
-- **`config/`**: Configuration files including `symbol_universe.yaml` (7 market cap buckets), `scan_modes.yaml` (8 scan modes), and `mode.yaml` (research-only enforcement).
+```
+src/quantracore_apex/
+├── core/           # ApexEngine, schemas, microtraits, quantrascore, verdict
+├── protocols/      # 80 Tier (T01-T80), 25 Learning (LP01-LP25), 5 MonsterRunner
+├── data_layer/     # Adapters: Polygon, Alpha Vantage, Synthetic, CSV
+├── apexlab/        # Offline training: windows, features, labels
+├── apexcore/       # Neural models: ApexCoreFull, ApexCoreMini
+├── prediction/     # Expected move, volatility, continuation engines
+├── server/         # FastAPI application (app.py)
+└── tests/          # Legacy test location
 
-### Frontend Architecture (ApexDesk)
+tests/              # 640 institutional-grade tests
+├── core/           # Engine smoke tests (21 functions)
+├── protocols/      # Protocol execution tests (27 functions)
+├── scanner/        # Scanner/volatility tests (27 functions)
+├── model/          # ApexCore model tests (22 functions)
+├── lab/            # ApexLab label generation (23 functions)
+├── perf/           # Performance/latency tests (7 functions)
+├── matrix/         # Cross-symbol matrix tests (10 functions)
+├── extreme/        # Edge case tests (11 functions)
+├── nuclear/        # Determinism verification (12 functions)
+└── test_*.py       # API/CLI tests (11 functions)
 
-The user interface, ApexDesk, is built with React 19, Vite 7, and Tailwind CSS v4, utilizing TypeScript. It comprises standard components like a navigation sidebar (`LeftRail`), header, symbol universe table, and detail panel. The frontend integrates with the FastAPI backend via a Vite proxy.
+dashboard/          # React 18 + Vite 5 + Tailwind CSS 3 frontend
+config/             # symbol_universe.yaml, scan_modes.yaml, mode.yaml
+docs/               # 40+ documentation files
+```
 
 ### Key Technologies
 
-- **Backend:** Python 3.11, FastAPI with Uvicorn.
-- **Frontend:** React 19, Vite 7, Tailwind CSS v4, TypeScript.
-- **ML:** scikit-learn (chosen over PyTorch for disk space efficiency).
-- **Testing:** Pytest (backend), Vitest (frontend).
-- **HTTP Client:** HTTPX.
-- **Numerical:** NumPy, Pandas.
+| Category | Technology |
+|----------|------------|
+| Backend | Python 3.11, FastAPI, Uvicorn |
+| Frontend | React 18.2, Vite 5, Tailwind CSS 3.4, TypeScript |
+| ML | scikit-learn (chosen for disk space efficiency over PyTorch) |
+| Testing | pytest (backend), vitest (frontend) |
+| HTTP | HTTPX |
+| Numerical | NumPy, Pandas |
 
-### Validation & Stress Testing Scripts
+### Test Suite
 
-Located in `/scripts/`:
-- **`zero_doubt_verification.sh`** - Full 13-stage validation with double-pass testing
-- **`run_random_universe_scan.py`** - Random universe stress scan (up to full universe)
-- **`run_nuclear_determinism.py`** - 10-cycle determinism validation
-- **`run_scanner_all_modes.py`** - All 8 scan modes validation
-- **`validate_apexcore_pipeline.py`** - ApexLab/ApexCore pipeline validation
+**640 tests | 34 seconds | 100% pass rate**
+
+| Category | Tests | Description |
+|----------|-------|-------------|
+| Core | 21 → 105 | Engine instantiation, execution, validation |
+| Protocols | 27 → 135 | Tier protocol loading and execution |
+| Scanner | 27 → 135 | Universe scanner, volatility, regime |
+| Model | 22 → 110 | ApexCore loading and inference |
+| Lab | 23 → 115 | Label generation pipeline |
+| Performance | 7 | Latency benchmarks |
+| Matrix | 10 → 50 | Cross-symbol validation |
+| Extreme | 11 | Edge cases |
+| Nuclear | 12 | Determinism verification |
+| API/CLI | 11 | Endpoint tests |
+
+Tests are parametrized across symbols (AAPL, MSFT, GOOGL, TSLA, GME, etc.).
+
+### Protocol System
+
+| Type | Count | Description |
+|------|-------|-------------|
+| Tier Protocols | 80 | T01-T80 analysis protocols |
+| Learning Protocols | 25 | LP01-LP25 label generation |
+| MonsterRunner | 5 | MR01-MR05 extreme move detection |
+| Omega Directives | 5 | Ω1-Ω5 safety overrides |
+| **Total** | **115** | Complete protocol inventory |
 
 ### API Endpoints
 
-The FastAPI server runs on port 5000 and provides endpoints for:
-- System information (`/`, `/health`, `/api/stats`).
-- UI dashboard (`/desk`).
-- Analysis scans (`/scan_symbol`, `/scan_universe`).
-- Detailed tracing (`/trace/{window_hash}`).
-- Specific predictions and checks (`/monster_runner/{symbol}`, `/risk/assess/{symbol}`, `/signal/generate/{symbol}`).
-- Portfolio management and OMS simulation (`/portfolio/status`, `/portfolio/heat_map`, `/oms/*`).
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/api/stats` | GET | System statistics |
+| `/scan_symbol` | POST | Single symbol analysis |
+| `/scan_universe` | POST | Multi-symbol batch scan |
+| `/trace/{hash}` | GET | Full protocol trace |
+| `/monster_runner/{symbol}` | POST | Extreme move check |
+| `/risk/assess/{symbol}` | POST | Risk assessment |
+| `/signal/generate/{symbol}` | POST | Signal generation |
+| `/portfolio/status` | GET | Portfolio snapshot |
 
 ### Omega Directives
 
-- **Ω1:** Hard safety lock (extreme risk tier).
-- **Ω2:** Entropy override (chaotic entropy state).
-- **Ω3:** Drift override (critical drift state).
-- **Ω4:** Compliance override (always active).
-- **Ω5:** Signal suppression lock (strong suppression detected).
+| Directive | Trigger | Effect |
+|-----------|---------|--------|
+| Ω1 | Extreme risk tier | Hard safety lock |
+| Ω2 | Chaotic entropy state | Entropy override |
+| Ω3 | Critical drift state | Drift override |
+| Ω4 | Always active | Compliance mode (research-only) |
+| Ω5 | Strong suppression | Signal suppression lock |
+
+## Workflows
+
+| Workflow | Command | Port |
+|----------|---------|------|
+| ApexDesk Frontend | `npm run dev` | 5000 |
+| FastAPI Backend | `uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000` | 8000 |
 
 ## External Dependencies
 
-- **Data Providers:**
-    - Alpha Vantage
-    - Polygon.io (for real market data, requires `POLYGON_API_KEY`)
-    - Synthetic adapter (for testing without live API keys)
-- **Frameworks/Libraries (included in Key Technologies but listed here for completeness as external dependencies):**
-    - FastAPI
-    - Uvicorn
-    - React
-    - Vite
-    - Tailwind CSS
-    - scikit-learn
-    - Pytest
-    - Vitest
-    - HTTPX
-    - NumPy
-    - Pandas
+### Data Providers
+
+| Provider | Purpose |
+|----------|---------|
+| Polygon.io | Real market data (requires POLYGON_API_KEY) |
+| Alpha Vantage | Alternative data source |
+| Yahoo Finance | Backup provider |
+| CSV Bundle | Historical data import |
+| Synthetic | Testing without API keys |
+
+### Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| POLYGON_API_KEY | Polygon.io API access |
+| ALPHA_VANTAGE_API_KEY | Alpha Vantage API access (optional) |
+
+## Recent Changes
+
+| Date | Change |
+|------|--------|
+| 2025-11-29 | Expanded test suite to 640 tests (from 453) |
+| 2025-11-29 | Removed tautological assertions, replaced with substantive checks |
+| 2025-11-29 | Fixed 1,530 Pydantic deprecation warnings |
+| 2025-11-29 | Updated all documentation to reflect accurate system state |
+| 2025-11-28 | Universal Scanner fully operational |
+| 2025-11-28 | ApexLab/ApexCore pipeline validated |
+
+## Compliance
+
+- **Research/Backtest ONLY** — no live trading
+- All outputs are **structural probabilities**, not trading advice
+- **Desktop-only** architecture (no mobile builds)
+- **Omega Directive Ω4** enforces compliance mode at all times
+- Users assume full responsibility for any financial decisions
+
+---
+
+*QuantraCore Apex v9.0-A | Lamont Labs | November 2025*

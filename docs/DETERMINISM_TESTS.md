@@ -1,6 +1,6 @@
 # QuantraCore Apex™ — Determinism Test Suite
 
-**Version:** 8.0  
+**Version:** 9.0-A  
 **Component:** Reproducibility Verification  
 **Status:** Active
 
@@ -48,8 +48,8 @@ No randomness, no non-deterministic operations, no environmental dependencies.
 
 ```json
 {
-  "golden_set_version": "8.0",
-  "created": "2025-01-01T00:00:00Z",
+  "golden_set_version": "9.0-A",
+  "created": "2025-11-29T00:00:00Z",
   "items": [
     {
       "id": "GS-001",
@@ -92,7 +92,7 @@ def test_protocol_T01():
 
 - All 80 Tier Protocols (T01–T80)
 - All 25 Learning Protocols (LP01–LP25)
-- All 4 Omega Directives (Ω1–Ω4)
+- All 5 Omega Directives (Ω1–Ω5)
 
 ---
 
@@ -218,7 +218,7 @@ release_gate:
 {
   "test_run_id": "DET-2025-001234",
   "timestamp": "2025-11-27T12:00:00Z",
-  "apex_version": "8.0.0",
+  "apex_version": "9.0-A",
   "results": {
     "golden_set": {
       "status": "passed",
