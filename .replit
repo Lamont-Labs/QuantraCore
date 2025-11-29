@@ -31,13 +31,13 @@ args = "Alpha Factory Dashboard"
 name = "FastAPI Backend"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000"
-waitForPort = 8000
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python -m uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000"
+waitForPort = 8000
 
 [[workflows.workflow]]
 name = "ApexDesk Frontend"
@@ -126,6 +126,10 @@ externalPort = 9000
 [[ports]]
 localPort = 46847
 externalPort = 3000
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
 
 [deployment]
 deploymentTarget = "autoscale"
