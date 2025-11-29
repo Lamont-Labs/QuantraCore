@@ -3,9 +3,16 @@
 **Institutional-Grade Deterministic AI Trading Intelligence Engine**
 
 [![Tests](https://img.shields.io/badge/tests-1099%20passed-brightgreen)]()
+[![Compliance](https://img.shields.io/badge/regulatory-163%2B%20tests-blueviolet)]()
+[![Security](https://img.shields.io/badge/security-fail--closed-critical)]()
+[![Mode](https://img.shields.io/badge/mode-RESEARCH%20only-yellow)]()
 [![Python](https://img.shields.io/badge/python-3.11-blue)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)]()
 [![React](https://img.shields.io/badge/React-18.2-61DAFB)]()
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6)]()
+[![Vite](https://img.shields.io/badge/Vite-5.0-646CFF)]()
+[![Tailwind](https://img.shields.io/badge/Tailwind-3.4-06B6D4)]()
+[![Desktop](https://img.shields.io/badge/platform-desktop%20only-orange)]()
 [![License](https://img.shields.io/badge/license-proprietary-red)]()
 [![Status](https://img.shields.io/badge/status-operational-success)]()
 
