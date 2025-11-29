@@ -95,11 +95,11 @@ class DatasetBuilder:
         
         return str(filepath)
     
-    def load(self, filepath: str) -> Dict[str, Any]:
+    def load(self, filepath_str: str) -> Dict[str, Any]:
         """
         Load dataset from disk.
         """
-        filepath = Path(filepath)
+        filepath = Path(filepath_str)
         
         data = np.load(filepath, allow_pickle=True)
         

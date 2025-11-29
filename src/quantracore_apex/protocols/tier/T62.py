@@ -34,7 +34,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
         if highs[i] >= max(highs[i-3:i]) and highs[i] >= max(highs[i+1:min(i+4, len(highs))]):
             resistance_levels.append((i, highs[i]))
     
-    resistance_clusters = []
+    resistance_clusters: list = []
     for idx, level in resistance_levels:
         found_cluster = False
         for cluster in resistance_clusters:

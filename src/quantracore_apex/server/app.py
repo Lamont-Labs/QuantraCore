@@ -34,7 +34,7 @@ def convert_numpy_types(obj: Any) -> Any:
         return {k: convert_numpy_types(v) for k, v in obj.items()}
     elif isinstance(obj, list):
         return [convert_numpy_types(item) for item in obj]
-    elif isinstance(obj, (np.bool_, np.bool_.__class__)):
+    elif isinstance(obj, np.bool_):
         return bool(obj)
     elif isinstance(obj, np.integer):
         return int(obj)
@@ -1051,22 +1051,20 @@ def create_app() -> FastAPI:
         try:
             from src.quantracore_apex.core.redundant_scorer import RedundantScorer
             
-            adapter = SyntheticAdapter()
-            data = adapter.get_ohlcv(symbol, lookback_bars=lookback_days, seed=hash(symbol) % 10000)
+            adapter = SyntheticAdapter(seed=hash(symbol) % 10000)
+            end_date = datetime.utcnow()
+            start_date = end_date - timedelta(days=lookback_days)
+            data = adapter.fetch_ohlcv(symbol, start_date, end_date, timeframe)
             
             if not data:
                 return {"error": "No data available", "symbol": symbol}
             
-            normalized = normalize_ohlcv(data)
-            window_builder = WindowBuilder()
-            window = window_builder.build_window(normalized)
-            
-            result = engine.run_scan(window)
+            result = engine.run_scan(data, symbol, seed=hash(symbol) % 10000, timeframe=timeframe)
             
             scorer = RedundantScorer()
             verification = scorer.compute_with_verification(
                 primary_score=result.quantrascore,
-                primary_band=result.score_band,
+                primary_band=result.score_bucket.value,
                 protocol_results={p.protocol_id: {"fired": p.fired, "confidence": p.confidence} for p in result.protocol_results},
                 regime=result.regime,
                 risk_tier=result.risk_tier,
@@ -1258,24 +1256,21 @@ def create_app() -> FastAPI:
         """Scan universe using a pre-defined mode (v9.0-A Universal Scanner)."""
         try:
             from src.quantracore_apex.config.scan_modes import load_scan_mode
-            from src.quantracore_apex.config.symbol_universe import get_symbols_for_mode
             from src.quantracore_apex.core.universe_scan import create_universe_scanner
             
             mode_config = load_scan_mode(request.mode)
-            symbols = get_symbols_for_mode(request.mode)[:request.max_results]
             
             scanner = create_universe_scanner()
             scan_result = scanner.scan(
-                symbols=symbols,
-                mode_config=mode_config,
-                include_mr_fuse=request.include_mr_fuse,
+                mode=request.mode,
+                max_symbols=request.max_results,
             )
             
             return {
                 "mode": request.mode,
                 "mode_description": mode_config.description,
                 "buckets": mode_config.buckets,
-                "requested_symbols": len(symbols),
+                "requested_symbols": request.max_results,
                 "scan_count": scan_result.scan_count,
                 "success_count": scan_result.success_count,
                 "error_count": scan_result.error_count,
@@ -1286,7 +1281,7 @@ def create_app() -> FastAPI:
                 "errors": scan_result.errors[:10],
                 "is_smallcap_mode": mode_config.is_smallcap_focused,
                 "is_extreme_risk_mode": mode_config.is_extreme_risk,
-                "risk_flags": mode_config.risk_flags,
+                "risk_level": mode_config.risk_default,
                 "compliance_note": "Research tool only - not financial advice. Small-cap and penny stocks carry extreme risk.",
                 "timestamp": datetime.utcnow().isoformat()
             }

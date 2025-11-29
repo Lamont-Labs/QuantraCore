@@ -7,7 +7,7 @@ Compares ApexCore model outputs against Apex engine teacher labels.
 import json
 import numpy as np
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from datetime import datetime
 import logging
 
@@ -106,7 +106,7 @@ class AlignmentValidator:
         
         return validation_report
     
-    def save_report(self, report: Dict[str, Any], filename: str = None) -> str:
+    def save_report(self, report: Dict[str, Any], filename: Optional[str] = None) -> str:
         """Save validation report to disk."""
         if filename is None:
             filename = f"apexcore_alignment_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"

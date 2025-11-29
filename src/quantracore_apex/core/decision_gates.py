@@ -71,9 +71,9 @@ class DataIntegrityGate:
         Returns:
             GateResult with pass/fail status and details
         """
-        checks_passed = []
-        checks_failed = []
-        details = {}
+        checks_passed: List[str] = []
+        checks_failed: List[str] = []
+        details: Dict[str, Any] = {}
         
         if not ohlcv_data:
             checks_failed.append("no_data")

@@ -29,7 +29,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     lows = np.array([b.low for b in bars])
     volumes = np.array([b.volume for b in bars])
     
-    ad_line = []
+    ad_line_list: list = []
     for i in range(len(bars)):
         hl_range = highs[i] - lows[i]
         if hl_range == 0:
@@ -39,12 +39,12 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
         
         mf_volume = mf_multiplier * volumes[i]
         
-        if ad_line:
-            ad_line.append(ad_line[-1] + mf_volume)
+        if ad_line_list:
+            ad_line_list.append(ad_line_list[-1] + mf_volume)
         else:
-            ad_line.append(mf_volume)
+            ad_line_list.append(mf_volume)
     
-    ad_line = np.array(ad_line)
+    ad_line = np.array(ad_line_list)
     
     ad_current = ad_line[-1]
     ad_sma10 = np.mean(ad_line[-10:])

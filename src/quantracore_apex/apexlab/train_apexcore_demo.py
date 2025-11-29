@@ -51,7 +51,7 @@ class ApexCoreDemoTrainer:
     
     def generate_demo_data(
         self,
-        symbols: list = None,
+        symbols: Optional[list] = None,
         n_bars: int = 200
     ) -> Dict[str, Any]:
         """

@@ -35,7 +35,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
         if lows[i] <= min(lows[i-3:i]) and lows[i] <= min(lows[i+1:min(i+4, len(lows))]):
             support_levels.append((i, lows[i]))
     
-    support_clusters = []
+    support_clusters: list = []
     for idx, level in support_levels:
         found_cluster = False
         for cluster in support_clusters:

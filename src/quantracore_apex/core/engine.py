@@ -5,7 +5,7 @@ This is the primary entry point for deterministic analysis.
 """
 
 from datetime import datetime
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 from .schemas import (
     OhlcvWindow, ApexContext, ApexResult
@@ -32,7 +32,7 @@ class ApexEngine:
     
     def __init__(self, enable_logging: bool = True, auto_load_protocols: bool = True):
         self.enable_logging = enable_logging
-        self._protocol_runner = None
+        self._protocol_runner: Any = None
         
         if auto_load_protocols:
             self._init_protocol_runner()
@@ -131,7 +131,7 @@ class ApexEngine:
             drift_state=drift_metrics.drift_state,
         )
         
-        protocol_results = []
+        protocol_results: list = []
         if self._protocol_runner:
             protocol_results = self._protocol_runner.run_all(window, microtraits)
         

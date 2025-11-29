@@ -27,16 +27,16 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     closes = np.array([b.close for b in bars])
     volumes = np.array([b.volume for b in bars])
     
-    obv = [0]
+    obv_list = [0]
     for i in range(1, len(bars)):
         if closes[i] > closes[i-1]:
-            obv.append(obv[-1] + volumes[i])
+            obv_list.append(obv_list[-1] + volumes[i])
         elif closes[i] < closes[i-1]:
-            obv.append(obv[-1] - volumes[i])
+            obv_list.append(obv_list[-1] - volumes[i])
         else:
-            obv.append(obv[-1])
+            obv_list.append(obv_list[-1])
     
-    obv = np.array(obv)
+    obv = np.array(obv_list)
     
     obv_sma20 = np.mean(obv[-20:])
     obv_current = obv[-1]

@@ -27,12 +27,12 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     closes = np.array([b.close for b in bars])
     volumes = np.array([b.volume for b in bars])
     
-    force_index = []
+    force_index_list = []
     for i in range(1, len(bars)):
         fi = (closes[i] - closes[i-1]) * volumes[i]
-        force_index.append(fi)
+        force_index_list.append(fi)
     
-    force_index = np.array(force_index)
+    force_index = np.array(force_index_list)
     
     fi_13_ema = np.mean(force_index[-13:])
     

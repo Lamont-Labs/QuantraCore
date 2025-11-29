@@ -46,7 +46,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     
     shallow_pullback = pullback_depth < 3
     
-    continuation_score = 0
+    continuation_score: float = 0.0
     if trend_alignment:
         continuation_score += 0.3
     if volume_support:

@@ -11,7 +11,7 @@ Version: 8.1
 """
 
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Optional
 import numpy as np
 
 from ...core.schemas import OhlcvBar
@@ -26,7 +26,7 @@ class MR05Result:
     trend_alignment: float = 0.0
     momentum_alignment: float = 0.0
     structure_alignment: float = 0.0
-    timeframe_scores: Dict[str, float] = None
+    timeframe_scores: Optional[Dict[str, float]] = None
     dominant_direction: str = "neutral"
     confidence: float = 0.0
     notes: str = ""

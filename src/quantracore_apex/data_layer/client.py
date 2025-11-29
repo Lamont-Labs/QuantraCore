@@ -10,7 +10,7 @@ Version: 9.0-A
 import time
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Callable
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from enum import Enum
@@ -291,7 +291,7 @@ class DataClient:
         days: int = 365,
         timeframe: str = "day",
         batch_delay: float = 0.1,
-        on_progress: Optional[callable] = None,
+        on_progress: Optional[Callable[[str, int, int], None]] = None,
     ) -> Dict[str, FetchResult]:
         """
         Fetch data for multiple symbols with batching.
@@ -323,7 +323,7 @@ class DataClient:
     
     def get_available_providers(self) -> List[str]:
         """Get list of available data providers."""
-        providers = []
+        providers: List[str] = []
         if self._polygon is not None:
             providers.append("polygon")
         if self._yahoo is not None:
