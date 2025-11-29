@@ -3197,6 +3197,314 @@ def create_app() -> FastAPI:
             logger.error(f"Monthly update error: {e}")
             raise HTTPException(status_code=500, detail=str(e))
     
+    # =========================================================================
+    # BATTLE SIMULATOR ENDPOINTS
+    # Competitive Intelligence using 100% public SEC EDGAR data
+    # =========================================================================
+    
+    try:
+        from src.quantracore_apex.battle_simulator import (
+            SECEdgarClient,
+            StrategyAnalyzer,
+            BattleEngine,
+            AdversarialLearner,
+            AcquirerAdapter,
+        )
+        from src.quantracore_apex.battle_simulator.models import ComplianceStatus
+        
+        sec_client = SECEdgarClient()
+        strategy_analyzer = StrategyAnalyzer(sec_client)
+        battle_engine = BattleEngine(sec_client, strategy_analyzer)
+        adversarial_learner = AdversarialLearner()
+        
+        BATTLE_SIMULATOR_AVAILABLE = True
+        logger.info("[BattleSimulator] Initialized with SEC EDGAR public data access")
+    except ImportError as e:
+        BATTLE_SIMULATOR_AVAILABLE = False
+        logger.warning(f"[BattleSimulator] Not available: {e}")
+    
+    class BattleSimulatorRequest(BaseModel):
+        symbol: str
+        signal_date: str
+        signal_direction: str = "LONG"
+        quantrascore: float = 75.0
+        entry_price: float
+        exit_price: Optional[float] = None
+    
+    class InstitutionRequest(BaseModel):
+        cik: str
+        quarters: int = 4
+    
+    @app.get("/battle-simulator/status")
+    async def get_battle_simulator_status():
+        """
+        Get Battle Simulator status and compliance information.
+        
+        COMPLIANCE: All data sourced from public SEC EDGAR filings.
+        """
+        return {
+            "available": BATTLE_SIMULATOR_AVAILABLE,
+            "compliance_status": "PUBLIC_DATA",
+            "data_sources": [
+                "SEC EDGAR 13F Filings (quarterly institutional holdings)",
+                "Public company disclosures",
+            ],
+            "disclaimer": "Research and educational purposes only. Not investment advice.",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.get("/battle-simulator/institutions")
+    async def get_top_institutions():
+        """
+        Get list of top institutional investors.
+        
+        Data sourced from public SEC 13F filings.
+        """
+        if not BATTLE_SIMULATOR_AVAILABLE:
+            raise HTTPException(status_code=503, detail="Battle Simulator not available")
+        
+        try:
+            institutions = sec_client.get_top_institutions()
+            return {
+                "institutions": [
+                    {
+                        "cik": inst.cik,
+                        "name": inst.name,
+                        "filing_count": inst.filing_count,
+                        "latest_filing": inst.latest_filing_date.isoformat() if inst.latest_filing_date else None,
+                    }
+                    for inst in institutions
+                ],
+                "count": len(institutions),
+                "data_source": "SEC EDGAR",
+                "compliance_status": "PUBLIC_DATA",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Get institutions error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/battle-simulator/fingerprint")
+    async def fingerprint_institution(request: InstitutionRequest):
+        """
+        Generate strategy fingerprint for an institution.
+        
+        Analyzes public 13F filings to identify trading patterns.
+        """
+        if not BATTLE_SIMULATOR_AVAILABLE:
+            raise HTTPException(status_code=503, detail="Battle Simulator not available")
+        
+        try:
+            fingerprint = strategy_analyzer.fingerprint_institution(
+                cik=request.cik,
+                quarters=request.quarters,
+            )
+            
+            if not fingerprint:
+                raise HTTPException(status_code=404, detail="No filing data found for institution")
+            
+            return {
+                "fingerprint": {
+                    "institution_cik": fingerprint.institution_cik,
+                    "institution_name": fingerprint.institution_name,
+                    "primary_strategy": fingerprint.primary_strategy.value,
+                    "concentration_score": round(fingerprint.concentration_score, 3),
+                    "turnover_rate": round(fingerprint.turnover_rate, 3),
+                    "conviction_score": round(fingerprint.conviction_score, 3),
+                    "top_sectors": fingerprint.top_sectors,
+                    "top_holdings": fingerprint.top_holdings[:10],
+                    "recent_buys": fingerprint.recent_buys,
+                    "recent_sells": fingerprint.recent_sells,
+                    "confidence": round(fingerprint.confidence_score, 3),
+                    "quarters_analyzed": fingerprint.quarters_analyzed,
+                },
+                "data_source": "SEC EDGAR 13F",
+                "compliance_status": "PUBLIC_DATA",
+                "methodology": fingerprint.methodology,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Fingerprint error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/battle-simulator/battle")
+    async def run_battle_simulation(request: BattleSimulatorRequest):
+        """
+        Battle our signal against top institutions.
+        
+        Compares our hypothetical trade against institutional
+        actions revealed in 13F filings.
+        
+        COMPLIANCE: Backtested comparison using public data only.
+        """
+        if not BATTLE_SIMULATOR_AVAILABLE:
+            raise HTTPException(status_code=503, detail="Battle Simulator not available")
+        
+        try:
+            from datetime import date as date_type
+            signal_date = date_type.fromisoformat(request.signal_date)
+            
+            scenario = battle_engine.create_battle_scenario(
+                symbol=request.symbol,
+                our_signal_date=signal_date,
+                our_signal_direction=request.signal_direction,
+                our_quantrascore=request.quantrascore,
+                our_entry_price=request.entry_price,
+                our_exit_price=request.exit_price,
+            )
+            
+            results = battle_engine.battle_against_top_institutions(scenario, top_n=5)
+            
+            for result in results:
+                adversarial_learner.ingest_battle_result(result)
+            
+            return {
+                "scenario": {
+                    "symbol": scenario.symbol,
+                    "signal_date": scenario.start_date.isoformat(),
+                    "direction": scenario.our_signal_direction,
+                    "quantrascore": scenario.our_quantrascore,
+                },
+                "battles": [
+                    {
+                        "institution": r.scenario.institution_name,
+                        "outcome": r.outcome.value,
+                        "our_return_pct": round(r.our_return_pct, 2),
+                        "institution_return_pct": round(r.institution_return_pct, 2),
+                        "alpha_generated": round(r.alpha_generated, 2),
+                        "lessons": r.lessons_learned,
+                    }
+                    for r in results
+                ],
+                "statistics": battle_engine.get_battle_statistics(),
+                "compliance_status": "RESEARCH_ONLY",
+                "methodology": "Backtested comparison using public SEC data",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Battle simulation error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/battle-simulator/leaderboard")
+    async def get_battle_leaderboard():
+        """
+        Get institutional leaderboard from battle results.
+        
+        Shows how we compare against top institutions.
+        """
+        if not BATTLE_SIMULATOR_AVAILABLE:
+            raise HTTPException(status_code=503, detail="Battle Simulator not available")
+        
+        try:
+            leaderboard = battle_engine.get_leaderboard()
+            return {
+                "leaderboard": {
+                    "rankings": leaderboard.rankings[:10],
+                    "our_rank": leaderboard.our_rank,
+                    "our_percentile": leaderboard.our_percentile,
+                    "total_institutions": leaderboard.total_institutions_tracked,
+                    "total_battles": leaderboard.total_battles_simulated,
+                },
+                "compliance_status": "RESEARCH_ONLY",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Leaderboard error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/battle-simulator/learning/insights")
+    async def get_adversarial_insights():
+        """
+        Get insights learned from battling institutions.
+        
+        Shows patterns where institutions outperformed
+        and recommendations for improvement.
+        """
+        if not BATTLE_SIMULATOR_AVAILABLE:
+            raise HTTPException(status_code=503, detail="Battle Simulator not available")
+        
+        try:
+            recommendations = adversarial_learner.generate_improvement_recommendations()
+            summary = adversarial_learner.get_learning_summary()
+            
+            return {
+                "learning_summary": summary,
+                "recommendations": recommendations["recommendations"][:10],
+                "compliance_status": "RESEARCH_ONLY",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Learning insights error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/battle-simulator/adaptation/profiles")
+    async def get_adaptation_profiles():
+        """
+        Get available infrastructure adaptation profiles.
+        
+        Shows how QuantraCore can adapt to different
+        acquirer infrastructures (Bloomberg, Refinitiv, etc).
+        """
+        if not BATTLE_SIMULATOR_AVAILABLE:
+            raise HTTPException(status_code=503, detail="Battle Simulator not available")
+        
+        try:
+            profiles = [
+                AcquirerAdapter.for_bloomberg(),
+                AcquirerAdapter.for_refinitiv(),
+                AcquirerAdapter(None),  # Default
+            ]
+            
+            return {
+                "profiles": [
+                    {
+                        "id": p.profile.profile_id,
+                        "name": p.profile.profile_name,
+                        "infrastructure": p.profile.target_infrastructure,
+                        "asset_classes": p.profile.supported_asset_classes,
+                        "markets": p.profile.supported_markets,
+                    }
+                    for p in profiles
+                ],
+                "integration_note": "QuantraCore adapts to acquirer infrastructure",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Adaptation profiles error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/battle-simulator/adaptation/spec/{profile_id}")
+    async def get_integration_spec(profile_id: str):
+        """
+        Get integration specification for an adaptation profile.
+        
+        Documents how QuantraCore integrates with the target infrastructure.
+        """
+        if not BATTLE_SIMULATOR_AVAILABLE:
+            raise HTTPException(status_code=503, detail="Battle Simulator not available")
+        
+        try:
+            if profile_id == "bloomberg":
+                adapter = AcquirerAdapter.for_bloomberg()
+            elif profile_id == "refinitiv":
+                adapter = AcquirerAdapter.for_refinitiv()
+            else:
+                adapter = AcquirerAdapter(None)
+            
+            spec = adapter.generate_integration_spec()
+            
+            return {
+                "integration_spec": spec,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Integration spec error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     return app
 
 

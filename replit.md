@@ -186,6 +186,16 @@ Connected via Replit OAuth2 connector for automated export pipeline:
 
 ## Recent Changes
 
+- **2025-11-29:** Added Battle Simulator — Competitive Intelligence
+  - **100% Legal & Compliant**: Uses only public SEC EDGAR filings
+  - **SECEdgarClient**: Fetches 13F institutional holdings from SEC
+  - **StrategyAnalyzer**: Fingerprints institutional trading strategies
+  - **BattleEngine**: Compares our signals against institutional actions
+  - **AdversarialLearner**: Learns from institutions to improve
+  - **AcquirerAdapter**: Adapts to Bloomberg, Refinitiv, or custom infrastructure
+  - Added 8 new API endpoints for battle simulation
+  - Updated MASTER_SPEC.md with Section 22: Battle Simulator
+
 - **2025-11-29:** Added Autonomous Trading System
   - Created complete `autonomous/` package with institutional-grade components
   - **TradingOrchestrator**: Main async loop coordinating all subsystems
