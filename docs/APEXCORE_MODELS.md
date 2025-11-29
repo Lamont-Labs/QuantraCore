@@ -1,7 +1,7 @@
 # ApexCore Models — Model Family Documentation
 
-**Version:** 8.0  
-**Components:** ApexCore Full, ApexCore Mini  
+**Version:** 9.0-A  
+**Components:** ApexCore V1 (Full/Mini), ApexCore V2 (Big/Mini)  
 **Role:** On-device neural assistant models
 
 ---
@@ -10,9 +10,15 @@
 
 ApexCore is the **on-device neural assistant model** within the QuantraCore Apex ecosystem. These neural network models are trained to approximate the behavior of the deterministic Apex core engine, enabling efficient inference in scenarios where running the full engine is impractical.
 
-The family consists of two versions:
+The family consists of two generations:
+
+### V1 Models (Legacy)
 - **ApexCore Full** — Desktop-class model for K6 workstation
 - **ApexCore Mini** — Mobile-optimized model for Android/QuantraVision
+
+### V2 Models (Current)
+- **ApexCore V2 Big** — Enhanced desktop model with 5 output heads
+- **ApexCore V2 Mini** — Lightweight version with reduced estimators
 
 ---
 
@@ -199,6 +205,77 @@ ApexCore models undergo rigorous testing:
 
 ---
 
-## 10. Summary
+## 10. ApexCore V2 (New Generation)
 
-The ApexCore model family provides efficient neural approximations of the deterministic Apex engine. Through careful training and distillation from 100-bar OHLCV windows, Full and Mini models deliver structural analysis at varying resource profiles while maintaining alignment with the authoritative Apex core. The shared QuantraScore (0–100) output contract ensures consistency across all deployment scenarios.
+ApexCore V2 is the enhanced generation of neural models with multi-head architecture:
+
+### 10.1 V2 Big Model
+
+| Property | Value |
+|----------|-------|
+| Architecture | scikit-learn RandomForest ensemble |
+| Output Heads | 5 (quantra_score, runner_prob, quality_tier, avoid_trade, regime) |
+| Estimators | 100 per head |
+| Determinism | Controlled via random_state |
+
+### 10.2 V2 Mini Model
+
+| Property | Value |
+|----------|-------|
+| Architecture | scikit-learn RandomForest ensemble |
+| Output Heads | 5 (same as Big) |
+| Estimators | 50 per head (reduced) |
+| Use Case | Faster inference, lighter footprint |
+
+### 10.3 V2 Output Heads
+
+| Head | Type | Description |
+|------|------|-------------|
+| `quantra_score` | Regression | QuantraScore prediction (0-100) |
+| `runner_prob` | Binary Classification | Probability of runner move (15%+) |
+| `quality_tier` | Multi-class | Quality grade (A, B, C, D, A_PLUS) |
+| `avoid_trade` | Binary Classification | Avoid-trade probability |
+| `regime` | Multi-class | Market regime (chop, trend_up, trend_down, squeeze, crash) |
+
+### 10.4 V2 Manifest System
+
+Every V2 model includes enhanced manifest tracking:
+
+```json
+{
+  "version": "2.0",
+  "model_variant": "big",
+  "trained_at": "2025-11-29T00:00:00Z",
+  "model_hash": "sha256:abc123...",
+  "metrics": {
+    "val_auc_runner": 0.85,
+    "val_mae_quantra": 5.2,
+    "val_acc_quality": 0.78,
+    "val_auc_avoid": 0.82,
+    "val_acc_regime": 0.75
+  },
+  "thresholds": {
+    "min_auc_runner_to_promote": 0.70,
+    "min_acc_quality_to_promote": 0.60,
+    "max_mae_quantra_to_promote": 10.0
+  }
+}
+```
+
+### 10.5 PredictiveAdvisor Integration
+
+The PredictiveAdvisor provides fail-closed integration:
+
+| Recommendation | Trigger |
+|----------------|---------|
+| DISABLED | Model hash mismatch |
+| NEUTRAL | Disagreement > 0.5 between model and engine |
+| AVOID | avoid_trade probability > 0.8 |
+| UPRANK | runner_prob > 0.6 and quality_tier in (A, A_PLUS) |
+| DOWNRANK | quality_tier in (C, D) |
+
+---
+
+## 11. Summary
+
+The ApexCore model family provides efficient neural approximations of the deterministic Apex engine. Through careful training and distillation from 100-bar OHLCV windows, V1 Full and Mini models deliver structural analysis at varying resource profiles. The new V2 Big and Mini models provide enhanced multi-head predictions with fail-closed integration via PredictiveAdvisor. All models maintain alignment with the authoritative Apex core. The shared QuantraScore (0–100) output contract ensures consistency across all deployment scenarios.

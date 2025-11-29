@@ -1,6 +1,6 @@
 # QuantraCore Apex™ — Roadmap
 
-**Version:** 8.0  
+**Version:** 9.0-A  
 **Status:** Active Development  
 **Owner:** Lamont Labs
 
@@ -12,18 +12,18 @@ This roadmap outlines the planned development trajectory for QuantraCore Apex. A
 
 ---
 
-## Current State (v8.0)
+## Current State (v9.0-A)
 
 ### Completed
 
 - QuantraCore Apex deterministic core engine
 - 80 Tier Protocols (T01–T80)
 - 25 Learning Protocols (LP01–LP25)
-- 4 Omega Directives (Ω1–Ω4)
+- 5 Omega Directives (Ω1–Ω5)
 - QuantraScore (0–100) scoring system
-- ApexLab offline training environment
-- ApexCore Full model (desktop)
-- ApexCore Mini model (mobile)
+- ApexLab V1 offline training environment
+- ApexCore V1 Full model (desktop)
+- ApexCore V1 Mini model (mobile)
 - MonsterRunner rare-event detection
 - Prediction Stack (7 engines)
 - Data Layer with 5 providers
@@ -31,7 +31,13 @@ This roadmap outlines the planned development trajectory for QuantraCore Apex. A
 - Broker/OMS integration framework
 - QuantraVision v1 (legacy viewer)
 - QuantraVision v2 (on-device copilot)
-- Comprehensive documentation (v8.0)
+- **ApexLab V2** — Enhanced 40+ field labeling schema
+- **ApexCore V2 Big/Mini** — Multi-head models with 5 output heads
+- **Model Manifest System** — Version tracking, hash verification, metrics
+- **PredictiveAdvisor** — Fail-closed engine integration
+- **Regulatory Excellence Module** — 163 compliance tests (2x stricter)
+- **970+ institutional-grade tests**
+- Comprehensive documentation (v9.0-A)
 
 ---
 
@@ -123,8 +129,9 @@ All roadmap items must adhere to:
 
 | Version | Release | Highlights |
 |---------|---------|------------|
-| 8.0 | Current | Full v8.0 specification |
-| 7.x | Previous | Foundation protocols |
+| 9.0-A | Current | Predictive Layer V2, Regulatory Excellence, 970+ tests |
+| 8.x | Previous | Full v8.0 specification |
+| 7.x | Legacy | Foundation protocols |
 | 6.x | Legacy | Initial ApexCore |
 
 ---

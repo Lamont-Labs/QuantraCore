@@ -1,6 +1,6 @@
 # Developer Guide
 
-**Version:** 8.0  
+**Version:** 9.0-A  
 **Audience:** Engineers onboarding to QuantraCore Apex development
 
 ---
@@ -188,12 +188,30 @@ Test categories:
 - Dataset integrity
 - Label reproducibility
 - Model accuracy gates
+- V2 schema validation (38 tests)
+- V2 dataset shapes (17 tests)
 
 ### 9.3 ApexCore Tests
 
 - Inference speed
 - Consistency with Apex
 - Fail-closed paths
+- V2 heads validation (21 tests)
+- V2 determinism (10 tests)
+- V2 manifest (23 tests)
+
+### 9.4 Regulatory Tests
+
+- SEC compliance (2x stricter)
+- FINRA compliance (100 iterations)
+- MiFID II compliance (4x volume)
+- Basel stress scenarios (10 crises)
+
+### 9.5 Integration Tests
+
+- PredictiveAdvisor (16 tests)
+- Hash mismatch detection
+- Disagreement enforcement
 
 ---
 
@@ -262,8 +280,38 @@ Supported market data providers:
 
 ---
 
-## 14. Getting Help
+## 14. Predictive Layer V2
 
-- Review the [Master Spec v8.0](QUANTRACORE_APEX_MASTER_SPEC_v8_0.yml)
+The v9.0-A release includes enhanced predictive capabilities:
+
+### 14.1 ApexLab V2
+
+- 40+ field labeling schema
+- Runner/monster/safety flags
+- Walk-forward training splits
+
+### 14.2 ApexCore V2
+
+- Big and Mini model variants
+- 5 output heads (quantra_score, runner_prob, quality_tier, avoid_trade, regime)
+- Manifest-based versioning
+
+### 14.3 PredictiveAdvisor
+
+- Fail-closed integration
+- Disagreement threshold enforcement
+- Hash verification
+
+See:
+- [ApexLab V2](APEXLAB_V2.md)
+- [ApexCore V2](APEXCORE_V2.md)
+- [PredictiveAdvisor](PREDICTIVE_ADVISOR.md)
+
+---
+
+## 15. Getting Help
+
+- Review the [Master Spec v9.0-A](QUANTRACORE_APEX_MASTER_SPEC_v9.0-A.md)
 - Check the [Overview](OVERVIEW_QUANTRACORE_APEX.md)
 - Review component-specific documentation
+- See [Release Notes v9.0](RELEASE_NOTES_v9_0.md) for latest changes

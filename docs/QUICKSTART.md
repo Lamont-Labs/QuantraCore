@@ -1,8 +1,8 @@
-# Quickstart — QuantraCore Apex v8.0
+# Quickstart — QuantraCore Apex v9.0-A
 
 ## Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - pip or uv package manager
 - Git
 
@@ -87,9 +87,10 @@ pytest -v
 ## Next Steps
 
 - Read the [System Overview](OVERVIEW_QUANTRACORE_APEX.md) for architecture details
-- Review the [Master Spec v8.0](QUANTRACORE_APEX_MASTER_SPEC_v8_0.yml) for complete specifications
+- Review the [Master Spec v9.0-A](QUANTRACORE_APEX_MASTER_SPEC_v9.0-A.md) for complete specifications
 - See the [Developer Guide](DEVELOPER_GUIDE.md) for contribution guidelines
+- Explore the [ApexLab V2](APEXLAB_V2.md) and [ApexCore V2](APEXCORE_V2.md) documentation
 
 ---
 
-**QuantraCore Apex v8.0** — Deterministic. Reproducible. Acquisition-Ready.
+**QuantraCore Apex v9.0-A** — Deterministic. Reproducible. Research-Ready.
