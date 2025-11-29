@@ -86,13 +86,17 @@ curl http://localhost:8000/stats
 ## Step 6: Run the Full Test Suite (10 minutes)
 
 ```bash
-# All tests
+# All 1,099 tests
 make test
 
+# End-to-end integration test (26 tests)
+make test-e2e
+# or: PYTHONPATH=. python scripts/e2e_test.py
+
 # Specific test categories
-python -m pytest tests/hardening/ -v          # Hardening tests
-python -m pytest tests/broker/ -v             # Broker tests
-python -m pytest tests/eeo_engine/ -v         # EEO tests
+make test-hardening   # Hardening infrastructure (34 tests)
+make test-broker      # Broker layer (34 tests)
+make test-eeo         # EEO engine (42 tests)
 ```
 
 ## Development Workflows

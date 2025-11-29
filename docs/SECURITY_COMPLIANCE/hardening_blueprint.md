@@ -144,19 +144,69 @@ manager.engage(KillSwitchReason.MANUAL, engaged_by="operator")
 manager.reset("operator")
 ```
 
+## ExecutionEngine Integration
+
+The hardening infrastructure is integrated into the ExecutionEngine to enforce safety at the order level:
+
+```python
+# In ExecutionEngine.execute_signal():
+
+# 1. Check kill switch
+kill_switch = get_kill_switch_manager()
+allowed, reason = kill_switch.check_order_allowed()
+if not allowed:
+    return ExecutionResult(status=OrderStatus.REJECTED, error_message=reason)
+
+# 2. Check mode permissions
+mode_enforcer = get_mode_enforcer()
+if self.mode == ExecutionMode.PAPER and not mode_enforcer.permissions.paper_orders_allowed:
+    return ExecutionResult(status=OrderStatus.REJECTED, error_message="Paper orders not permitted")
+if self.mode == ExecutionMode.LIVE and not mode_enforcer.permissions.live_orders_allowed:
+    return ExecutionResult(status=OrderStatus.REJECTED, error_message="Live orders not permitted")
+
+# 3. Proceed with risk checks and execution...
+```
+
+### Order Flow with Hardening
+
+```
+Signal → Kill Switch Check → Mode Permission Check → Risk Engine → Broker Execution
+           ↓ FAIL              ↓ FAIL                 ↓ FAIL        ↓ FAIL
+        REJECTED            REJECTED               REJECTED      REJECTED
+```
+
 ## Test Coverage
 
-34 tests in `tests/hardening/test_hardening.py` covering:
+34 hardening tests + 34 broker tests covering:
 - Protocol manifest generation and validation
+- Hash computation with execution order
 - Config validation
 - Mode enforcement and permissions
 - Incident logging
 - Kill switch management
+- ExecutionEngine integration
+- Mode-based order blocking
 
 Run tests:
 ```bash
-make test-hardening
+make test-hardening   # Hardening infrastructure
+make test-broker      # Broker layer with hardening
+make test-e2e         # End-to-end integration
 ```
+
+## E2E Verification
+
+26 end-to-end tests verify the complete integration:
+- Hardening infrastructure (9 tests)
+- Broker layer in RESEARCH mode (2 tests)
+- Broker layer in PAPER mode (3 tests)
+- EEO Engine (4 tests)
+- Estimated Move (3 tests)
+- Core Engine (2 tests)
+- Compliance (2 tests)
+- Determinism (1 test)
+
+See: `logs/e2e_test_results_20251129.log`
 
 ---
 
