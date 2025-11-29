@@ -242,10 +242,33 @@ All 12 core modules validated:
 - **Excellence Level: EXCEPTIONAL**
 - Standards Exceeded: MiFID II RTS 6, Basel BCBS 239, SOX/SOC2, FINRA 15-09
 
+## Future Roadmap
+
+### ApexVision Multi-Modal Upgrade (v9.x → v10.x)
+
+Full specification: [`docs/APEXVISION_UPGRADE_SPEC.md`](docs/APEXVISION_UPGRADE_SPEC.md)
+
+| Component | Purpose | Status |
+|-----------|---------|--------|
+| ApexVision | Visual Pattern Intelligence Engine | Planned |
+| ApexLab_Vision | Chart-Image Label Factory | Planned |
+| ApexCore_VisionFusion | Multi-Modal Neural Model | Planned |
+| Vision Pattern Dictionary | 25+ deterministic visual patterns | Planned |
+| Vision Dataset Pipeline | Licensed chart image ingestion | Planned |
+| Vision Safety Layer | Fail-closed uncertainty gating | Planned |
+| QuantraVision v5 | Android real-time structural copilot | Planned |
+
+**Key Principles:**
+- Determinism first — Engine always overrides visual layer
+- Fail-closed always — Uncertainty disables visual outputs
+- No trading advice — Structure interpretation only
+- Manifest verification — Hash mismatch disables vision
+
 ## Recent Changes
 
 | Date | Change |
 |------|--------|
+| 2025-11-29 | **ApexVision Roadmap** - Added multi-modal vision upgrade specification to docs |
 | 2025-11-29 | **Comprehensive E2E Validation** - 970 tests passing, 12 modules validated, 119+ protocols |
 | 2025-11-29 | Fixed backtesting validation test determinism (random seed + threshold adjustment) |
 | 2025-11-29 | **Predictive Layer V2** - Complete ApexLab V2 + ApexCore V2 implementation |
