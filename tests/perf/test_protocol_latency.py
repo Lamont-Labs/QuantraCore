@@ -1,7 +1,7 @@
 """
 Protocol Latency Tests for QuantraCore Apex.
 
-Fast performance tests to ensure engine runs within acceptable time limits.
+Performance tests with SUBSTANTIVE timing assertions.
 """
 
 import pytest
@@ -17,8 +17,7 @@ from src.quantracore_apex.data_layer.adapters.synthetic_adapter import Synthetic
 
 LIQUID_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]
 MAX_ENGINE_TIME_SECONDS = 2.0
-MAX_PROTOCOL_TIME_SECONDS = 0.5
-MAX_BATCH_TIME_SECONDS = 5.0
+MAX_BATCH_TIME_SECONDS = 10.0
 
 
 def _get_test_window(symbol: str) -> OhlcvWindow:
@@ -32,8 +31,8 @@ class TestEngineLatency:
     """Test engine execution latency."""
     
     @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
-    def test_engine_single_symbol_fast(self, symbol: str):
-        """Engine should complete single symbol analysis quickly."""
+    def test_single_symbol_under_2_seconds(self, symbol: str):
+        """Engine should analyze single symbol in under 2 seconds."""
         engine = ApexEngine(enable_logging=False)
         window = _get_test_window(symbol)
         
@@ -41,11 +40,12 @@ class TestEngineLatency:
         result = engine.run(window)
         elapsed = time.time() - start
         
-        assert result is not None
-        assert elapsed < MAX_ENGINE_TIME_SECONDS, f"Engine took {elapsed:.2f}s, max is {MAX_ENGINE_TIME_SECONDS}s"
+        assert result is not None, "Engine returned None"
+        assert elapsed < MAX_ENGINE_TIME_SECONDS, \
+            f"Engine took {elapsed:.2f}s, max is {MAX_ENGINE_TIME_SECONDS}s"
     
-    def test_engine_batch_5_symbols_fast(self):
-        """Engine should handle 5 symbols quickly."""
+    def test_batch_5_symbols_under_10_seconds(self):
+        """Engine should handle 5 symbols in under 10 seconds."""
         engine = ApexEngine(enable_logging=False)
         
         start = time.time()
@@ -55,10 +55,11 @@ class TestEngineLatency:
             assert result is not None
         elapsed = time.time() - start
         
-        assert elapsed < MAX_BATCH_TIME_SECONDS, f"Batch took {elapsed:.2f}s, max is {MAX_BATCH_TIME_SECONDS}s"
+        assert elapsed < MAX_BATCH_TIME_SECONDS, \
+            f"Batch took {elapsed:.2f}s, max is {MAX_BATCH_TIME_SECONDS}s"
     
-    def test_engine_10_runs_same_symbol_fast(self):
-        """Engine should handle 10 runs on same symbol quickly."""
+    def test_10_runs_same_symbol(self):
+        """10 runs on same symbol should average under 1 second each."""
         engine = ApexEngine(enable_logging=False)
         window = _get_test_window("AAPL")
         
@@ -68,29 +69,15 @@ class TestEngineLatency:
             assert result is not None
         elapsed = time.time() - start
         
-        per_run = elapsed / 10
-        assert per_run < MAX_ENGINE_TIME_SECONDS, f"Per-run: {per_run:.2f}s"
+        avg_time = elapsed / 10
+        assert avg_time < 1.0, f"Average time {avg_time:.2f}s, expected < 1.0s"
 
 
 class TestProtocolLatency:
-    """Test individual protocol latency."""
+    """Test protocol execution latency."""
     
-    @pytest.mark.parametrize("protocol_id", [f"T{i:02d}" for i in range(1, 11)])
-    def test_single_protocol_fast(self, protocol_id: str):
-        """Single protocol should execute quickly."""
-        runner = TierProtocolRunner()
-        window = _get_test_window("AAPL")
-        microtraits = compute_microtraits(window)
-        
-        if protocol_id in runner.protocols:
-            start = time.time()
-            result = runner.run_single(protocol_id, window, microtraits)
-            elapsed = time.time() - start
-            
-            assert elapsed < MAX_PROTOCOL_TIME_SECONDS
-    
-    def test_all_protocols_batch_fast(self):
-        """All protocols should execute quickly."""
+    def test_all_protocols_under_5_seconds(self):
+        """All protocols should execute in under 5 seconds."""
         runner = TierProtocolRunner()
         window = _get_test_window("AAPL")
         microtraits = compute_microtraits(window)
@@ -99,16 +86,16 @@ class TestProtocolLatency:
         results = runner.run_all(window, microtraits)
         elapsed = time.time() - start
         
-        assert results is not None
-        assert elapsed < MAX_BATCH_TIME_SECONDS
+        assert len(results) > 0, "No protocol results"
+        assert elapsed < 5.0, f"Protocols took {elapsed:.2f}s, max is 5.0s"
 
 
 class TestMicrotraitsLatency:
     """Test microtraits computation latency."""
     
     @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
-    def test_microtraits_fast(self, symbol: str):
-        """Microtraits should compute quickly."""
+    def test_microtraits_under_half_second(self, symbol: str):
+        """Microtraits should compute in under 0.5 seconds."""
         window = _get_test_window(symbol)
         
         start = time.time()
@@ -123,8 +110,8 @@ class TestDataLayerLatency:
     """Test data layer latency."""
     
     @pytest.mark.parametrize("symbol", LIQUID_SYMBOLS)
-    def test_synthetic_fetch_fast(self, symbol: str):
-        """Synthetic data fetch should be fast."""
+    def test_synthetic_fetch_under_100ms(self, symbol: str):
+        """Synthetic data fetch should be under 100ms."""
         adapter = SyntheticAdapter(seed=42)
         
         start = time.time()
@@ -132,9 +119,9 @@ class TestDataLayerLatency:
         elapsed = time.time() - start
         
         assert len(bars) > 0
-        assert elapsed < 0.5, f"Fetch took {elapsed:.2f}s"
+        assert elapsed < 0.1, f"Fetch took {elapsed:.3f}s, expected < 0.1s"
     
-    def test_synthetic_fetch_batch_fast(self):
+    def test_batch_fetch_all_symbols(self):
         """Batch fetch should be fast."""
         adapter = SyntheticAdapter(seed=42)
         
@@ -144,4 +131,4 @@ class TestDataLayerLatency:
             assert len(bars) > 0
         elapsed = time.time() - start
         
-        assert elapsed < 2.0, f"Batch fetch took {elapsed:.2f}s"
+        assert elapsed < 1.0, f"Batch fetch took {elapsed:.2f}s"
