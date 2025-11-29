@@ -178,6 +178,31 @@ class ApexEngine:
             except ImportError:
                 pass
         
+        try:
+            from src.quantracore_apex.hyperlearner import get_hyperlearner, EventCategory, EventType, LearningPriority
+            hyperlearner = get_hyperlearner()
+            hyperlearner.emit(
+                category=EventCategory.ANALYSIS,
+                event_type=EventType.SCAN_COMPLETED,
+                source="apex_engine",
+                context={
+                    "quantrascore": result.quantrascore,
+                    "score_bucket": result.score_bucket,
+                    "regime": result.regime,
+                    "risk_tier": result.risk_tier,
+                    "entropy": entropy_metrics.entropy_value,
+                    "suppression": suppression_metrics.suppression_value,
+                    "drift": drift_metrics.drift_value,
+                    "protocols_fired": [p.protocol_id for p in protocol_results if hasattr(p, 'triggered') and p.triggered],
+                    "omega_triggers": omega_overrides,
+                },
+                symbol=window.symbol,
+                confidence=result.quantrascore / 100,
+                priority=LearningPriority.MEDIUM,
+            )
+        except ImportError:
+            pass
+        
         return result
     
     def _apply_omega_directives(

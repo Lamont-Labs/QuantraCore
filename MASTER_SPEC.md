@@ -1790,6 +1790,141 @@ src/quantracore_apex/battle_simulator/
 
 ---
 
+## 23. HyperLearner — Hyper-Velocity Learning System
+
+### 23.1 Overview
+
+The HyperLearner captures EVERYTHING the system does and learns from it at an accelerated rate. Every action becomes a lesson, every outcome improves the system.
+
+**LEARNING PHILOSOPHY:**
+- Every action is a lesson
+- Every outcome improves the system
+- Wins reinforce patterns
+- Losses identify weaknesses
+- Passes validate quality control
+- Fails fix broken processes
+
+### 23.2 Components
+
+| Component | Purpose |
+|-----------|---------|
+| **EventBus** | Universal event capture with priority queuing |
+| **OutcomeTracker** | Links events to outcomes, creates learning pairs |
+| **PatternMiner** | Discovers win/loss patterns from historical data |
+| **ContinuousTrainer** | Prioritized retraining with batch processing |
+| **MetaLearner** | Optimizes the learning process itself |
+
+### 23.3 Event Categories
+
+| Category | Description | Example Events |
+|----------|-------------|----------------|
+| ANALYSIS | Engine analysis events | Scans, regime detection |
+| SIGNAL | Signal generation/filtering | Signal pass/reject |
+| EXECUTION | Trade execution | Entry, exit, stop, target |
+| OMEGA | Safety overrides | Omega triggers |
+| BATTLE | Competitive intelligence | Battle wins/losses |
+| PROTOCOL | Protocol firings | Protocol triggered/silent |
+| PREDICTION | Model predictions | Prediction correct/wrong |
+| RISK | Risk management | Risk tier changes |
+| DATA | Data quality | Anomalies detected |
+
+### 23.4 Learning Priority Queue
+
+Events are prioritized for learning:
+
+| Priority | Value | Criteria |
+|----------|-------|----------|
+| CRITICAL | 5 | Losses >5%, Omega triggers, runner detection |
+| HIGH | 4 | All trades, signals, battles |
+| MEDIUM | 3 | Scans, regime changes |
+| LOW | 2 | Protocol firings |
+| BACKGROUND | 1 | Data events |
+
+### 23.5 Pattern Mining
+
+The PatternMiner discovers patterns from event-outcome pairs:
+
+**Pattern Types:**
+- Win patterns (what leads to success)
+- Loss patterns (what to avoid)
+- Regime patterns (market condition signatures)
+- Timing patterns (when things work)
+- Protocol patterns (which protocols predict outcomes)
+
+**Confidence Calculation:**
+- Statistical significance (Z-score)
+- Sample size adjustment
+- Win rate vs baseline
+
+### 23.6 Continuous Retraining
+
+The ContinuousTrainer provides:
+- Priority queue for high-value samples
+- Batched training for efficiency
+- Model checkpointing
+- Automatic retraining triggers
+- ApexLab integration export
+
+### 23.7 Meta-Learning
+
+The MetaLearner optimizes the learning process:
+- Category value tracking
+- Priority effectiveness analysis
+- Feature importance evolution
+- Learning velocity optimization
+- Diminishing returns detection
+
+### 23.8 Integration Hooks
+
+Decorators for automatic learning capture:
+
+```python
+@learn_from_scan      # Capture ApexEngine scans
+@learn_from_signal    # Capture signal generation
+@learn_from_execution # Capture trade execution
+@learn_from_omega     # Capture Omega triggers
+```
+
+### 23.9 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/hyperlearner/status` | GET | System status and health |
+| `/hyperlearner/stats` | GET | Comprehensive statistics |
+| `/hyperlearner/record/trade` | POST | Record trade for learning |
+| `/hyperlearner/record/signal` | POST | Record signal outcome |
+| `/hyperlearner/record/battle` | POST | Record battle result |
+| `/hyperlearner/record/prediction` | POST | Record prediction outcome |
+| `/hyperlearner/patterns/wins` | GET | Get winning patterns |
+| `/hyperlearner/patterns/losses` | GET | Get losing patterns |
+| `/hyperlearner/insights` | GET | Get optimization insights |
+| `/hyperlearner/optimal-params` | GET | Get optimized parameters |
+| `/hyperlearner/force-learning` | POST | Force learning cycle |
+| `/hyperlearner/export` | GET | Export for ApexLab |
+
+### 23.10 Directory Structure
+
+```
+src/quantracore_apex/hyperlearner/
+├── __init__.py                 # Package exports
+├── models.py                   # Data models
+├── core/
+│   ├── event_bus.py           # Universal event capture
+│   └── hyperlearner.py        # Main orchestrator
+├── capture/
+│   └── outcome_tracker.py     # Outcome linking
+├── patterns/
+│   └── pattern_miner.py       # Pattern discovery
+├── retraining/
+│   └── continuous_trainer.py  # Continuous training
+├── meta/
+│   └── meta_learner.py        # Meta-learning
+└── integration/
+    └── hooks.py               # Integration decorators
+```
+
+---
+
 ## Appendix A: Version History
 
 | Version | Date | Changes |
@@ -1797,6 +1932,7 @@ src/quantracore_apex/battle_simulator/
 | 9.0-A | 2025-11-29 | Initial release with full protocol documentation, Google Docs pipeline |
 | 9.0-A | 2025-11-29 | Added Autonomous Trading System with TradingOrchestrator, SignalQualityFilter, PositionMonitor, TradeOutcomeTracker |
 | 9.0-A | 2025-11-29 | Added Battle Simulator for competitive intelligence using public SEC data |
+| 9.0-A | 2025-11-29 | Added HyperLearner hyper-velocity learning system |
 
 ---
 

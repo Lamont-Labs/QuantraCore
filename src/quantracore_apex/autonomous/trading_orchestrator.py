@@ -430,6 +430,28 @@ class TradingOrchestrator:
             self._metrics.signals_rejected += 1
             decision = "REJECT"
         
+        try:
+            from src.quantracore_apex.hyperlearner import get_hyperlearner, EventCategory, EventType, LearningPriority
+            hyperlearner = get_hyperlearner()
+            event_type = EventType.SIGNAL_PASSED if filter_result.passed else EventType.SIGNAL_REJECTED
+            hyperlearner.emit(
+                category=EventCategory.SIGNAL,
+                event_type=event_type,
+                source="trading_orchestrator",
+                context={
+                    "quantrascore": filter_result.quantrascore,
+                    "quality_tier": filter_result.quality_tier,
+                    "risk_tier": filter_result.risk_tier,
+                    "rejection_reasons": filter_result.rejection_reasons if not filter_result.passed else [],
+                    "omega_statuses": omega_statuses,
+                },
+                symbol=symbol,
+                confidence=filter_result.quantrascore / 100 if filter_result.quantrascore else 0.5,
+                priority=LearningPriority.HIGH,
+            )
+        except ImportError:
+            pass
+        
         return SignalDecision(
             signal_id=getattr(result, "signal_id", str(id(result))),
             symbol=symbol,
@@ -492,6 +514,34 @@ class TradingOrchestrator:
         
         self.quality_filter.add_cooldown(symbol)
         
+        hyperlearner_event_id = None
+        try:
+            from src.quantracore_apex.hyperlearner import get_hyperlearner, EventCategory, EventType, LearningPriority
+            hyperlearner = get_hyperlearner()
+            hyperlearner_event_id = hyperlearner.emit(
+                category=EventCategory.EXECUTION,
+                event_type=EventType.TRADE_ENTERED,
+                source="trading_orchestrator",
+                context={
+                    "entry_price": current_price,
+                    "position_size": position_size,
+                    "direction": direction,
+                    "protective_stop": protective_stop,
+                    "target1": target1,
+                    "target2": target2,
+                    "quantrascore": decision.filter_result.quantrascore,
+                    "quality_tier": decision.filter_result.quality_tier,
+                    "signal_id": decision.signal_id,
+                },
+                symbol=symbol,
+                confidence=decision.filter_result.quantrascore / 100 if decision.filter_result.quantrascore else 0.5,
+                priority=LearningPriority.CRITICAL,
+            )
+            if hyperlearner_event_id and position:
+                position.metadata["hyperlearner_entry_event_id"] = hyperlearner_event_id
+        except ImportError:
+            pass
+        
         logger.info(
             f"[Orchestrator] Position opened: {symbol} | "
             f"Entry={current_price:.2f} | Stop={protective_stop:.2f} | T1={target1:.2f}"
@@ -527,6 +577,57 @@ class TradingOrchestrator:
             self._metrics.trades_closed += 1
             self._metrics.current_positions = self.position_monitor.position_count
             self._metrics.current_exposure = self.position_monitor.total_exposure
+            
+            try:
+                from src.quantracore_apex.hyperlearner import get_hyperlearner, EventCategory, EventType, LearningPriority, OutcomeType
+                hyperlearner = get_hyperlearner()
+                
+                if exit_reason == ExitReason.STOP_TRIGGERED:
+                    event_type = EventType.STOP_TRIGGERED
+                    learn_outcome = OutcomeType.LOSS
+                elif exit_reason == ExitReason.TARGET_1_HIT or exit_reason == ExitReason.TARGET_2_HIT:
+                    event_type = EventType.TARGET_HIT
+                    learn_outcome = OutcomeType.WIN
+                else:
+                    event_type = EventType.TRADE_EXITED
+                    learn_outcome = OutcomeType.WIN if outcome.was_profitable else OutcomeType.LOSS
+                
+                entry_event_id = position.metadata.get("hyperlearner_entry_event_id")
+                
+                hyperlearner.emit(
+                    category=EventCategory.EXECUTION,
+                    event_type=event_type,
+                    source="trading_orchestrator",
+                    context={
+                        "exit_price": exit_price,
+                        "exit_reason": exit_reason.value,
+                        "entry_price": position.entry_price,
+                        "realized_pnl": outcome.realized_pnl,
+                        "return_pct": outcome.return_pct,
+                        "hold_time_bars": outcome.hold_time_bars,
+                        "quantrascore": position.metadata.get("quantrascore", 0),
+                        "quality_tier": position.metadata.get("quality_tier", "unknown"),
+                        "original_event_id": entry_event_id,
+                    },
+                    symbol=position.symbol,
+                    confidence=0.9,
+                    priority=LearningPriority.CRITICAL,
+                )
+                
+                if entry_event_id:
+                    hyperlearner.record_outcome(
+                        event_id=entry_event_id,
+                        outcome_type=learn_outcome,
+                        return_pct=outcome.return_pct,
+                        was_correct=outcome.was_profitable,
+                        details={
+                            "exit_reason": exit_reason.value,
+                            "hold_time": outcome.hold_time_bars,
+                            "exit_price": exit_price,
+                        },
+                    )
+            except ImportError:
+                pass
     
     def _handle_exit_triggered(self, position: PositionState, exit_reason: ExitReason) -> None:
         """Callback for PositionMonitor exit triggers."""
