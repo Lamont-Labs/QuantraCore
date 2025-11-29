@@ -193,8 +193,9 @@ Connected via Replit OAuth2 connector for automated export pipeline:
   - **ContinuousTrainer**: Prioritized retraining with batch processing
   - **MetaLearner**: Optimizes the learning process itself
   - Added 12 new API endpoints for learning management
-  - Decorator hooks for automatic learning capture (@learn_from_scan, etc.)
-  - Every action, outcome, win, loss, pass, fail feeds the learning loop
+  - **Integration Complete**: ApexEngine emits SCAN_COMPLETED, TradingOrchestrator emits SIGNAL_PASSED/REJECTED, TRADE_ENTERED, and STOP_TRIGGERED/TARGET_HIT/TRADE_EXITED events
+  - **Event Correlation**: Entry events store `hyperlearner_entry_event_id` in position metadata; exit events retrieve this ID and call `record_outcome()` to form learning pairs
+  - **Integration Contract**: Future position lifecycle code must preserve `hyperlearner_entry_event_id` during transformations
   - Updated MASTER_SPEC.md with Section 23: HyperLearner
 
 - **2025-11-29:** Added Battle Simulator — Competitive Intelligence
