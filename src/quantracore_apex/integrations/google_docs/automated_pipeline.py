@@ -890,7 +890,7 @@ authorization and additional safeguards.
     async def list_exported_documents(self, max_results: int = 20) -> List[Dict[str, Any]]:
         """List recently exported documents."""
         try:
-            docs = await self.client.search_documents("QuantraCore", max_results)
+            docs = await self.client.search_documents_safe("QuantraCore", max_results)
             return [
                 {
                     "id": doc["id"],

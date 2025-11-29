@@ -60,8 +60,31 @@ The frontend is built with React 18, Vite 5, and Tailwind CSS 3, providing a mod
 - **Google Docs Integration:**
     - Connected via Replit OAuth2 connector
     - Scopes: `docs`, `documents`, `documents.readonly`
+    - **Automated Export Pipeline** (NEW):
+        - Investor reports (daily/weekly/monthly)
+        - Due diligence packages for acquirers
+        - Trade log exports
+        - Trade journals with research notes
+        - Monthly investor updates
+    - **API Endpoints:**
+        - `GET /google-docs/status` - Check connection
+        - `POST /google-docs/export/investor-report` - Generate investor report
+        - `POST /google-docs/export/due-diligence` - Generate DD package
+        - `POST /google-docs/export/trade-log` - Export trade history
+        - `GET /google-docs/documents` - List exported documents
+        - `POST /google-docs/journal/entry` - Add journal entry
+        - `GET /google-docs/journal/today` - Get today's journal
+        - `POST /google-docs/investor-update/monthly` - Monthly update
 - **Environment Variables:**
     - `POLYGON_API_KEY`
     - `ALPHA_VANTAGE_API_KEY`
     - `ALPACA_PAPER_API_KEY`
     - `ALPACA_PAPER_API_SECRET`
+
+## Recent Changes
+
+- **2025-11-29:** Added automated Google Docs export pipeline for investor/acquirer reporting
+  - Created `automated_pipeline.py` with performance metrics collection
+  - Added 9 new API endpoints for document export
+  - Exports include live trading data, broker snapshots, ML training progress
+  - Successfully tested with live export to Google Docs
