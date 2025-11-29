@@ -73,8 +73,6 @@ class ChaosTrainingGenerator:
         ScenarioType.SQUEEZE,
         ScenarioType.CORRELATION_BREAKDOWN,
         ScenarioType.BLACK_SWAN,
-        ScenarioType.NORMAL,
-        ScenarioType.CHOPPY,
     ]
     
     SYMBOLS = ["SIM_AAPL", "SIM_NVDA", "SIM_TSLA", "SIM_SPY", "SIM_QQQ", 
