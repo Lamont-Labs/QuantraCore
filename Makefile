@@ -1,7 +1,7 @@
 # QuantraCore Apex Makefile
 # One-command dev workflows for development, testing, and operations
 
-.PHONY: help dev-install lint typecheck test test-smoke test-nuclear test-extreme \
+.PHONY: help dev-install lint typecheck test test-e2e test-smoke test-nuclear test-extreme \
         test-broker test-eeo test-hardening docs-build run-demo-scan run-backend \
         run-frontend clean generate-manifest validate-config demo verify sbom format
 
@@ -14,6 +14,7 @@ help:
         @echo ""
         @echo "Testing:"
         @echo "  make test            Run full test suite"
+        @echo "  make test-e2e        Run end-to-end integration tests"
         @echo "  make test-smoke      Run fast smoke tests"
         @echo "  make test-nuclear    Run nuclear determinism suite"
         @echo "  make test-extreme    Run extreme stress tests"
@@ -58,6 +59,9 @@ format:
 # Testing
 test:
         python -m pytest tests/ -v --tb=short -x
+
+test-e2e:
+        PYTHONPATH=. python scripts/e2e_test.py
 
 test-smoke:
         python -m pytest tests/hardening/ tests/broker/ -v --tb=short -x
