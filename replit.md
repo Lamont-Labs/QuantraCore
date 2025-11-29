@@ -32,9 +32,10 @@ The architecture prioritizes determinism, fail-closed operations, and local-only
 - **ApexCore (V1 & V2):** On-device neural models (Big/Mini) with 5 prediction heads, utilizing scikit-learn. Includes manifest verification for model integrity.
 - **PredictiveAdvisor:** A fail-closed engine integrated with ApexCore for predictive insights.
 - **Estimated Move Module:** Statistical move range analysis with 4 mandatory safety gates, providing percentile-based distributions for research purposes. See [`docs/ESTIMATED_MOVE_SPEC.md`](docs/ESTIMATED_MOVE_SPEC.md).
+- **Broker Layer v1:** Institutional execution engine with pluggable broker adapters (Alpaca paper, PaperSim), 9-check risk engine, and fail-closed safety controls. LIVE trading disabled by default. See [`docs/BROKER_LAYER_SPEC.md`](docs/BROKER_LAYER_SPEC.md).
 - **Universal Scanner:** Supports 7 market cap buckets and 8 scan modes for comprehensive market analysis.
 - **Omega Directives (Ω1-Ω5):** Five safety override protocols, with Ω4 enforcing a permanent research-only compliance mode.
-- **Regulatory Compliance:** Over 989 tests, including 163+ dedicated regulatory tests that exceed SEC/FINRA/MiFID II/Basel requirements by 2x-5x, ensuring institutional-grade safety margins. This includes determinism verification, stress testing, market abuse detection, and risk controls.
+- **Regulatory Compliance:** Over 1000+ tests, including 163+ dedicated regulatory tests that exceed SEC/FINRA/MiFID II/Basel requirements by 2x-5x, ensuring institutional-grade safety margins. This includes determinism verification, stress testing, market abuse detection, and risk controls.
 
 ### UI/UX Decisions
 
@@ -53,9 +54,15 @@ The FastAPI backend exposes endpoints for health checks, system statistics, sing
     - CSV Bundle (historical data import)
     - Synthetic (for testing purposes)
 
+- **Broker Integration (Paper Trading Only):**
+    - Alpaca Paper (requires `ALPACA_PAPER_API_KEY` and `ALPACA_PAPER_API_SECRET`)
+    - PaperSim (internal, no API required)
+
 - **Environment Variables:**
     - `POLYGON_API_KEY`: Required for Polygon.io API access.
     - `ALPHA_VANTAGE_API_KEY`: Optional, for Alpha Vantage API access.
+    - `ALPACA_PAPER_API_KEY`: Optional, for Alpaca paper trading.
+    - `ALPACA_PAPER_API_SECRET`: Optional, for Alpaca paper trading.
 
 ## Future Roadmap
 

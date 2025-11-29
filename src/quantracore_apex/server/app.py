@@ -1873,6 +1873,171 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    from src.quantracore_apex.broker import (
+        ExecutionEngine as BrokerExecutionEngine,
+        BrokerConfig,
+        ExecutionMode,
+        ApexSignal,
+        SignalDirection,
+        load_broker_config,
+    )
+    
+    broker_config = load_broker_config("config/broker.yaml")
+    broker_engine: Optional[BrokerExecutionEngine] = None
+    
+    def get_broker_engine() -> BrokerExecutionEngine:
+        """Get or create broker execution engine."""
+        nonlocal broker_engine
+        if broker_engine is None:
+            broker_engine = BrokerExecutionEngine(config=broker_config)
+        return broker_engine
+    
+    @app.get("/broker/status")
+    async def broker_status():
+        """
+        Get broker layer status.
+        
+        Returns current execution mode, adapter, equity, and positions.
+        SAFETY: Live trading is DISABLED by default.
+        """
+        try:
+            engine = get_broker_engine()
+            status = engine.get_status()
+            return {
+                **status,
+                "safety_note": "Live trading is DISABLED. Paper trading only.",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            return {
+                "mode": broker_config.execution_mode.value,
+                "error": str(e),
+                "safety_note": "Live trading is DISABLED. Paper trading only.",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/broker/positions")
+    async def broker_positions():
+        """Get current broker positions."""
+        try:
+            engine = get_broker_engine()
+            positions = engine.router.get_positions()
+            return {
+                "positions": [p.to_dict() for p in positions],
+                "count": len(positions),
+                "mode": engine.mode.value,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/broker/orders")
+    async def broker_open_orders():
+        """Get open orders from broker."""
+        try:
+            engine = get_broker_engine()
+            orders = engine.router.get_open_orders()
+            return {
+                "orders": [o.to_dict() for o in orders],
+                "count": len(orders),
+                "mode": engine.mode.value,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/broker/equity")
+    async def broker_equity():
+        """Get current account equity."""
+        try:
+            engine = get_broker_engine()
+            equity = engine.router.get_account_equity()
+            return {
+                "equity": equity,
+                "mode": engine.mode.value,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    class ExecuteSignalRequest(BaseModel):
+        symbol: str
+        direction: str  # LONG, SHORT, EXIT, HOLD
+        quantra_score: float = 50.0
+        runner_prob: float = 0.0
+        size_hint: Optional[float] = None
+    
+    @app.post("/broker/execute")
+    async def execute_signal(request: ExecuteSignalRequest):
+        """
+        Execute a trading signal through the broker layer.
+        
+        SAFETY: Orders only execute in PAPER mode.
+        LIVE trading is DISABLED.
+        """
+        try:
+            engine = get_broker_engine()
+            
+            if engine.mode == ExecutionMode.LIVE:
+                raise HTTPException(
+                    status_code=403,
+                    detail="LIVE trading is DISABLED. Use PAPER mode only."
+                )
+            
+            import uuid
+            signal = ApexSignal(
+                signal_id=str(uuid.uuid4()),
+                symbol=request.symbol.upper(),
+                direction=SignalDirection[request.direction.upper()],
+                quantra_score=request.quantra_score,
+                runner_prob=request.runner_prob,
+                size_hint=request.size_hint,
+            )
+            
+            result = engine.execute_signal(signal)
+            
+            if result is None:
+                return {
+                    "executed": False,
+                    "reason": "Signal filtered (no position to exit or already in position)",
+                    "mode": engine.mode.value,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            return {
+                "executed": True,
+                "result": result.to_dict(),
+                "mode": engine.mode.value,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/broker/config")
+    async def broker_config_info():
+        """Get broker configuration (sanitized - no secrets)."""
+        return {
+            "execution_mode": broker_config.execution_mode.value,
+            "default_account": broker_config.default_account,
+            "alpaca_paper_enabled": broker_config.alpaca_paper.enabled,
+            "alpaca_paper_configured": broker_config.alpaca_paper.is_configured,
+            "alpaca_live_enabled": broker_config.alpaca_live.enabled,
+            "risk_limits": {
+                "max_notional_exposure_usd": broker_config.risk.max_notional_exposure_usd,
+                "max_position_notional_per_symbol_usd": broker_config.risk.max_position_notional_per_symbol_usd,
+                "max_positions": broker_config.risk.max_positions,
+                "max_order_notional_usd": broker_config.risk.max_order_notional_usd,
+                "max_daily_turnover_usd": broker_config.risk.max_daily_turnover_usd,
+                "max_leverage": broker_config.risk.max_leverage,
+                "block_short_selling": broker_config.risk.block_short_selling,
+            },
+            "safety_note": "Live trading is DISABLED by default.",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
     return app
 
 
