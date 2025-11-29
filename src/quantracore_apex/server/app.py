@@ -91,6 +91,9 @@ class ScanResult(BaseModel):
     verdict_confidence: float
     omega_alerts: List[str]
     protocol_fired_count: int
+    monster_runner_fired: List[str] = []
+    monster_score: float = 0.0
+    monster_confidence: float = 0.0
     window_hash: str
     timestamp: str
 
@@ -187,6 +190,8 @@ def create_app() -> FastAPI:
             
             scan_cache[result.window_hash] = result
             
+            mr = result.monster_runner_results or {}
+            
             return ScanResult(
                 symbol=result.symbol,
                 quantrascore=result.quantrascore,
@@ -200,6 +205,9 @@ def create_app() -> FastAPI:
                 verdict_confidence=result.verdict.confidence,
                 omega_alerts=omega_alerts,
                 protocol_fired_count=protocol_fired,
+                monster_runner_fired=mr.get("protocols_fired", []),
+                monster_score=mr.get("monster_score", 0.0),
+                monster_confidence=mr.get("confidence", 0.0),
                 window_hash=result.window_hash,
                 timestamp=result.timestamp.isoformat()
             )
