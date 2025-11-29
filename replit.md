@@ -186,6 +186,17 @@ Connected via Replit OAuth2 connector for automated export pipeline:
 
 ## Recent Changes
 
+- **2025-11-29:** Added Autonomous Trading System
+  - Created complete `autonomous/` package with institutional-grade components
+  - **TradingOrchestrator**: Main async loop coordinating all subsystems
+  - **SignalQualityFilter**: Enforces QuantraScore ≥75, A+/A tiers only
+  - **PositionMonitor**: Real-time position tracking with stop-loss/targets
+  - **TradeOutcomeTracker**: Feedback loop integration for self-learning
+  - **PolygonWebSocketStream**: Real-time data with reconnection handling
+  - **RollingWindowManager**: 100-bar windows for ApexEngine analysis
+  - Added `scripts/run_autonomous.py` runner with CLI args
+  - Updated MASTER_SPEC.md with Section 21: Autonomous Trading System
+
 - **2025-11-29:** Created MASTER_SPEC.md with complete system documentation
   - 80 Tier protocols documented with descriptions
   - 25 Learning Protocols with output types
