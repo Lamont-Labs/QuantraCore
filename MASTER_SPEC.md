@@ -1504,11 +1504,200 @@ data/
 
 ---
 
+## 21. Autonomous Trading System
+
+### 21.1 Overview
+
+The Autonomous Trading System provides institutional-grade automated trading capabilities with full safety controls and self-learning integration.
+
+**Key Components:**
+- **TradingOrchestrator**: Main autonomous loop coordinating all subsystems
+- **SignalQualityFilter**: Institutional-grade signal filtering (A+/A only)
+- **PositionMonitor**: Real-time position tracking and management
+- **TradeOutcomeTracker**: Feedback loop integration for self-learning
+- **PolygonWebSocketStream**: Real-time data streaming
+
+### 21.2 Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Autonomous Trading System                         │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                  TradingOrchestrator                         │   │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │   │
+│  │  │Scan Loop │ │Position  │ │Stream    │ │Shutdown  │       │   │
+│  │  │          │ │Loop      │ │Task      │ │Handler   │       │   │
+│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘       │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                              │                                      │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐   │
+│  │  Signal    │  │  Position  │  │  Trade     │  │  Rolling   │   │
+│  │  Quality   │  │  Monitor   │  │  Outcome   │  │  Window    │   │
+│  │  Filter    │  │            │  │  Tracker   │  │  Manager   │   │
+│  └────────────┘  └────────────┘  └────────────┘  └────────────┘   │
+│                              │                                      │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                    Real-Time Streaming                       │   │
+│  │  ┌──────────────────┐  ┌──────────────────┐                 │   │
+│  │  │ PolygonWebSocket │  │ SimulatedStream  │                 │   │
+│  │  │ (Live Data)      │  │ (Testing)        │                 │   │
+│  │  └──────────────────┘  └──────────────────┘                 │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 21.3 SignalQualityFilter
+
+Applies institutional-grade filtering to ensure only the highest quality signals are traded.
+
+**Filter Criteria:**
+
+| Criterion | Default Threshold | Description |
+|-----------|------------------|-------------|
+| QuantraScore | ≥ 75 | Minimum composite score |
+| Quality Tier | A+ or A | Only top-tier signals |
+| Risk Tier | ≤ high | Block extreme risk |
+| Liquidity | ≥ medium | Minimum liquidity band |
+| Avoid Probability | < 0.3 | Maximum avoid flag |
+| Max Positions | 5 | Concurrent position limit |
+| Omega Status | No LOCKED/ENFORCED | Omega directive compliance |
+
+**Rejection Reasons:**
+- `quantrascore_below_threshold`
+- `quality_tier_not_a_or_a_plus`
+- `risk_tier_extreme`
+- `omega_directive_blocked`
+- `liquidity_below_minimum`
+- `max_positions_reached`
+- `cooldown_active`
+
+### 21.4 PositionMonitor
+
+Real-time tracking and management of open positions.
+
+**Capabilities:**
+- Stop-loss monitoring and execution
+- Profit target monitoring (T1, T2)
+- Trailing stop adjustment
+- Time-based exit enforcement
+- Broker position synchronization
+- Maximum adverse/favorable excursion tracking
+
+**Exit Reasons:**
+| Exit Type | Description |
+|-----------|-------------|
+| `stop_loss` | Protective stop hit |
+| `profit_target_1` | First target reached |
+| `profit_target_2` | Second target reached |
+| `trailing_stop` | Trailing stop triggered |
+| `time_exit` | Max bars exceeded |
+| `omega_override` | Safety directive triggered |
+| `eod_exit` | End of day close |
+
+### 21.5 TradeOutcomeTracker
+
+Records trade outcomes and feeds back to ApexLab for model improvement.
+
+**Tracked Metrics:**
+- Entry/exit prices and times
+- Realized P&L (absolute and percentage)
+- Maximum favorable/adverse excursion
+- Bars held
+- Exit reason classification
+- Original signal quality metrics
+
+**Performance Analysis:**
+- Win rate by quality tier
+- P&L by QuantraScore range
+- Exit reason distribution
+- Profit factor calculation
+- Expectancy analysis
+
+### 21.6 Real-Time Streaming
+
+**PolygonWebSocketStream:**
+- WebSocket connection to Polygon.io
+- Automatic reconnection with exponential backoff
+- Heartbeat monitoring
+- Trade, quote, and bar message handling
+- Symbol subscription management
+
+**RollingWindowManager:**
+- Maintains 100-bar rolling windows per symbol
+- Aggregates tick data into OHLCV bars
+- Signals when windows are ready for analysis
+- Supports historical data bootstrapping
+
+### 21.7 Configuration
+
+```python
+OrchestratorConfig(
+    watchlist=["AAPL", "NVDA", "TSLA", ...],  # Symbols to monitor
+    max_concurrent_positions=5,                # Position limit
+    max_portfolio_exposure=0.5,                # Max 50% exposure
+    max_single_position_pct=0.15,              # Max 15% per position
+    scan_interval_seconds=60.0,                # Scan frequency
+    quality_thresholds=QualityThresholds(
+        min_quantrascore=75.0,
+        required_quality_tiers=["A+", "A"],
+    ),
+    paper_mode=True,                           # Paper trading only
+)
+```
+
+### 21.8 Running the Orchestrator
+
+```bash
+# Demo mode (60 seconds, simulated data)
+python scripts/run_autonomous.py --demo
+
+# Paper trading mode
+python scripts/run_autonomous.py --mode paper --symbols AAPL,NVDA,TSLA
+
+# Research mode (log only, no execution)
+python scripts/run_autonomous.py --mode research --duration 3600
+
+# With live Polygon stream (requires API key)
+python scripts/run_autonomous.py --live-stream --mode paper
+```
+
+### 21.9 Safety Features
+
+| Feature | Description |
+|---------|-------------|
+| **Mode Enforcement** | PAPER mode by default; LIVE disabled |
+| **Omega Compliance** | All 20 Omega directives enforced |
+| **Position Limits** | Configurable max concurrent positions |
+| **Exposure Limits** | Maximum portfolio exposure cap |
+| **Kill Switch** | Emergency shutdown capability |
+| **Symbol Cooldowns** | Prevent rapid re-entry after exit |
+| **Market Hours** | Optional respect for trading hours |
+
+### 21.10 Directory Structure
+
+```
+src/quantracore_apex/autonomous/
+├── __init__.py                    # Package exports
+├── models.py                      # Data models and schemas
+├── signal_quality_filter.py       # Quality filtering logic
+├── position_monitor.py            # Position tracking
+├── trade_outcome_tracker.py       # Outcome recording
+├── trading_orchestrator.py        # Main orchestrator
+└── realtime/
+    ├── __init__.py
+    ├── polygon_stream.py          # WebSocket streaming
+    └── rolling_window.py          # Bar aggregation
+```
+
+---
+
 ## Appendix A: Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
 | 9.0-A | 2025-11-29 | Initial release with full protocol documentation, Google Docs pipeline |
+| 9.0-A | 2025-11-29 | Added Autonomous Trading System with TradingOrchestrator, SignalQualityFilter, PositionMonitor, TradeOutcomeTracker |
 
 ---
 
