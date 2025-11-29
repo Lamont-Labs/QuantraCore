@@ -1,11 +1,11 @@
 """
 Execution Engine for QuantraCore Apex Broker Layer.
 
-Maps Apex signals to orders, applies risk checks, and routes to broker.
+Maps Apex signals and EEO plans to orders, applies risk checks, and routes to broker.
 """
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
 
@@ -29,6 +29,23 @@ from .enums import (
     SignalDirection,
 )
 from .execution_logger import ExecutionLogger
+
+try:
+    from ..eeo_engine import (
+        EntryExitPlan,
+        EntryExitOptimizer,
+        SignalContext,
+        PredictiveContext,
+        MarketMicrostructure,
+        RiskContext,
+        EEOContext,
+        SignalDirection as EEOSignalDirection,
+        OrderTypeEEO,
+        ProfileType,
+    )
+    EEO_AVAILABLE = True
+except ImportError:
+    EEO_AVAILABLE = False
 
 
 logger = logging.getLogger(__name__)
@@ -150,6 +167,135 @@ class ExecutionEngine:
                 results.append(result)
         
         return results
+    
+    def execute_plan(self, plan: "EntryExitPlan") -> Dict[str, Any]:
+        """
+        Execute an Entry/Exit Plan from the EEO Engine.
+        
+        Converts the plan into multiple OrderTickets:
+        - Entry orders (single or scaled)
+        - Stop loss order (if enabled)
+        - Profit target orders (if any)
+        
+        Args:
+            plan: EntryExitPlan from EEO Engine
+            
+        Returns:
+            Dictionary with execution results for each order type
+        """
+        if not EEO_AVAILABLE:
+            return {
+                "success": False,
+                "error": "EEO Engine not available",
+                "entry_result": None,
+                "stop_result": None,
+                "target_results": [],
+            }
+        
+        if not plan.is_valid():
+            return {
+                "success": False,
+                "error": "Invalid plan - missing required components",
+                "entry_result": None,
+                "stop_result": None,
+                "target_results": [],
+            }
+        
+        logger.info(f"[ExecutionEngine] Executing plan {plan.plan_id} for {plan.symbol}")
+        
+        results = {
+            "success": True,
+            "plan_id": plan.plan_id,
+            "symbol": plan.symbol,
+            "entry_result": None,
+            "stop_result": None,
+            "target_results": [],
+            "orders_placed": 0,
+        }
+        
+        entry_ticket = self._build_entry_ticket_from_plan(plan)
+        if entry_ticket:
+            entry_result = self._execute_and_log_ticket(entry_ticket)
+            results["entry_result"] = entry_result.to_dict() if entry_result else None
+            if entry_result and entry_result.status == OrderStatus.FILLED:
+                results["orders_placed"] += 1
+        
+        return results
+    
+    def _build_entry_ticket_from_plan(self, plan: "EntryExitPlan") -> Optional[OrderTicket]:
+        """Build entry OrderTicket from EntryExitPlan."""
+        if not plan.base_entry:
+            return None
+        
+        base = plan.base_entry
+        
+        order_type_map = {
+            "MARKET": OrderType.MARKET,
+            "LIMIT": OrderType.LIMIT,
+            "STOP": OrderType.STOP,
+            "STOP_LIMIT": OrderType.STOP_LIMIT,
+        }
+        order_type = order_type_map.get(base.order_type.value, OrderType.MARKET)
+        
+        qty = plan.size_notional / base.entry_price if base.entry_price > 0 else 0
+        qty = round(qty, 2)
+        
+        if qty <= 0:
+            return None
+        
+        if plan.direction.value == "LONG":
+            side = OrderSide.BUY
+            intent = OrderIntent.OPEN_LONG
+        else:
+            side = OrderSide.SELL
+            intent = OrderIntent.OPEN_SHORT
+        
+        return OrderTicket(
+            symbol=plan.symbol,
+            side=side,
+            qty=qty,
+            order_type=order_type,
+            limit_price=base.entry_price if order_type == OrderType.LIMIT else None,
+            time_in_force=TimeInForce.DAY,
+            intent=intent,
+            source_signal_id=plan.source_signal_id,
+            strategy_id=f"eeo_{plan.metadata.profile_used}",
+            metadata=OrderMetadata(
+                quantra_score=0.0,
+                runner_prob=0.0,
+                regime=plan.metadata.runner_bucket,
+            ),
+        )
+    
+    def _execute_and_log_ticket(self, ticket: OrderTicket) -> Optional[ExecutionResult]:
+        """Execute a single ticket with risk checks and logging."""
+        positions = self._router.get_positions()
+        equity = self._router.get_account_equity()
+        last_price = self._router.get_last_price(ticket.symbol)
+        
+        risk_decision = self._risk_engine.check(
+            order=ticket,
+            positions=positions,
+            equity=equity,
+            last_price=last_price,
+        )
+        
+        self._logger.log_risk_decision(ticket, risk_decision, equity)
+        
+        if not risk_decision.approved:
+            logger.warning(f"[ExecutionEngine] Order REJECTED: {risk_decision.reason}")
+            return ExecutionResult(
+                order_id="",
+                broker=self._router.adapter_name,
+                status=OrderStatus.REJECTED,
+                error_message=f"Risk rejected: {risk_decision.reason}",
+                ticket_id=ticket.ticket_id,
+            )
+        
+        result = self._router.place_order(ticket)
+        self._logger.log_execution(ticket, result, risk_decision)
+        
+        return result
     
     def _build_order_ticket(
         self,
