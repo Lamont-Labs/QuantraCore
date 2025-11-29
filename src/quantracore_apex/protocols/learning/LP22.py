@@ -80,7 +80,7 @@ def generate_label(window: OhlcvWindow, apex_result: ApexResult) -> LearningLabe
     elif closes[-1] < np.percentile(closes, 25) and volatility > 0.02:
         phase_scores["accumulation"] += 0.3
     
-    best_phase = max(phase_scores, key=phase_scores.get)
+    best_phase = max(phase_scores.keys(), key=lambda k: phase_scores[k])
     phase_map = {
         "accumulation": 0,
         "markup": 1,

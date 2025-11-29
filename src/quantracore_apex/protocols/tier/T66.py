@@ -25,14 +25,17 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     
     current_price = bars[-1].close
     
+    major_round: float
+    minor_round: float
+    
     if current_price >= 1000:
-        major_round = round(current_price / 100) * 100
-        minor_round = round(current_price / 50) * 50
+        major_round = float(round(current_price / 100) * 100)
+        minor_round = float(round(current_price / 50) * 50)
     elif current_price >= 100:
-        major_round = round(current_price / 10) * 10
-        minor_round = round(current_price / 5) * 5
+        major_round = float(round(current_price / 10) * 10)
+        minor_round = float(round(current_price / 5) * 5)
     elif current_price >= 10:
-        major_round = round(current_price)
+        major_round = float(round(current_price))
         minor_round = round(current_price * 2) / 2
     else:
         major_round = round(current_price, 1)

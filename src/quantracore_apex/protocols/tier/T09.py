@@ -34,10 +34,11 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     recent_range = np.mean(ranges[-5:])
     prior_range = np.mean(ranges[-15:-5])
     
+    compression_pct: float
     if prior_range == 0:
-        compression_pct = 0
+        compression_pct = 0.0
     else:
-        compression_pct = 1 - (recent_range / prior_range)
+        compression_pct = 1.0 - (recent_range / prior_range)
     
     if narrowing_count >= 5 and compression_pct > 0.3:
         signal_type = "strong_range_compression"

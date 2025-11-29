@@ -41,11 +41,12 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
         elif typical_prices[i] < typical_prices[i-1]:
             negative_mf += raw_money_flow[i]
     
+    mfi: float
     if negative_mf == 0:
-        mfi = 100
+        mfi = 100.0
     else:
         money_ratio = positive_mf / negative_mf
-        mfi = 100 - (100 / (1 + money_ratio))
+        mfi = 100.0 - (100.0 / (1.0 + money_ratio))
     
     mfi_values = []
     for offset in range(1, 6):

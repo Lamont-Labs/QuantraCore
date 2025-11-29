@@ -32,7 +32,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     vol_20d = np.std(returns[-20:]) * np.sqrt(252)
     vol_50d = np.std(returns[-50:]) * np.sqrt(252)
     
-    vol_percentile = 0
+    vol_percentile: float = 0.0
     for period in [20, 30, 40, 50]:
         if len(returns) >= period:
             rolling_vols = [np.std(returns[i:i+20]) for i in range(len(returns)-period)]

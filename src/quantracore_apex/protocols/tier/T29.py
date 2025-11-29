@@ -24,13 +24,13 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
             details={"reason": "insufficient_data"}
         )
     
-    gaps = []
+    gaps_list = []
     for i in range(1, len(bars)):
         gap = bars[i].open - bars[i-1].close
         gap_pct = gap / bars[i-1].close * 100
-        gaps.append(gap_pct)
+        gaps_list.append(gap_pct)
     
-    gaps = np.array(gaps)
+    gaps = np.array(gaps_list)
     
     recent_gaps = gaps[-5:]
     historical_gaps = gaps[:-5] if len(gaps) > 5 else gaps

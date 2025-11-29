@@ -164,7 +164,7 @@ class PolygonAdapter:
         Returns:
             List of ticker symbols
         """
-        symbols = []
+        symbols: List[str] = []
         
         try:
             tickers = self.client.list_tickers(
