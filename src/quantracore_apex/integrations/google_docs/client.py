@@ -337,12 +337,11 @@ class GoogleDocsClient:
             dict: Connection status with details
         """
         try:
-            await self._get_access_token()
-            docs = await self.list_documents(max_results=1)
+            access_token = await self._get_access_token()
             return {
                 "connected": True,
                 "status": "operational",
-                "document_count": len(docs),
+                "scopes": ["docs", "documents"],
                 "timestamp": datetime.utcnow().isoformat()
             }
         except Exception as e:
@@ -352,6 +351,30 @@ class GoogleDocsClient:
                 "error": str(e),
                 "timestamp": datetime.utcnow().isoformat()
             }
+    
+    async def list_documents_safe(self, max_results: int = 20) -> List[Dict[str, Any]]:
+        """
+        List recent Google Docs with error handling for scope issues.
+        
+        Returns empty list if Drive API access is not available.
+        """
+        try:
+            return await self.list_documents(max_results)
+        except Exception as e:
+            logger.warning(f"Could not list documents (may need Drive scope): {e}")
+            return []
+    
+    async def search_documents_safe(self, query: str, max_results: int = 10) -> List[Dict[str, Any]]:
+        """
+        Search documents with error handling for scope issues.
+        
+        Returns empty list if Drive API access is not available.
+        """
+        try:
+            return await self.search_documents(query, max_results)
+        except Exception as e:
+            logger.warning(f"Could not search documents (may need Drive scope): {e}")
+            return []
 
 
 google_docs_client = GoogleDocsClient()
