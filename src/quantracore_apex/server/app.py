@@ -2348,6 +2348,480 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    from src.quantracore_apex.integrations.google_docs import (
+        google_docs_client,
+        research_report_generator,
+        trade_journal,
+        investor_updates,
+        notes_importer,
+        doc_sync,
+    )
+    
+    class GenerateReportRequest(BaseModel):
+        symbol: str
+        include_risk: bool = True
+        include_monster_runner: bool = True
+        include_signal: bool = True
+    
+    class LogResearchNoteRequest(BaseModel):
+        title: str
+        content: str
+        symbol: Optional[str] = None
+    
+    class ImportDocumentRequest(BaseModel):
+        document_id: str
+    
+    class ExportDocumentRequest(BaseModel):
+        local_path: str
+    
+    class InvestorUpdateRequest(BaseModel):
+        month: Optional[str] = None
+        highlights: Optional[List[str]] = None
+    
+    @app.get("/gdocs/status")
+    async def google_docs_status():
+        """Check Google Docs connection status."""
+        try:
+            status = await google_docs_client.check_connection()
+            return status
+        except Exception as e:
+            return {
+                "connected": False,
+                "status": "error",
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/gdocs/documents")
+    async def list_google_documents(max_results: int = 20):
+        """List recent Google Docs documents."""
+        try:
+            docs = await google_docs_client.list_documents(max_results)
+            return {
+                "documents": docs,
+                "count": len(docs),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/gdocs/search")
+    async def search_google_documents(query: str, max_results: int = 10):
+        """Search Google Docs by query."""
+        try:
+            docs = await google_docs_client.search_documents(query, max_results)
+            return {
+                "query": query,
+                "documents": docs,
+                "count": len(docs),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/report/generate")
+    async def generate_research_report(request: GenerateReportRequest):
+        """
+        Generate a comprehensive research report for a symbol.
+        
+        Runs full analysis and creates a formatted Google Doc with:
+        - Executive summary
+        - Protocol analysis
+        - Risk assessment
+        - MonsterRunner detection
+        - Signal generation
+        """
+        try:
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=150)
+            
+            bars = data_adapter.fetch_ohlcv(request.symbol, start_date, end_date, "1d")
+            normalized_bars, _ = normalize_ohlcv(bars)
+            window = window_builder.build_single(normalized_bars, request.symbol)
+            
+            if window is None:
+                raise HTTPException(status_code=400, detail="Insufficient data for analysis")
+            
+            context = ApexContext(seed=42, compliance_mode=True)
+            result = engine.run(window, context)
+            
+            omega_statuses = omega_directives.apply_all(result)
+            omega_alerts = [name for name, status in omega_statuses.items() if status.active]
+            
+            scan_result = {
+                "symbol": result.symbol,
+                "quantrascore": result.quantrascore,
+                "score_bucket": result.score_bucket.value,
+                "regime": result.regime.value,
+                "risk_tier": result.risk_tier.value,
+                "entropy_state": result.entropy_state.value,
+                "suppression_state": result.suppression_state.value,
+                "drift_state": result.drift_state.value,
+                "verdict_action": result.verdict.action,
+                "verdict_confidence": result.verdict.confidence,
+                "omega_alerts": omega_alerts,
+                "protocol_fired_count": sum(1 for p in result.protocol_results if p.fired),
+                "window_hash": result.window_hash,
+            }
+            
+            risk_data = None
+            if request.include_risk:
+                assessment = risk_engine.assess(
+                    symbol=request.symbol,
+                    quantra_score=result.quantrascore,
+                    regime=result.regime.value,
+                    entropy_state=str(result.entropy_state),
+                    drift_state=str(result.drift_state),
+                    suppression_state=str(result.suppression_state),
+                    volatility_ratio=result.microtraits.volatility_ratio,
+                )
+                risk_data = {"risk_assessment": assessment.model_dump()}
+            
+            monster_data = None
+            if request.include_monster_runner:
+                output = monster_runner.analyze(window)
+                monster_data = {
+                    "runner_probability": output.runner_probability,
+                    "runner_state": output.runner_state.value,
+                    "rare_event_class": output.rare_event_class.value,
+                    "metrics": {
+                        "compression_trace": output.compression_trace,
+                        "entropy_floor": output.entropy_floor,
+                        "volume_pulse": output.volume_pulse,
+                        "range_contraction": output.range_contraction,
+                        "primed_confidence": output.primed_confidence,
+                    }
+                }
+            
+            signal_data = None
+            if request.include_signal:
+                current_price = bars[-1].close if bars else None
+                fired_protocols = [p.protocol_id for p in result.protocol_results if p.fired]
+                risk_approved = risk_data.get("risk_assessment", {}).get("permission", "deny") == "allow" if risk_data else False
+                
+                signal = signal_builder.build_signal(
+                    symbol=request.symbol,
+                    quantra_score=result.quantrascore,
+                    regime=result.regime.value,
+                    risk_tier=result.risk_tier.value,
+                    entropy_state=str(result.entropy_state),
+                    current_price=current_price,
+                    volatility_pct=result.microtraits.volatility_ratio * 2,
+                    fired_protocols=fired_protocols,
+                    risk_approved=risk_approved,
+                    risk_notes="",
+                )
+                signal_data = {"signal": signal.model_dump()}
+            
+            report = await research_report_generator.generate_report(
+                symbol=request.symbol,
+                scan_result=scan_result,
+                risk_data=risk_data,
+                monster_data=monster_data,
+                signal_data=signal_data,
+            )
+            
+            return {
+                "success": True,
+                "report": report,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Report generation error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/report/batch")
+    async def generate_batch_report(symbols: List[str]):
+        """Generate a batch report for multiple symbols."""
+        try:
+            scan_results = []
+            for symbol in symbols:
+                try:
+                    end_date = datetime.now()
+                    start_date = end_date - timedelta(days=150)
+                    bars = data_adapter.fetch_ohlcv(symbol, start_date, end_date, "1d")
+                    normalized_bars, _ = normalize_ohlcv(bars)
+                    window = window_builder.build_single(normalized_bars, symbol)
+                    
+                    if window:
+                        context = ApexContext(seed=42, compliance_mode=True)
+                        result = engine.run(window, context)
+                        omega_statuses = omega_directives.apply_all(result)
+                        omega_alerts = [name for name, status in omega_statuses.items() if status.active]
+                        
+                        scan_results.append({
+                            "symbol": symbol,
+                            "quantrascore": result.quantrascore,
+                            "score_bucket": result.score_bucket.value,
+                            "regime": result.regime.value,
+                            "risk_tier": result.risk_tier.value,
+                            "verdict_action": result.verdict.action,
+                            "omega_alerts": omega_alerts,
+                        })
+                except Exception as e:
+                    logger.warning(f"Error scanning {symbol}: {e}")
+            
+            report = await research_report_generator.generate_batch_report(scan_results)
+            return {
+                "success": True,
+                "report": report,
+                "symbols_analyzed": len(scan_results),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/gdocs/journal/today")
+    async def get_todays_journal():
+        """Get URL for today's trade journal."""
+        try:
+            url = await trade_journal.get_journal_url()
+            return {
+                "url": url,
+                "date": datetime.utcnow().strftime('%Y-%m-%d'),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/gdocs/journal/list")
+    async def list_trade_journals(max_results: int = 30):
+        """List all trade journals."""
+        try:
+            journals = await trade_journal.list_journals(max_results)
+            return {
+                "journals": journals,
+                "count": len(journals),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/journal/log/note")
+    async def log_research_note(request: LogResearchNoteRequest):
+        """Log a research note to today's journal."""
+        try:
+            result = await trade_journal.log_research_note(
+                title=request.title,
+                content=request.content,
+                symbol=request.symbol,
+            )
+            return {
+                "success": True,
+                "result": result,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/journal/log/scan/{symbol}")
+    async def log_scan_to_journal(symbol: str):
+        """Run a scan and log results to the journal."""
+        try:
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=150)
+            bars = data_adapter.fetch_ohlcv(symbol, start_date, end_date, "1d")
+            normalized_bars, _ = normalize_ohlcv(bars)
+            window = window_builder.build_single(normalized_bars, symbol)
+            
+            if window is None:
+                raise HTTPException(status_code=400, detail="Insufficient data")
+            
+            context = ApexContext(seed=42, compliance_mode=True)
+            result = engine.run(window, context)
+            omega_statuses = omega_directives.apply_all(result)
+            omega_alerts = [name for name, status in omega_statuses.items() if status.active]
+            
+            scan_result = {
+                "symbol": symbol,
+                "quantrascore": result.quantrascore,
+                "score_bucket": result.score_bucket.value,
+                "regime": result.regime.value,
+                "risk_tier": result.risk_tier.value,
+                "entropy_state": result.entropy_state.value,
+                "suppression_state": result.suppression_state.value,
+                "drift_state": result.drift_state.value,
+                "verdict_action": result.verdict.action,
+                "verdict_confidence": result.verdict.confidence,
+                "omega_alerts": omega_alerts,
+                "protocol_fired_count": sum(1 for p in result.protocol_results if p.fired),
+                "window_hash": result.window_hash,
+            }
+            
+            journal_result = await trade_journal.log_scan_result(symbol, scan_result)
+            
+            if omega_alerts:
+                await trade_journal.log_omega_alert(symbol, omega_alerts, scan_result)
+            
+            return {
+                "success": True,
+                "scan_result": scan_result,
+                "journal": journal_result,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/investor/monthly")
+    async def generate_monthly_investor_update(request: InvestorUpdateRequest):
+        """Generate a monthly investor update document."""
+        try:
+            result = await investor_updates.generate_monthly_update(
+                month=request.month,
+                highlights=request.highlights,
+            )
+            return {
+                "success": True,
+                "document": result,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/investor/quarterly")
+    async def generate_quarterly_review(quarter: str = "Q4", year: int = 2025):
+        """Generate a quarterly business review document."""
+        try:
+            result = await investor_updates.generate_quarterly_review(quarter, year)
+            return {
+                "success": True,
+                "document": result,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/investor/due-diligence")
+    async def generate_due_diligence_package(investor_name: Optional[str] = None):
+        """Generate a comprehensive due diligence package."""
+        try:
+            result = await investor_updates.generate_due_diligence_package(investor_name)
+            return {
+                "success": True,
+                "document": result,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/notes/import")
+    async def import_research_notes(request: ImportDocumentRequest):
+        """Import a Google Doc as research notes."""
+        try:
+            note = await notes_importer.import_document(request.document_id)
+            return {
+                "success": True,
+                "note": note.model_dump(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/notes/watchlist")
+    async def import_watchlist(request: ImportDocumentRequest, name: Optional[str] = None):
+        """Import a Google Doc as a watchlist."""
+        try:
+            watchlist = await notes_importer.import_watchlist(request.document_id, name)
+            return {
+                "success": True,
+                "watchlist": watchlist.model_dump(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/gdocs/notes/symbols")
+    async def extract_all_symbols(max_documents: int = 20):
+        """Extract all stock symbols from recent documents."""
+        try:
+            result = await notes_importer.get_all_symbols_from_notes(max_documents)
+            return result
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/gdocs/notes/watchlists")
+    async def find_watchlist_documents():
+        """Find documents that appear to be watchlists."""
+        try:
+            docs = await notes_importer.find_watchlist_documents()
+            return {
+                "potential_watchlists": docs,
+                "count": len(docs),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/sync/export")
+    async def export_document_to_gdocs(request: ExportDocumentRequest):
+        """Export a local document to Google Docs."""
+        try:
+            result = await doc_sync.export_document(request.local_path)
+            return {
+                "success": result.success,
+                "result": result.model_dump(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/sync/export-all")
+    async def export_all_docs():
+        """Export all local documentation to Google Docs."""
+        try:
+            result = await doc_sync.export_all_docs()
+            return {
+                "success": True,
+                "result": result,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/sync/specs")
+    async def sync_specification_documents():
+        """Sync key specification documents to Google Docs."""
+        try:
+            result = await doc_sync.sync_spec_documents()
+            return {
+                "success": True,
+                "result": result,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/gdocs/sync/list")
+    async def list_synced_documents():
+        """List all QuantraCore documents in Google Docs."""
+        try:
+            docs = await doc_sync.list_synced_docs()
+            return {
+                "documents": docs,
+                "count": len(docs),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/gdocs/sync/index")
+    async def create_documentation_index():
+        """Create an index document linking to all synced docs."""
+        try:
+            result = await doc_sync.create_documentation_index()
+            return {
+                "success": True,
+                "result": result,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
     return app
 
 
