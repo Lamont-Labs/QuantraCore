@@ -178,14 +178,27 @@ The RiskEngine performs 9 deterministic safety checks:
 
 ## API Endpoints
 
+### Research Mode Endpoints (Default)
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/broker/status` | GET | Get broker layer status |
+| `/broker/status` | GET | Get broker layer status (RESEARCH mode) |
 | `/broker/positions` | GET | Get current positions |
 | `/broker/orders` | GET | Get open orders |
 | `/broker/equity` | GET | Get account equity |
-| `/broker/execute` | POST | Execute a trading signal |
+| `/broker/execute` | POST | Execute a signal (logs only in RESEARCH mode) |
 | `/broker/config` | GET | Get sanitized config |
+
+### Paper Trading Endpoints (Actual Fills)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/broker/paper/status` | GET | Get paper trading engine status |
+| `/broker/paper/execute` | POST | Execute signal with FILLED status |
+| `/broker/paper/positions` | GET | Get paper trading positions |
+| `/broker/paper/reset` | POST | Reset paper engine to initial state |
+
+**Note:** Paper trading endpoints use `PaperSimAdapter` which fills orders immediately with simulated prices.
 
 ### Execute Signal Request
 
