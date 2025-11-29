@@ -1679,6 +1679,200 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    # =========================================================================
+    # ESTIMATED MOVE MODULE ENDPOINTS
+    # =========================================================================
+    
+    from src.quantracore_apex.estimated_move import (
+        EstimatedMoveEngine,
+        EstimatedMoveInput,
+    )
+    
+    estimated_move_engine = EstimatedMoveEngine(seed=42)
+    
+    class EstimatedMoveRequest(BaseModel):
+        symbol: str
+        timeframe: str = "1d"
+        lookback_days: int = 150
+        include_vision: bool = False
+    
+    class BatchEstimatedMoveRequest(BaseModel):
+        symbols: List[str]
+        timeframe: str = "1d"
+        lookback_days: int = 150
+        max_results: int = 50
+    
+    @app.get("/estimated_move/{symbol}")
+    async def get_estimated_move(
+        symbol: str,
+        timeframe: str = "1d",
+        lookback_days: int = 150
+    ):
+        """
+        Get estimated move ranges for a symbol.
+        
+        Returns statistical move ranges for research purposes.
+        NOT a prediction. NOT a price target. RESEARCH ONLY.
+        """
+        try:
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=lookback_days)
+            
+            bars = data_adapter.fetch_ohlcv(symbol, start_date, end_date, timeframe)
+            
+            if len(bars) < 100:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Insufficient data: got {len(bars)} bars, need at least 100"
+                )
+            
+            normalized_bars, _ = normalize_ohlcv(bars)
+            window = window_builder.build_single(normalized_bars, symbol, timeframe)
+            
+            if window is None:
+                raise HTTPException(status_code=400, detail="Failed to build analysis window")
+            
+            context = ApexContext(seed=42, compliance_mode=True)
+            result = engine.run(window, context)
+            
+            mr_output = monster_runner.analyze(window)
+            
+            em_input = EstimatedMoveInput(
+                symbol=symbol,
+                quantra_score=result.quantrascore,
+                risk_tier=result.risk_tier.value,
+                volatility_band=result.entropy_state.value,
+                entropy_band=result.entropy_state.value,
+                regime_type=result.regime.value,
+                suppression_state=result.suppression_state.value,
+                protocol_vector=[1.0 if p.fired else 0.0 for p in result.protocol_results],
+                runner_prob=mr_output.runner_probability,
+                avoid_trade_prob=0.0,
+                ensemble_disagreement=0.0,
+                market_cap_band="mid",
+            )
+            
+            em_output = estimated_move_engine.compute(em_input)
+            
+            return convert_numpy_types({
+                "symbol": symbol,
+                "estimated_move": em_output.to_dict(),
+                "underlying_analysis": {
+                    "quantra_score": result.quantrascore,
+                    "regime": result.regime.value,
+                    "risk_tier": result.risk_tier.value,
+                    "runner_prob": mr_output.runner_probability,
+                },
+                "compliance_note": "Structural research output only - NOT a price target or trading signal",
+                "timestamp": datetime.utcnow().isoformat()
+            })
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error computing estimated move for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/estimated_move/batch")
+    async def batch_estimated_move(request: BatchEstimatedMoveRequest):
+        """
+        Get estimated move ranges for multiple symbols.
+        
+        Returns statistical move ranges for research purposes.
+        NOT predictions. NOT price targets. RESEARCH ONLY.
+        """
+        results = []
+        errors = []
+        
+        for symbol in request.symbols[:request.max_results]:
+            try:
+                end_date = datetime.now()
+                start_date = end_date - timedelta(days=request.lookback_days)
+                
+                bars = data_adapter.fetch_ohlcv(
+                    symbol, start_date, end_date, request.timeframe
+                )
+                
+                if len(bars) < 100:
+                    errors.append({
+                        "symbol": symbol,
+                        "error": f"Insufficient data: {len(bars)} bars"
+                    })
+                    continue
+                
+                normalized_bars, _ = normalize_ohlcv(bars)
+                window = window_builder.build_single(
+                    normalized_bars, symbol, request.timeframe
+                )
+                
+                if window is None:
+                    errors.append({
+                        "symbol": symbol,
+                        "error": "Failed to build window"
+                    })
+                    continue
+                
+                context = ApexContext(seed=42, compliance_mode=True)
+                result = engine.run(window, context)
+                
+                mr_output = monster_runner.analyze(window)
+                
+                em_input = EstimatedMoveInput(
+                    symbol=symbol,
+                    quantra_score=result.quantrascore,
+                    risk_tier=result.risk_tier.value,
+                    volatility_band=result.entropy_state.value,
+                    entropy_band=result.entropy_state.value,
+                    regime_type=result.regime.value,
+                    suppression_state=result.suppression_state.value,
+                    protocol_vector=[1.0 if p.fired else 0.0 for p in result.protocol_results],
+                    runner_prob=mr_output.runner_probability,
+                    avoid_trade_prob=0.0,
+                    ensemble_disagreement=0.0,
+                    market_cap_band="mid",
+                )
+                
+                em_output = estimated_move_engine.compute(em_input)
+                
+                results.append(convert_numpy_types({
+                    "symbol": symbol,
+                    "estimated_move": em_output.to_dict(),
+                    "quantra_score": result.quantrascore,
+                    "runner_prob": mr_output.runner_probability,
+                }))
+                
+            except Exception as e:
+                errors.append({"symbol": symbol, "error": str(e)})
+        
+        results.sort(
+            key=lambda x: x.get("estimated_move", {}).get("ranges", {}).get("5d", {}).get("max_move_pct", 0),
+            reverse=True
+        )
+        
+        return {
+            "total_requested": len(request.symbols),
+            "total_processed": len(results),
+            "total_errors": len(errors),
+            "results": results,
+            "errors": errors[:10],
+            "compliance_note": "Structural research output only - NOT price targets or trading signals",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.get("/estimated_move/horizons")
+    async def get_estimated_move_horizons():
+        """Get available horizon windows for estimated move calculation."""
+        return {
+            "horizons": [
+                {"id": "1d", "name": "Short Term", "days": 1},
+                {"id": "3d", "name": "Medium Term", "days": 3},
+                {"id": "5d", "name": "Extended Term", "days": 5},
+                {"id": "10d", "name": "Research Term", "days": 10},
+            ],
+            "compliance_note": "Horizons for statistical research only - not trading timeframes",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
     return app
 
 
