@@ -6,10 +6,9 @@ All tests verify actual behavioral guarantees.
 """
 
 import pytest
-from typing import List
 
 from src.quantracore_apex.core.engine import ApexEngine
-from src.quantracore_apex.core.schemas import OhlcvWindow, ApexContext
+from src.quantracore_apex.core.schemas import OhlcvWindow
 from src.quantracore_apex.protocols.tier.tier_loader import TierProtocolRunner
 from src.quantracore_apex.core.microtraits import compute_microtraits
 from src.quantracore_apex.data_layer.adapters.synthetic_adapter import SyntheticAdapter

@@ -39,7 +39,7 @@ def generate_label(window: OhlcvWindow, apex_result: ApexResult) -> LearningLabe
     
     avg_up_volume = volumes[1:][up_days].mean() if up_days.any() else 0
     avg_down_volume = volumes[1:][down_days].mean() if down_days.any() else 0
-    avg_volume = volumes.mean()
+    volumes.mean()
     
     recent_price_change = closes[-1] / closes[0] - 1
     

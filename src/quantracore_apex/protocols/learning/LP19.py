@@ -32,7 +32,7 @@ def generate_label(window: OhlcvWindow, apex_result: ApexResult) -> LearningLabe
     closes = np.array([b.close for b in bars[-30:]])
     
     sma_20 = np.mean(closes[-20:])
-    sma_50 = np.mean(closes) if len(closes) >= 50 else np.mean(closes)
+    np.mean(closes) if len(closes) >= 50 else np.mean(closes)
     
     std_20 = np.std(closes[-20:])
     

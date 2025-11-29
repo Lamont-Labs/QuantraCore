@@ -6,7 +6,6 @@ universe scanner, and MonsterRunner fuse score.
 """
 
 import pytest
-from pathlib import Path
 from datetime import datetime, timedelta
 import numpy as np
 
@@ -48,7 +47,7 @@ class TestSymbolUniverseLoader:
         from src.quantracore_apex.config.symbol_universe import get_symbols_for_mode
         
         demo_symbols = get_symbols_for_mode("demo")
-        full_symbols = get_symbols_for_mode("full_us_equities")
+        get_symbols_for_mode("full_us_equities")
         
         assert len(demo_symbols) > 0
         assert len(demo_symbols) <= 20
@@ -67,7 +66,7 @@ class TestSymbolUniverseLoader:
     
     def test_is_smallcap(self):
         """Test smallcap detection."""
-        from src.quantracore_apex.config.symbol_universe import is_smallcap, get_symbol_info
+        from src.quantracore_apex.config.symbol_universe import is_smallcap
         
         result = is_smallcap("AAPL")
         assert isinstance(result, bool)
@@ -136,8 +135,8 @@ class TestScanModesConfig:
         smallcap_mode = load_scan_mode("high_vol_small_caps")
         mega_mode = load_scan_mode("mega_large_focus")
         
-        assert smallcap_mode.is_smallcap_focused == True
-        assert mega_mode.is_smallcap_focused == False
+        assert smallcap_mode.is_smallcap_focused
+        assert not mega_mode.is_smallcap_focused
     
     def test_extreme_risk_detection(self):
         """Test detection of extreme risk modes."""
@@ -145,7 +144,7 @@ class TestScanModesConfig:
         
         runner_mode = load_scan_mode("low_float_runners")
         
-        assert runner_mode.is_extreme_risk == True
+        assert runner_mode.is_extreme_risk
     
     def test_performance_config(self):
         """Test K6 performance configuration."""
@@ -261,7 +260,7 @@ class TestDataClient:
         client = create_data_client(use_cache=True)
         
         assert client is not None
-        assert client.use_cache == True
+        assert client.use_cache
     
     def test_get_available_providers(self):
         """Test listing available providers."""
@@ -308,8 +307,8 @@ class TestUniverseScannerSmallcapsDemo:
         )
         
         assert result.symbol == "TEST"
-        assert result.smallcap_flag == True
-        assert result.speculative_flag == True
+        assert result.smallcap_flag
+        assert result.speculative_flag
         assert result.mr_fuse_score == 45.0
     
     def test_universe_scan_result_dataclass(self):

@@ -4,7 +4,7 @@ FastAPI Application for QuantraCore Apex.
 Provides REST API for Apex engine functionality.
 """
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
@@ -12,13 +12,13 @@ from datetime import datetime, timedelta
 import logging
 
 from src.quantracore_apex.core.engine import ApexEngine
-from src.quantracore_apex.core.schemas import ApexContext, OhlcvWindow
+from src.quantracore_apex.core.schemas import ApexContext
 from src.quantracore_apex.data_layer.adapters.synthetic_adapter import SyntheticAdapter
 from src.quantracore_apex.data_layer.normalization import normalize_ohlcv
 from src.quantracore_apex.apexlab.windows import WindowBuilder
 from src.quantracore_apex.prediction.monster_runner import MonsterRunnerEngine
 from src.quantracore_apex.protocols.omega.omega import OmegaDirectives
-from src.quantracore_apex.risk.engine import RiskEngine, RiskAssessment
+from src.quantracore_apex.risk.engine import RiskEngine
 from src.quantracore_apex.broker.oms import OrderManagementSystem, OrderSide, OrderType
 from src.quantracore_apex.portfolio.portfolio import Portfolio
 from src.quantracore_apex.signal.signal_builder import SignalBuilder
@@ -933,7 +933,6 @@ def create_app() -> FastAPI:
         """Get extended engine health with drift status (v9.0-A)."""
         try:
             from src.quantracore_apex.core.drift_detector import DriftDetector
-            from src.quantracore_apex.core.redundant_scorer import RedundantScorer
             import yaml
             from pathlib import Path
             
@@ -1215,8 +1214,6 @@ def create_app() -> FastAPI:
         try:
             from src.quantracore_apex.config.symbol_universe import (
                 get_symbol_info as _get_symbol_info,
-                is_smallcap,
-                SMALLCAP_BUCKETS,
             )
             
             info = _get_symbol_info(symbol.upper())

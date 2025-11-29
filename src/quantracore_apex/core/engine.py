@@ -4,14 +4,11 @@ Main Apex Engine module for QuantraCore Apex.
 This is the primary entry point for deterministic analysis.
 """
 
-import hashlib
-import json
 from datetime import datetime
-from typing import List, Optional, Dict, Any, TYPE_CHECKING
+from typing import List, Optional, Dict
 
 from .schemas import (
-    OhlcvWindow, ApexContext, ApexResult, ProtocolResult,
-    RegimeType, RiskTier, ScoreBucket
+    OhlcvWindow, ApexContext, ApexResult
 )
 from .microtraits import compute_microtraits
 from .entropy import compute_entropy

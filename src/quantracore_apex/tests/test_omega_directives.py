@@ -4,17 +4,13 @@ Comprehensive Omega Directive Tests (Ω1-Ω5)
 Tests all Omega directives for correct behavior.
 """
 
-import pytest
 import numpy as np
 from datetime import datetime
 from typing import List
 
 from src.quantracore_apex.core.schemas import (
-    OhlcvBar, ApexResult, RiskTier, EntropyState, DriftState,
-    EntropyMetrics, DriftMetrics, SuppressionMetrics, ContinuationMetrics,
-    VolumeMetrics, Microtraits, Verdict
+    OhlcvBar
 )
-from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.protocols.omega.omega import (
     OmegaDirectives, OmegaLevel, OmegaStatus
 )

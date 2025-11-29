@@ -5,8 +5,6 @@ Tests the data layer and scanner functionality with SUBSTANTIVE assertions.
 """
 
 import pytest
-from typing import List
-from datetime import datetime, timedelta
 
 from src.quantracore_apex.data_layer.adapters.synthetic_adapter import SyntheticAdapter
 from src.quantracore_apex.core.schemas import OhlcvBar, OhlcvWindow
@@ -32,7 +30,7 @@ class TestSyntheticAdapterBasics:
     def test_adapter_is_available(self):
         """SyntheticAdapter should report as available."""
         adapter = SyntheticAdapter(seed=42)
-        assert adapter.is_available() == True
+        assert adapter.is_available()
     
     def test_adapter_name(self):
         """SyntheticAdapter should have name 'synthetic'."""

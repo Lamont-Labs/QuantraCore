@@ -6,8 +6,8 @@ Detects rare extreme-move precursor patterns.
 
 import json
 import numpy as np
-from dataclasses import dataclass, asdict
-from typing import List, Optional, Dict, Any
+from dataclasses import dataclass
+from typing import Optional, Dict, Any
 from datetime import datetime
 from pathlib import Path
 from enum import Enum
@@ -186,7 +186,7 @@ class MonsterRunnerEngine:
         if len(bars) < 10:
             return 0.0
         
-        ranges = [b.range for b in bars[-10:]]
+        [b.range for b in bars[-10:]]
         
         inside_bars = 0
         for i in range(1, len(bars) - 1):

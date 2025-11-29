@@ -35,15 +35,14 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     cup_depth = (left_rim - cup_bottom) / left_rim
     valid_depth = 0.1 < cup_depth < 0.35
     
-    handle_high = np.max(highs[-10:])
+    np.max(highs[-10:])
     handle_low = np.min(closes[-10:])
     handle_pullback = (right_rim - handle_low) / right_rim
     valid_handle = 0.05 < handle_pullback < 0.15
     
-    rounded_bottom = True
     cup_segment = closes[-35:-15]
     mid_point = len(cup_segment) // 2
-    left_half_trend = np.mean(cup_segment[:mid_point]) > np.mean(cup_segment[mid_point:])
+    np.mean(cup_segment[:mid_point]) > np.mean(cup_segment[mid_point:])
     
     if rim_similarity and valid_depth and valid_handle:
         signal_type = "cup_and_handle"

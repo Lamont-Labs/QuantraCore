@@ -5,7 +5,6 @@ Trains a small neural network on Apex-generated labels.
 Uses scikit-learn for simplicity (no PyTorch dependency).
 """
 
-import numpy as np
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime

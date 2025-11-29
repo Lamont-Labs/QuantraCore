@@ -46,7 +46,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     near_middle = abs(current_price - middle) / middle < 0.02
     
     touches_upper = sum(1 for h in highs[-10:] if h >= upper_zone)
-    touches_lower = sum(1 for l in lows[-10:] if l <= lower_zone)
+    touches_lower = sum(1 for low_val in lows[-10:] if low_val <= lower_zone)
     
     if at_upper and touches_upper >= 2:
         signal_type = "testing_range_resistance"

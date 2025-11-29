@@ -7,7 +7,6 @@ Uses yfinance library for data fetching.
 Version: 9.0-A
 """
 
-import os
 from typing import List, Optional
 from datetime import datetime, timedelta
 

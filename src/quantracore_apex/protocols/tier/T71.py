@@ -44,7 +44,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     trend_consistency = max(higher_highs, lower_lows) / 9
     
     price_distance_sma20 = (current_price - sma20) / sma20 * 100
-    price_distance_sma50 = (current_price - sma50) / sma50 * 100
+    (current_price - sma50) / sma50 * 100
     
     trend_strength_score = 0
     if bullish_aligned:

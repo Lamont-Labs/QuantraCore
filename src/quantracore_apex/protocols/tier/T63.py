@@ -45,7 +45,6 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     
     nearest_ma = None
     min_distance = float('inf')
-    ma_position = "neutral"
     
     for name, level in ma_levels:
         distance = abs(current_price - level) / current_price

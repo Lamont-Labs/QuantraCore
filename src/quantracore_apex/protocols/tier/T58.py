@@ -24,8 +24,8 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
             details={"reason": "insufficient_data"}
         )
     
-    opens = np.array([b.open for b in bars])
-    closes = np.array([b.close for b in bars])
+    np.array([b.open for b in bars])
+    np.array([b.close for b in bars])
     highs = np.array([b.high for b in bars])
     lows = np.array([b.low for b in bars])
     

@@ -5,7 +5,6 @@ Verifies MR01-MR05 protocols execute correctly and
 produce deterministic results.
 """
 
-import pytest
 import numpy as np
 from datetime import datetime
 

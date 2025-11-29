@@ -6,12 +6,11 @@ Every test here will FAIL if behavior regresses.
 """
 
 import pytest
-from typing import List
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import (
-    OhlcvWindow, OhlcvBar, ApexContext, ApexResult,
-    RegimeType, RiskTier, EntropyState, SuppressionState, DriftState
+    OhlcvWindow, ApexContext, ApexResult,
+    RegimeType, RiskTier, EntropyState
 )
 from src.quantracore_apex.data_layer.adapters.synthetic_adapter import SyntheticAdapter
 

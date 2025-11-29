@@ -30,9 +30,9 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     gains = np.where(deltas > 0, deltas, 0)
     losses = np.where(deltas < 0, -deltas, 0)
     
-    def calc_rsi(g, l):
-        ag = np.mean(g) if len(g) > 0 else 0
-        al = np.mean(l) if len(l) > 0 else 0
+    def calc_rsi(gain_arr, loss_arr):
+        ag = np.mean(gain_arr) if len(gain_arr) > 0 else 0
+        al = np.mean(loss_arr) if len(loss_arr) > 0 else 0
         if al == 0:
             return 100
         return 100 - (100 / (1 + ag/al))

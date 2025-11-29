@@ -7,7 +7,6 @@ Tests protocol firing patterns for known inputs.
 import pytest
 from datetime import datetime, timedelta
 
-from src.quantracore_apex.core.schemas import OhlcvWindow
 from src.quantracore_apex.core.microtraits import compute_microtraits
 from src.quantracore_apex.protocols.tier import TierProtocolRunner
 from src.quantracore_apex.data_layer.adapters.synthetic_adapter import SyntheticAdapter

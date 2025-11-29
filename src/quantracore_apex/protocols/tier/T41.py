@@ -29,7 +29,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     
     current_volume = volumes[-1]
     avg_volume_20 = np.mean(volumes[-20:])
-    avg_volume_5 = np.mean(volumes[-5:])
+    np.mean(volumes[-5:])
     
     volume_ratio = current_volume / max(avg_volume_20, 1)
     

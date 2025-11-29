@@ -5,8 +5,8 @@ Converts OHLCV windows into feature vectors for model training.
 """
 
 import numpy as np
-from typing import List, Dict, Any
-from src.quantracore_apex.core.schemas import OhlcvWindow, Microtraits
+from typing import List
+from src.quantracore_apex.core.schemas import OhlcvWindow
 from src.quantracore_apex.core.microtraits import compute_microtraits
 from src.quantracore_apex.core.entropy import compute_entropy
 from src.quantracore_apex.core.suppression import compute_suppression

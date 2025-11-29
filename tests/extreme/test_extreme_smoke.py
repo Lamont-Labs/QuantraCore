@@ -5,7 +5,6 @@ Fast tests on volatile/extreme symbols with SUBSTANTIVE assertions.
 """
 
 import pytest
-from typing import List
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import OhlcvWindow, ApexContext, RiskTier, ApexResult

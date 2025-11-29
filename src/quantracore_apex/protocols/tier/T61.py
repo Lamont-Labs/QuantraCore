@@ -26,7 +26,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
     
     lows = np.array([b.low for b in bars])
     closes = np.array([b.close for b in bars])
-    volumes = np.array([b.volume for b in bars])
+    np.array([b.volume for b in bars])
     
     tolerance = 0.02
     support_levels = []
@@ -42,7 +42,7 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
             if abs(level - cluster["price"]) / level < tolerance:
                 cluster["touches"] += 1
                 cluster["indices"].append(idx)
-                cluster["price"] = np.mean([level] + [l for _, l in support_levels if abs(l - cluster["price"]) / l < tolerance])
+                cluster["price"] = np.mean([level] + [lvl for _, lvl in support_levels if abs(lvl - cluster["price"]) / lvl < tolerance])
                 found_cluster = True
                 break
         if not found_cluster:

@@ -10,7 +10,6 @@ Version: 8.1
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 import importlib
-import pkgutil
 
 from ...core.schemas import OhlcvBar
 

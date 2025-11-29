@@ -25,8 +25,8 @@ def run(window: OhlcvWindow, microtraits: Microtraits) -> ProtocolResult:
         )
     
     closes = np.array([b.close for b in bars])
-    highs = np.array([b.high for b in bars])
-    lows = np.array([b.low for b in bars])
+    np.array([b.high for b in bars])
+    np.array([b.low for b in bars])
     volumes = np.array([b.volume for b in bars])
     
     sma20 = np.mean(closes[-20:])

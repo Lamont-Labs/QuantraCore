@@ -7,10 +7,9 @@ supporting all cap buckets from mega to penny stocks.
 Version: 9.0-A
 """
 
-import os
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Set
+from typing import List, Dict, Optional
 import yaml
 
 
