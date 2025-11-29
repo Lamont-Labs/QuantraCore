@@ -23,6 +23,7 @@ from .enums import (
 )
 from .models import (
     EntryExitPlan,
+    EntryZone,
     BaseEntry,
     ScaledEntry,
     ProtectiveStop,
@@ -65,6 +66,7 @@ __all__ = [
     "OrderTypeEEO",
     "ExitStyle",
     "EntryExitPlan",
+    "EntryZone",
     "BaseEntry",
     "ScaledEntry",
     "ProtectiveStop",
