@@ -204,6 +204,7 @@ class ApexResult(BaseModel):
     volume_metrics: VolumeMetrics
     
     protocol_results: List[ProtocolResult] = Field(default_factory=list)
+    monster_runner_results: Dict[str, Any] = Field(default_factory=dict)
     verdict: Verdict
     
     omega_overrides: Dict[str, bool] = Field(default_factory=dict)

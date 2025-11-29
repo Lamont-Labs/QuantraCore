@@ -33,15 +33,25 @@ class ApexEngine:
     def __init__(self, enable_logging: bool = True, auto_load_protocols: bool = True):
         self.enable_logging = enable_logging
         self._protocol_runner: Any = None
+        self._monster_runner: Any = None
         
         if auto_load_protocols:
             self._init_protocol_runner()
+            self._init_monster_runner()
     
     def _init_protocol_runner(self) -> None:
         """Initialize the tier protocol runner."""
         try:
             from src.quantracore_apex.protocols.tier.tier_loader import TierProtocolRunner
             self._protocol_runner = TierProtocolRunner()
+        except ImportError:
+            pass
+    
+    def _init_monster_runner(self) -> None:
+        """Initialize the MonsterRunner protocol loader."""
+        try:
+            from src.quantracore_apex.protocols.monster_runner.monster_runner_loader import MonsterRunnerLoader
+            self._monster_runner = MonsterRunnerLoader()
         except ImportError:
             pass
     
@@ -135,6 +145,21 @@ class ApexEngine:
         if self._protocol_runner:
             protocol_results = self._protocol_runner.run_all(window, microtraits)
         
+        monster_runner_results: dict = {}
+        if self._monster_runner:
+            mr_result = self._monster_runner.run_all(window.bars)
+            monster_runner_results = {
+                "any_fired": mr_result.any_fired,
+                "protocols_fired": mr_result.protocols_fired,
+                "monster_score": mr_result.monster_score,
+                "confidence": mr_result.confidence,
+                "dominant_signal": mr_result.dominant_signal,
+                "individual_results": {
+                    k: v.model_dump() if hasattr(v, 'model_dump') else (v if isinstance(v, dict) else str(v))
+                    for k, v in mr_result.individual_results.items()
+                } if mr_result.individual_results else {}
+            }
+        
         omega_overrides = self._apply_omega_directives(
             quantrascore=quantrascore,
             entropy_metrics=entropy_metrics,
@@ -160,6 +185,7 @@ class ApexEngine:
             continuation_metrics=continuation_metrics,
             volume_metrics=volume_metrics,
             protocol_results=protocol_results,
+            monster_runner_results=monster_runner_results,
             verdict=verdict,
             omega_overrides=omega_overrides,
         )
@@ -193,7 +219,9 @@ class ApexEngine:
                     "entropy": entropy_metrics.combined_entropy,
                     "suppression": suppression_metrics.suppression_level,
                     "drift": drift_metrics.drift_magnitude,
-                    "protocols_fired": [p.protocol_id for p in protocol_results if hasattr(p, 'triggered') and p.triggered],
+                    "tier_protocols_fired": [p.protocol_id for p in protocol_results if getattr(p, 'fired', False)],
+                    "monster_runner_fired": monster_runner_results.get("protocols_fired", []),
+                    "monster_runner_score": monster_runner_results.get("monster_score", 0),
                     "omega_triggers": omega_overrides,
                 },
                 symbol=window.symbol,
