@@ -47,6 +47,26 @@ The frontend is built with React 18, Vite 5, and Tailwind CSS 3, providing a mod
 
 The FastAPI backend exposes endpoints for health checks, system statistics, single and batch symbol scanning, protocol tracing, extreme move checks, risk assessments, signal generation, and portfolio status.
 
+### Google Docs Integration
+
+Full Google Docs integration for document management and collaboration. Located in `src/quantracore_apex/integrations/google_docs/`.
+
+| Module | Purpose | Key Endpoints |
+|--------|---------|---------------|
+| `client.py` | Core OAuth2 client via Replit connector | `GET /gdocs/status`, `GET /gdocs/documents` |
+| `research_report.py` | Auto-generates research reports from scans | `POST /gdocs/report/generate`, `POST /gdocs/report/batch` |
+| `trade_journal.py` | Daily research journal with signal/protocol logging | `GET /gdocs/journal/today`, `POST /gdocs/journal/log/*` |
+| `investor_updates.py` | Professional investor-ready reports | `POST /gdocs/investor/monthly`, `POST /gdocs/investor/due-diligence` |
+| `notes_importer.py` | Imports research notes/watchlists from Docs | `POST /gdocs/notes/import`, `GET /gdocs/notes/symbols` |
+| `doc_sync.py` | Syncs project documentation to Google Drive | `POST /gdocs/sync/specs`, `POST /gdocs/sync/index` |
+
+**Key Features:**
+- Research Report Generator: Creates formatted analysis reports with QuantraScore, protocol analysis, risk assessment
+- Trade Journal: Daily logging of signals, Omega alerts, and research observations
+- Investor Updates: Monthly/quarterly reports, due diligence packages
+- Notes Importer: Extracts stock symbols and watchlists from documents
+- Doc Sync: Exports project specifications to Google Docs for sharing
+
 ## External Dependencies
 
 - **Data Providers:**
@@ -59,6 +79,10 @@ The FastAPI backend exposes endpoints for health checks, system statistics, sing
 - **Broker Integration (Paper Trading Only):**
     - Alpaca Paper (requires `ALPACA_PAPER_API_KEY` and `ALPACA_PAPER_API_SECRET`)
     - PaperSim (internal, no API required)
+
+- **Google Docs Integration:**
+    - Connected via Replit OAuth2 connector (no API key needed)
+    - Scopes: `docs`, `documents`, `documents.readonly`
 
 - **Environment Variables:**
     - `POLYGON_API_KEY`: Required for Polygon.io API access.
