@@ -148,6 +148,76 @@ export interface SignalResult {
   timestamp: string
 }
 
+export interface PredictiveStatusResponse {
+  version: string
+  status: string
+  enabled: boolean
+  model_variant: string
+  model_dir: string
+  runner_threshold: number
+  avoid_threshold: number
+  max_disagreement: number
+  compliance_note: string
+  timestamp: string
+}
+
+export interface PredictiveAdvisoryRequest {
+  symbol: string
+  timeframe?: string
+  lookback_days?: number
+}
+
+export interface PredictiveAdvisoryResponse {
+  symbol: string
+  base_quantra_score: number
+  model_quantra_score: number
+  runner_prob: number
+  quality_tier: string
+  avoid_trade_prob: number
+  ensemble_disagreement: number
+  recommendation: string
+  confidence: number
+  reasons: string[]
+  engine_quantra_score: number
+  engine_regime: string
+  engine_risk_tier: string
+  predictive_status: string
+  compliance_note: string
+  timestamp: string
+}
+
+export interface ModelInfoResponse {
+  status: string
+  manifest_count?: number
+  latest_manifest?: Record<string, unknown>
+  available_manifests?: string[]
+  model_variant?: string
+  created_at?: string
+  message?: string
+  compliance_note: string
+  timestamp: string
+}
+
+export interface BatchAdvisoryRequest {
+  symbols: string[]
+  timeframe?: string
+  lookback_days?: number
+  max_results?: number
+}
+
+export interface BatchAdvisoryResponse {
+  total_requested: number
+  total_processed: number
+  total_errors: number
+  uprank_count: number
+  avoid_count: number
+  predictive_status: string
+  results: PredictiveAdvisoryResponse[]
+  errors: { symbol: string; error: string }[]
+  compliance_note: string
+  timestamp: string
+}
+
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${endpoint}`
   const response = await fetch(url, {
@@ -203,5 +273,27 @@ export const api = {
 
   generateSignal(symbol: string): Promise<SignalResult> {
     return request(`/signal/generate/${symbol}`, { method: 'POST' })
+  },
+
+  getPredictiveStatus(): Promise<PredictiveStatusResponse> {
+    return request('/predictive/status')
+  },
+
+  getPredictiveAdvise(params: PredictiveAdvisoryRequest): Promise<PredictiveAdvisoryResponse> {
+    return request('/predictive/advise', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  },
+
+  getModelInfo(): Promise<ModelInfoResponse> {
+    return request('/predictive/model_info')
+  },
+
+  getBatchAdvise(params: BatchAdvisoryRequest): Promise<BatchAdvisoryResponse> {
+    return request('/predictive/batch_advise', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
   },
 }
