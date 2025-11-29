@@ -14,6 +14,18 @@ class ExecutionMode(str, Enum):
     LIVE = "LIVE"          # Orders routed to real brokers (DISABLED by default)
 
 
+class BrokerType(str, Enum):
+    """Supported broker types for universal routing."""
+    ALPACA_PAPER = "alpaca_paper"   # Alpaca paper trading (default)
+    ALPACA_LIVE = "alpaca_live"     # Alpaca live trading
+    BINANCE = "binance"             # Binance spot/futures
+    BINANCE_FUTURES = "binance_futures"  # Binance USDT-M futures
+    IBKR = "ibkr"                   # Interactive Brokers TWS/Gateway
+    BYBIT = "bybit"                 # Bybit exchange
+    TRADIER = "tradier"             # Tradier brokerage
+    PAPER_SIM = "paper_sim"         # Internal paper simulator
+
+
 class OrderSide(str, Enum):
     """Order side."""
     BUY = "BUY"

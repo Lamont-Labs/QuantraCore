@@ -6,6 +6,13 @@ Alpha Factory Main Loop.
 2. Runs ApexEngine scans on each tick
 3. Generates alpha signals and portfolio rebalancing
 4. Tracks equity curve and performance
+5. LEARNS FROM ITS OWN TRADES via FeedbackLoop → ApexLab
+
+Self-Learning Architecture:
+- Entry context captured: features, protocols, QuantraScore
+- Exit outcome tracked: P&L, holding time, exit reason
+- Completed trades → ApexLab training samples
+- Periodic retraining when batch threshold reached
 """
 
 import os
@@ -13,7 +20,7 @@ import time
 import logging
 import threading
 from datetime import datetime
-from typing import Dict, Any, Optional, Callable
+from typing import Dict, Any, Optional, Callable, Set
 
 import pandas as pd
 
@@ -21,6 +28,9 @@ from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import OhlcvWindow, OhlcvBar
 from src.quantracore_apex.portfolio.core import (
     Portfolio, EQUITY_UNIVERSE, CRYPTO_UNIVERSE, FULL_UNIVERSE
+)
+from src.quantracore_apex.alpha_factory.feedback_loop import (
+    get_feedback_tracker, trigger_retrain_if_ready
 )
 
 logger = logging.getLogger(__name__)
@@ -66,6 +76,7 @@ class AlphaFactoryLoop:
         
         self.engine = ApexEngine()
         self.portfolio = Portfolio(initial_cash=initial_cash, universe=all_symbols)
+        self.feedback = get_feedback_tracker()
         
         self._running = False
         self._threads: list = []
@@ -74,6 +85,8 @@ class AlphaFactoryLoop:
         self._start_time: datetime = datetime.now()
         
         self._price_buffer: Dict[str, pd.DataFrame] = {}
+        self._active_positions: Set[str] = set()
+        self._last_scan_result: Dict[str, Dict] = {}
         
         logger.info(f"Alpha Factory initialized: ${initial_cash:,.0f} | "
                    f"Equities: {len(self.equity_symbols)} | Crypto: {len(self.crypto_symbols)}")
@@ -187,12 +200,50 @@ class AlphaFactoryLoop:
                     'omega_alert': len(result.get('omega_alerts', [])) > 0
                 }
             }
+            
+            self._last_scan_result[symbol] = result
+            
+            had_position = symbol in self._active_positions
+            
             self.portfolio.rebalance(signal_data)
+            
+            has_position = symbol in self.portfolio._positions and self.portfolio._positions[symbol] > 0
+            
+            if has_position and not had_position:
+                feature_snapshot = {
+                    'close': close_price,
+                    'score': score,
+                    'atr_pct': result.get('atr_pct', 0.02),
+                }
+                
+                self.feedback.record_entry(
+                    symbol=symbol,
+                    entry_price=close_price,
+                    quantity=self.portfolio._positions.get(symbol, 0),
+                    side="LONG",
+                    quantra_score=score,
+                    protocol_flags=result.get('monster_alerts', []),
+                    omega_flags=result.get('omega_alerts', []),
+                    feature_snapshot=feature_snapshot,
+                )
+                self._active_positions.add(symbol)
+                logger.info(f"[FeedbackLoop] ENTRY: {symbol} @ ${close_price:.2f}")
+            
+            elif not has_position and had_position:
+                self.feedback.record_exit(
+                    symbol=symbol,
+                    exit_price=close_price,
+                    exit_reason="signal_exit" if score < 40 else "rebalance",
+                )
+                self._active_positions.discard(symbol)
+                logger.info(f"[FeedbackLoop] EXIT: {symbol} @ ${close_price:.2f}")
             
             if self._tick_count % 100 == 0:
                 self.portfolio.save_equity_curve('equity_curve.csv')
                 logger.info(f"Ticks: {self._tick_count} | Signals: {self._signal_count} | "
                            f"NAV: ${self.portfolio.nav:,.2f}")
+                
+                trigger_retrain_if_ready()
         
         except Exception as e:
             logger.error(f"Error processing tick {symbol}: {e}")
@@ -299,7 +350,7 @@ class AlphaFactoryLoop:
         logger.info("=" * 60)
     
     def get_status(self) -> Dict[str, Any]:
-        """Get current status."""
+        """Get current status including self-learning feedback stats."""
         uptime = None
         if self._start_time:
             uptime = str(datetime.now() - self._start_time)
@@ -310,5 +361,6 @@ class AlphaFactoryLoop:
             "tick_count": self._tick_count,
             "signal_count": self._signal_count,
             "portfolio": self.portfolio.get_summary(),
-            "active_positions": self.portfolio.get_active_positions()
+            "active_positions": self.portfolio.get_active_positions(),
+            "feedback_loop": self.feedback.get_stats(),
         }
