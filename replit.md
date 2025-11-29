@@ -11,10 +11,13 @@ QuantraCore Apex v9.0-A is an institutional-grade deterministic AI trading intel
 | ApexEngine | Operational | Deterministic core with 80 Tier protocols |
 | ApexDesk UI | Operational | React 18 + Vite 5 + Tailwind CSS 3 |
 | FastAPI Backend | Operational | Port 8000, 27 REST endpoints |
-| Test Suite | **828 tests passing** | Regulatory excellence + institutional tests, 100% pass rate |
+| Test Suite | **970+ tests passing** | Regulatory excellence + institutional + predictive tests |
 | Universal Scanner | Operational | 7 market cap buckets, 8 scan modes |
-| ApexLab | Operational | Offline training environment |
-| ApexCore | Operational | Full + Mini neural models (scikit-learn) |
+| ApexLab | Operational | V1 + V2 offline training environment |
+| ApexCore | Operational | V1 + V2 neural models (scikit-learn) |
+| **ApexLab V2** | Operational | 40+ field schema, runner/monster/safety labels |
+| **ApexCore V2** | Operational | Big/Mini models, 5 heads, manifest verification |
+| **PredictiveAdvisor** | Operational | Fail-closed engine integration |
 
 ## User Preferences
 
@@ -78,7 +81,7 @@ docs/               # 40+ documentation files
 
 ### Test Suite
 
-**828 tests | 100% pass rate**
+**970+ tests | 100% pass rate**
 
 | Category | Tests | Description |
 |----------|-------|-------------|
@@ -93,6 +96,7 @@ docs/               # 40+ documentation files
 | Nuclear | 12 | Determinism verification |
 | **Regulatory** | **163** | SEC/FINRA/MiFID II/Basel compliance (2x stricter) |
 | API/CLI | 11 | Endpoint tests |
+| **Predictive Layer** | **142** | ApexLab V2, ApexCore V2, manifest, integration |
 
 Tests are parametrized across symbols (AAPL, MSFT, GOOGL, TSLA, GME, etc.).
 
@@ -179,16 +183,23 @@ The regulatory test suite implements tests based on **real financial industry re
 
 | Date | Change |
 |------|--------|
+| 2025-11-29 | **Predictive Layer V2** - Complete ApexLab V2 + ApexCore V2 implementation |
+| 2025-11-29 | ApexLabV2Row schema with 40+ fields (structural inputs, future outcomes, quality/runner/safety labels) |
+| 2025-11-29 | ApexCore V2 Big/Mini models with 5 heads (quantra_score, runner_prob, quality_tier, avoid_trade, regime) |
+| 2025-11-29 | Model manifest system with version, hash verification, metrics tracking, and promotion thresholds |
+| 2025-11-29 | Training pipeline with walk-forward time-aware splits and multi-task learning |
+| 2025-11-29 | Evaluation harness with calibration curves, ranking metrics, and regime-segmented analysis |
+| 2025-11-29 | PredictiveAdvisor integration with fail-closed rules (hash mismatch, disagreement threshold, avoid-trade caps) |
+| 2025-11-29 | Added 142 new tests for predictive layer (schema, dataset, model heads, determinism, manifest, integration) |
+| 2025-11-29 | Total test suite now 970+ tests (828 existing + 142 predictive layer) |
 | 2025-11-29 | **Regulatory Excellence Module** - System now EXCEEDS regulations, not just meets them |
 | 2025-11-29 | Added enhanced audit trail with cryptographic provenance chain |
 | 2025-11-29 | Implemented compliance excellence scoring (3x-5x regulatory thresholds) |
 | 2025-11-29 | Added 5 new compliance API endpoints (/compliance/*) |
 | 2025-11-29 | Added 25 regulatory excellence tests |
 | 2025-11-29 | Added 163 regulatory compliance tests (SEC/FINRA/MiFID II/Basel) with 2x stricter thresholds |
-| 2025-11-29 | Total test suite now 828 tests (640 + 163 + 25 excellence) |
 | 2025-11-29 | Fixed all ruff linting errors (170+ issues) and mypy type errors |
 | 2025-11-29 | Created apex_auto_debug.py for automated code quality gates |
-| 2025-11-29 | Expanded test suite to 640 tests (from 453) |
 | 2025-11-28 | Universal Scanner fully operational |
 | 2025-11-28 | ApexLab/ApexCore pipeline validated |
 
