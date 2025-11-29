@@ -162,29 +162,30 @@ def get_adapter() -> BrokerAdapter:
         BrokerType.ALPACA_PAPER: _create_alpaca_paper_adapter,
         BrokerType.ALPACA_LIVE: _create_alpaca_live_adapter,
         BrokerType.BINANCE: lambda: _create_binance_adapter(testnet=False),
+        BrokerType.BINANCE_TESTNET: lambda: _create_binance_adapter(testnet=True),
         BrokerType.BINANCE_FUTURES: lambda: _create_binance_adapter(testnet=False),
-        BrokerType.IBKR: _create_ibkr_adapter,
+        BrokerType.IBKR: lambda: _create_ibkr_adapter(),
+        BrokerType.IBKR_PAPER: lambda: _create_ibkr_adapter(),
         BrokerType.BYBIT: lambda: _create_bybit_adapter(testnet=False),
+        BrokerType.BYBIT_TESTNET: lambda: _create_bybit_adapter(testnet=True),
         BrokerType.TRADIER: lambda: _create_tradier_adapter(sandbox=False),
+        BrokerType.TRADIER_SANDBOX: lambda: _create_tradier_adapter(sandbox=True),
         BrokerType.PAPER_SIM: PaperSimAdapter,
     }
     
-    broker_str = broker_type.value
-    if broker_str.endswith("_testnet") or broker_str.endswith("_sandbox"):
-        base_broker = broker_str.rsplit("_", 1)[0]
-        if base_broker == "binance":
-            return _create_binance_adapter(testnet=True)
-        elif base_broker == "bybit":
-            return _create_bybit_adapter(testnet=True)
-        elif base_broker == "tradier":
-            return _create_tradier_adapter(sandbox=True)
-    
     if mode == ExecutionMode.PAPER:
-        paper_only = {BrokerType.ALPACA_PAPER, BrokerType.PAPER_SIM}
-        if broker_type not in paper_only:
+        paper_types = {
+            BrokerType.ALPACA_PAPER, 
+            BrokerType.PAPER_SIM,
+            BrokerType.BINANCE_TESTNET,
+            BrokerType.BYBIT_TESTNET,
+            BrokerType.TRADIER_SANDBOX,
+            BrokerType.IBKR_PAPER,
+        }
+        if broker_type not in paper_types:
             logger.warning(
                 f"[Universal] {broker_type.value} requested in PAPER mode. "
-                f"Using testnet/paper variant."
+                f"Switching to testnet/paper variant."
             )
             if broker_type in (BrokerType.BINANCE, BrokerType.BINANCE_FUTURES):
                 return _create_binance_adapter(testnet=True)
@@ -194,6 +195,8 @@ def get_adapter() -> BrokerAdapter:
                 return _create_tradier_adapter(sandbox=True)
             elif broker_type == BrokerType.IBKR:
                 return _create_ibkr_adapter()
+            elif broker_type == BrokerType.ALPACA_LIVE:
+                return _create_alpaca_paper_adapter()
     
     factory = adapters.get(broker_type)
     if factory:
