@@ -39,6 +39,16 @@ from src.quantracore_apex.broker.adapters import (
     PaperSimAdapter,
 )
 
+try:
+    from src.quantracore_apex.hardening.mode_enforcer import (
+        set_mode_for_testing,
+        reset_mode_enforcer,
+        ExecutionMode as HardeningExecutionMode,
+    )
+    HARDENING_AVAILABLE = True
+except ImportError:
+    HARDENING_AVAILABLE = False
+
 
 class TestOrderModels:
     """Tests for order-related models."""
@@ -475,6 +485,15 @@ class TestExecutionEngine:
 class TestExecutionEnginePaperMode:
     """Tests for ExecutionEngine in PAPER mode (actual fills)."""
     
+    @pytest.fixture(autouse=True)
+    def setup_paper_mode(self):
+        """Set up PAPER mode for hardening enforcement."""
+        if HARDENING_AVAILABLE:
+            set_mode_for_testing(HardeningExecutionMode.PAPER)
+        yield
+        if HARDENING_AVAILABLE:
+            reset_mode_enforcer()
+    
     @pytest.fixture
     def paper_engine(self):
         """Create an execution engine in paper mode."""
@@ -566,6 +585,15 @@ class TestExecutionEnginePaperMode:
 
 class TestBrokerAPIIntegration:
     """API integration tests for broker layer (requires running server)."""
+    
+    @pytest.fixture(autouse=True)
+    def setup_paper_mode(self):
+        """Set up PAPER mode for hardening enforcement."""
+        if HARDENING_AVAILABLE:
+            set_mode_for_testing(HardeningExecutionMode.PAPER)
+        yield
+        if HARDENING_AVAILABLE:
+            reset_mode_enforcer()
     
     def test_paper_execute_returns_filled(self):
         """

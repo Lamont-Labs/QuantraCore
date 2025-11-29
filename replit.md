@@ -37,6 +37,7 @@ The architecture prioritizes determinism, fail-closed operations, and local-only
 - **Universal Scanner:** Supports 7 market cap buckets and 8 scan modes for comprehensive market analysis.
 - **Omega Directives (Ω1-Ω5):** Five safety override protocols, with Ω4 enforcing a permanent research-only compliance mode.
 - **Regulatory Compliance:** Over 1000+ tests, including 163+ dedicated regulatory tests that exceed SEC/FINRA/MiFID II/Basel requirements by 2x-5x, ensuring institutional-grade safety margins. This includes determinism verification, stress testing, market abuse detection, and risk controls.
+- **Hardening Infrastructure:** Global hardening system implementing fail-closed behavior, protocol manifest verification, config validation, mode enforcement (RESEARCH/PAPER/LIVE), incident logging, and kill switch management. See [`docs/SECURITY_COMPLIANCE/hardening_blueprint.md`](docs/SECURITY_COMPLIANCE/hardening_blueprint.md).
 
 ### UI/UX Decisions
 

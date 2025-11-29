@@ -47,6 +47,14 @@ try:
 except ImportError:
     EEO_AVAILABLE = False
 
+try:
+    from ..hardening.mode_enforcer import get_mode_enforcer, ModeViolationError
+    from ..hardening.kill_switch import get_kill_switch_manager
+    from ..hardening.incident_logger import get_incident_logger, IncidentClass, IncidentSeverity
+    HARDENING_AVAILABLE = True
+except ImportError:
+    HARDENING_AVAILABLE = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +113,41 @@ class ExecutionEngine:
             ExecutionResult if order was placed, None if rejected/skipped
         """
         logger.info(f"[ExecutionEngine] Processing signal: {signal.signal_id} - {signal.symbol}")
+        
+        if HARDENING_AVAILABLE:
+            kill_switch = get_kill_switch_manager()
+            allowed, reason = kill_switch.check_order_allowed()
+            if not allowed:
+                logger.warning(f"[ExecutionEngine] Signal blocked by kill switch: {reason}")
+                return ExecutionResult(
+                    order_id="",
+                    broker=self._router.adapter_name,
+                    status=OrderStatus.REJECTED,
+                    error_message=f"Kill switch engaged: {reason}",
+                    ticket_id=signal.signal_id,
+                )
+            
+            mode_enforcer = get_mode_enforcer()
+            is_paper = self._config.execution_mode == ExecutionMode.PAPER
+            is_live = self._config.execution_mode == ExecutionMode.LIVE
+            
+            if is_paper and not mode_enforcer.check_permission("place_paper_order"):
+                return ExecutionResult(
+                    order_id="",
+                    broker=self._router.adapter_name,
+                    status=OrderStatus.REJECTED,
+                    error_message="Paper orders not permitted in current mode",
+                    ticket_id=signal.signal_id,
+                )
+            
+            if is_live and not mode_enforcer.check_permission("place_live_order"):
+                return ExecutionResult(
+                    order_id="",
+                    broker=self._router.adapter_name,
+                    status=OrderStatus.REJECTED,
+                    error_message="Live orders not permitted",
+                    ticket_id=signal.signal_id,
+                )
         
         # Get current state
         positions = self._router.get_positions()
@@ -191,6 +234,43 @@ class ExecutionEngine:
                 "stop_result": None,
                 "target_results": [],
             }
+        
+        if HARDENING_AVAILABLE:
+            kill_switch = get_kill_switch_manager()
+            allowed, reason = kill_switch.check_order_allowed()
+            if not allowed:
+                logger.warning(f"[ExecutionEngine] Order blocked by kill switch: {reason}")
+                return {
+                    "success": False,
+                    "error": f"Kill switch engaged: {reason}",
+                    "entry_result": None,
+                    "stop_result": None,
+                    "target_results": [],
+                }
+            
+            mode_enforcer = get_mode_enforcer()
+            is_paper = self._config.execution_mode == ExecutionMode.PAPER
+            is_live = self._config.execution_mode == ExecutionMode.LIVE
+            
+            if is_paper and not mode_enforcer.check_permission("place_paper_order"):
+                logger.warning("[ExecutionEngine] Paper orders not permitted in current mode")
+                return {
+                    "success": False,
+                    "error": "Paper orders not permitted in current mode",
+                    "entry_result": None,
+                    "stop_result": None,
+                    "target_results": [],
+                }
+            
+            if is_live and not mode_enforcer.check_permission("place_live_order"):
+                logger.warning("[ExecutionEngine] Live orders not permitted in current mode")
+                return {
+                    "success": False,
+                    "error": "Live orders not permitted - institutional sign-off required",
+                    "entry_result": None,
+                    "stop_result": None,
+                    "target_results": [],
+                }
         
         if not plan.is_valid():
             return {
