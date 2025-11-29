@@ -540,6 +540,150 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    from src.quantracore_apex.compliance.excellence import excellence_engine
+    from src.quantracore_apex.compliance.reporter import regulatory_reporter
+    
+    @app.get("/compliance/score")
+    async def get_compliance_score():
+        """
+        Get current regulatory compliance excellence score.
+        
+        Returns comprehensive metrics showing how much we EXCEED
+        regulatory requirements (not just meet them).
+        """
+        score = excellence_engine.calculate_score()
+        return {
+            "overall_score": score.overall_score,
+            "excellence_level": score.level.value,
+            "timestamp": score.timestamp.isoformat(),
+            "metrics": score.metrics.to_dict(),
+            "standards_met": score.standards_met,
+            "standards_exceeded": score.standards_exceeded,
+            "areas_of_excellence": score.areas_of_excellence,
+            "compliance_mode": "RESEARCH_ONLY",
+        }
+    
+    @app.get("/compliance/excellence")
+    async def get_excellence_summary():
+        """
+        Get regulatory excellence summary with multipliers.
+        
+        Shows how many times we exceed each regulatory requirement:
+        - FINRA 15-09: Target 3x (150 vs 50 iterations)
+        - MiFID II Latency: Target 5x (1s vs 5s)
+        - SEC Risk Controls: Target 4x sensitivity
+        """
+        return excellence_engine.get_excellence_summary()
+    
+    @app.get("/compliance/report")
+    async def generate_compliance_report(period_days: int = 1):
+        """
+        Generate comprehensive regulatory compliance report.
+        
+        Report includes:
+        - Executive summary with excellence metrics
+        - Regulatory adherence breakdown (all regulations exceeded)
+        - Risk control status (all Omega directives)
+        - Recommendations for maintaining excellence
+        """
+        excellence_summary = excellence_engine.get_excellence_summary()
+        result = regulatory_reporter.generate_and_save(
+            excellence_summary=excellence_summary,
+            period_days=period_days,
+        )
+        return {
+            "report_id": result["report_id"],
+            "saved_files": result["saved_files"],
+            "executive_summary": result["executive_summary"],
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    
+    @app.get("/compliance/standards")
+    async def get_regulatory_standards():
+        """
+        Get list of all regulatory standards and our excellence targets.
+        
+        Each standard shows:
+        - Minimum regulatory requirement
+        - Industry best practice
+        - QuantraCore excellence target (2x-5x requirements)
+        """
+        from src.quantracore_apex.compliance.excellence import RegulatoryExcellenceEngine
+        
+        standards = []
+        for s in RegulatoryExcellenceEngine.EXCELLENCE_STANDARDS:
+            standards.append({
+                "regulation": s.regulation,
+                "section": s.section,
+                "description": s.description,
+                "minimum_requirement": s.minimum_requirement,
+                "industry_best_practice": s.industry_best_practice,
+                "quantracore_target": s.quantracore_target,
+                "excellence_multiplier": f"{s.quantracore_target / s.minimum_requirement:.1f}x",
+            })
+        
+        return {
+            "standards": standards,
+            "total_regulations": len(standards),
+            "compliance_mode": "RESEARCH_ONLY",
+            "note": "All targets exceed regulatory minimums by 2x-5x",
+        }
+    
+    @app.get("/compliance/omega")
+    async def get_omega_status():
+        """
+        Get status of all Omega Directives (safety overrides).
+        
+        Omega directives are institutional-grade safety controls:
+        - Omega 1: Extreme risk safety lock
+        - Omega 2: Entropy override
+        - Omega 3: Drift override
+        - Omega 4: Compliance mode (always active)
+        - Omega 5: Suppression lock
+        """
+        return {
+            "omega_directives": {
+                "omega_1_safety": {
+                    "name": "Extreme Risk Safety Lock",
+                    "enabled": omega_directives.enable_omega_1,
+                    "trigger": "Extreme risk tier detected",
+                    "effect": "Hard halt on all analysis outputs",
+                },
+                "omega_2_entropy": {
+                    "name": "Entropy Override",
+                    "enabled": omega_directives.enable_omega_2,
+                    "trigger": "Chaotic entropy state",
+                    "effect": "Suppress high-confidence signals",
+                },
+                "omega_3_drift": {
+                    "name": "Drift Override",
+                    "enabled": omega_directives.enable_omega_3,
+                    "trigger": "Critical model drift",
+                    "effect": "Flag outputs as potentially unreliable",
+                },
+                "omega_4_compliance": {
+                    "name": "Compliance Mode",
+                    "enabled": omega_directives.enable_omega_4,
+                    "trigger": "Always active",
+                    "effect": "All outputs framed as structural analysis, not advice",
+                },
+                "omega_5_suppression": {
+                    "name": "Signal Suppression Lock",
+                    "enabled": omega_directives.enable_omega_5,
+                    "trigger": "Strong suppression state",
+                    "effect": "Suppress signal generation",
+                },
+            },
+            "all_directives_active": all([
+                omega_directives.enable_omega_1,
+                omega_directives.enable_omega_2,
+                omega_directives.enable_omega_3,
+                omega_directives.enable_omega_4,
+                omega_directives.enable_omega_5,
+            ]),
+            "compliance_mode": "RESEARCH_ONLY",
+        }
+    
     @app.get("/desk")
     async def apex_desk():
         """Serve ApexDesk dashboard."""
