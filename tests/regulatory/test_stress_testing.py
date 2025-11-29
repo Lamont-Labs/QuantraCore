@@ -87,7 +87,7 @@ class TestVolumeStress:
         window = OhlcvWindow(symbol=symbol, timeframe="1m", bars=bars)
         
         start_time = time.perf_counter()
-        result = engine.analyze(window)
+        result = engine.run(window)
         elapsed = time.perf_counter() - start_time
         
         assert result is not None, "Analysis failed under 4x volume stress"
@@ -109,7 +109,7 @@ class TestVolumeStress:
         all_bars = normal_bars + burst_bars + recovery_bars
         window = OhlcvWindow(symbol=symbol, timeframe="1m", bars=all_bars)
         
-        result = engine.analyze(window)
+        result = engine.run(window)
         
         assert result is not None, "Engine failed during volume burst"
         assert 0 <= result.quantrascore <= 100, "Score out of bounds after burst"
@@ -127,7 +127,7 @@ class TestVolumeStress:
         latencies = []
         for _ in range(iterations):
             start = time.perf_counter()
-            result = engine.analyze(window)
+            result = engine.run(window)
             latencies.append(time.perf_counter() - start)
             
             assert result is not None, "Engine degraded under sustained load"
@@ -171,15 +171,21 @@ class TestVolatilityStress:
         bars = generate_stress_bars(count=100, volatility_multiplier=volatility)
         window = OhlcvWindow(symbol="AAPL", timeframe="1m", bars=bars)
         
-        result = engine.analyze(window)
+        result = engine.run(window)
         
         assert result is not None, f"Analysis failed in {scenario_name} scenario"
         assert 0 <= result.quantrascore <= 100, (
             f"Score {result.quantrascore} out of bounds in {scenario_name}"
         )
-        assert result.regime in [
-            "stable", "volatile", "trending", "chaotic", "unknown"
-        ], f"Invalid regime classification in {scenario_name}"
+        valid_regimes = [
+            "stable", "volatile", "trending", "chaotic", "unknown",
+            "range_bound", "breakout", "consolidation", "compressed",
+            "trending_up", "trending_down", "sideways"
+        ]
+        regime_value = result.regime.value if hasattr(result.regime, 'value') else str(result.regime)
+        assert regime_value.lower() in [r.lower() for r in valid_regimes], (
+            f"Invalid regime classification in {scenario_name}: {regime_value}"
+        )
     
     def test_volatility_regime_transition(self, engine: ApexEngine):
         """
@@ -195,7 +201,7 @@ class TestVolatilityStress:
         all_bars = stable_bars + crash_bars + recovery_bars + stable2_bars
         window = OhlcvWindow(symbol="SPY", timeframe="1m", bars=all_bars)
         
-        result = engine.analyze(window)
+        result = engine.run(window)
         
         assert result is not None, "Failed during volatility transition"
         assert result.regime is not None, "Regime classification failed"
@@ -227,7 +233,7 @@ class TestLatencyCompliance:
         window = OhlcvWindow(symbol=symbol, timeframe="1m", bars=bars)
         
         start = time.perf_counter()
-        result = engine.analyze(window)
+        result = engine.run(window)
         elapsed_ms = (time.perf_counter() - start) * 1000
         
         assert elapsed_ms < self.LATENCY_THRESHOLD_MS, (
@@ -247,7 +253,7 @@ class TestLatencyCompliance:
         latencies = []
         for _ in range(100):
             start = time.perf_counter()
-            _ = engine.analyze(window)
+            _ = engine.run(window)
             latencies.append((time.perf_counter() - start) * 1000)
         
         p99_latency = np.percentile(latencies, 99)
@@ -272,7 +278,7 @@ class TestLatencyCompliance:
         start = time.perf_counter()
         
         with ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [executor.submit(engine.analyze, w) for w in windows]
+            futures = [executor.submit(engine.run, w) for w in windows]
             for future in as_completed(futures):
                 results.append(future.result())
         
@@ -315,7 +321,7 @@ class TestSystemResilience:
         
         window = OhlcvWindow(symbol="AAPL", timeframe="1m", bars=bars)
         
-        result = engine.analyze(window)
+        result = engine.run(window)
         assert result is not None, "Engine crashed on zero-value bar"
     
     def test_gap_data_resilience(self, engine: ApexEngine):
@@ -338,7 +344,7 @@ class TestSystemResilience:
         
         window = OhlcvWindow(symbol="AAPL", timeframe="1m", bars=bars)
         
-        result = engine.analyze(window)
+        result = engine.run(window)
         assert result is not None, "Engine failed on gapped data"
     
     def test_extreme_price_movement_resilience(self, engine: ApexEngine):
@@ -360,7 +366,7 @@ class TestSystemResilience:
         
         window = OhlcvWindow(symbol="GME", timeframe="1m", bars=bars)
         
-        result = engine.analyze(window)
+        result = engine.run(window)
         assert result is not None, "Engine failed on extreme price movement"
         assert result.quantrascore >= 0, "Invalid score on extreme movement"
     
@@ -377,7 +383,7 @@ class TestSystemResilience:
         for i in range(100):
             bars = generate_stress_bars(count=100)
             window = OhlcvWindow(symbol="AAPL", timeframe="1m", bars=bars)
-            _ = engine.analyze(window)
+            _ = engine.run(window)
         
         final_size = sys.getsizeof(engine)
         
@@ -401,7 +407,7 @@ class TestSystemResilience:
             try:
                 bars = generate_stress_bars(count=50)
                 window = OhlcvWindow(symbol=symbol, timeframe="1m", bars=bars)
-                result = engine.analyze(window)
+                result = engine.run(window)
                 with lock:
                     results.append((symbol, result))
             except Exception as e:
