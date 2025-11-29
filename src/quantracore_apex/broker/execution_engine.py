@@ -172,6 +172,9 @@ class ExecutionEngine:
         """
         symbol = signal.symbol.upper()
         
+        # Use default price if not available (for research mode)
+        effective_price = last_price if last_price > 0 else 100.0
+        
         # Find existing position
         current_position = None
         for pos in positions:
@@ -190,9 +193,9 @@ class ExecutionEngine:
             
             # Calculate size
             if signal.size_hint:
-                qty = self._calculate_qty_from_hint(signal.size_hint, equity, last_price)
+                qty = self._calculate_qty_from_hint(signal.size_hint, equity, effective_price)
             else:
-                qty = self._risk_engine.calculate_position_size(equity, last_price)
+                qty = self._risk_engine.calculate_position_size(equity, effective_price)
             
             if qty <= 0:
                 return None
