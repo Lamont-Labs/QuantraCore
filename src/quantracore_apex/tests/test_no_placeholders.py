@@ -147,13 +147,13 @@ class TestNoPlaceholders:
             assert protocol_id in runner.protocols, f"Missing protocol: {protocol_id}"
     
     def test_all_monster_runner_protocols_implemented(self):
-        """Verify all 5 MonsterRunner protocols are implemented."""
+        """Verify all 20 MonsterRunner protocols are implemented."""
         from src.quantracore_apex.protocols.monster_runner.monster_runner_loader import MonsterRunnerLoader
         
         loader = MonsterRunnerLoader()
         
-        assert len(loader.protocols) == 5, f"Expected 5 protocols, found {len(loader.protocols)}"
+        assert len(loader.protocols) == 20, f"Expected 20 protocols, found {len(loader.protocols)}"
         
-        for i in range(1, 6):
+        for i in range(1, 21):
             protocol_id = f"MR{i:02d}"
             assert protocol_id in loader.protocols, f"Missing protocol: {protocol_id}"
