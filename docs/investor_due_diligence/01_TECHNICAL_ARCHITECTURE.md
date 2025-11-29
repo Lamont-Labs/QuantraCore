@@ -116,7 +116,7 @@ QuantraCore Apex v9.0-A is an institutional-grade deterministic AI trading intel
 │  ┌────────────────────────────────────────────────────────────────────┐     │
 │  │                    API & VISUALIZATION LAYER                        │     │
 │  │  ┌─────────────────────────────────────────────────────────────┐   │     │
-│  │  │ FastAPI Server (27 Endpoints) │ React Dashboard (ApexDesk)  │   │     │
+│  │  │ FastAPI Server (36 Endpoints) │ React Dashboard (ApexDesk)  │   │     │
 │  │  │ REST API │ Interactive Docs │ Real-time Analysis Display    │   │     │
 │  │  └─────────────────────────────────────────────────────────────┘   │     │
 │  └────────────────────────────────────────────────────────────────────┘     │
