@@ -5,7 +5,7 @@
 [![Tests](https://img.shields.io/badge/tests-1099%20passed-brightgreen)]()
 [![Compliance](https://img.shields.io/badge/regulatory-163%2B%20tests-blueviolet)]()
 [![Security](https://img.shields.io/badge/security-fail--closed-critical)]()
-[![Mode](https://img.shields.io/badge/mode-RESEARCH%20only-yellow)]()
+[![Mode](https://img.shields.io/badge/mode-RESEARCH%20|%20PAPER%20|%20LIVE-yellow)]()
 [![Python](https://img.shields.io/badge/python-3.11-blue)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)]()
 [![React](https://img.shields.io/badge/React-18.2-61DAFB)]()
@@ -18,7 +18,7 @@
 
 **Owner:** Lamont Labs - Jesse J. Lamont  
 **Version:** v9.0-A (Institutional Hardening)  
-**Architecture:** Desktop-Only | Research/Backtest Mode  
+**Architecture:** Desktop-Only | Modes: RESEARCH (default) / PAPER / LIVE  
 
 ---
 
