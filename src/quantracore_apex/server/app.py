@@ -1702,6 +1702,20 @@ def create_app() -> FastAPI:
         lookback_days: int = 150
         max_results: int = 50
     
+    @app.get("/estimated_move/horizons")
+    async def get_estimated_move_horizons():
+        """Get available horizon windows for estimated move calculation."""
+        return {
+            "horizons": [
+                {"id": "1d", "name": "Short Term", "days": 1},
+                {"id": "3d", "name": "Medium Term", "days": 3},
+                {"id": "5d", "name": "Extended Term", "days": 5},
+                {"id": "10d", "name": "Research Term", "days": 10},
+            ],
+            "compliance_note": "Horizons for statistical research only - not trading timeframes",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
     @app.get("/estimated_move/{symbol}")
     async def get_estimated_move(
         symbol: str,
@@ -1856,20 +1870,6 @@ def create_app() -> FastAPI:
             "results": results,
             "errors": errors[:10],
             "compliance_note": "Structural research output only - NOT price targets or trading signals",
-            "timestamp": datetime.utcnow().isoformat()
-        }
-    
-    @app.get("/estimated_move/horizons")
-    async def get_estimated_move_horizons():
-        """Get available horizon windows for estimated move calculation."""
-        return {
-            "horizons": [
-                {"id": "1d", "name": "Short Term", "days": 1},
-                {"id": "3d", "name": "Medium Term", "days": 3},
-                {"id": "5d", "name": "Extended Term", "days": 5},
-                {"id": "10d", "name": "Research Term", "days": 10},
-            ],
-            "compliance_note": "Horizons for statistical research only - not trading timeframes",
             "timestamp": datetime.utcnow().isoformat()
         }
     
