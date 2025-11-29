@@ -19,7 +19,7 @@ This roadmap outlines the planned development trajectory for QuantraCore Apex. A
 - QuantraCore Apex deterministic core engine
 - 80 Tier Protocols (T01–T80)
 - 25 Learning Protocols (LP01–LP25)
-- 5 Omega Directives (Ω1–Ω5)
+- 20 Omega Directives (Ω1–Ω5)
 - QuantraScore (0–100) scoring system
 - ApexLab V1 offline training environment
 - ApexCore V1 Full model (desktop)

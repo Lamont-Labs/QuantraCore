@@ -54,8 +54,8 @@ QuantraCore Apex v9.0-A is a desktop-based institutional-grade deterministic AI 
 |---------------|-------|---------|
 | Tier Protocols (T01-T80) | 80 | Structural analysis rules |
 | Learning Protocols (LP01-LP25) | 25 | Training label generation |
-| MonsterRunner (MR01-MR05) | 5 | Rare event detection |
-| Omega Directives (Ω1-Ω5) | 5 | Safety overrides |
+| MonsterRunner (MR01-MR20) | 5 | Rare event detection |
+| Omega Directives (Ω1-Ω20) | 5 | Safety overrides |
 
 ### Neural Assistant Models
 
@@ -204,7 +204,7 @@ QuantraCore Apex v9.0-A is a desktop-based institutional-grade deterministic AI 
 - ✓ Institutional hardening complete
 - ✓ Predictive layer V2 implemented
 - ✓ Regulatory excellence framework
-- ✓ 970 tests passing
+- ✓ 1145 tests passing
 - ✓ 99.25% compliance score
 
 ### Near-Term (v9.1)

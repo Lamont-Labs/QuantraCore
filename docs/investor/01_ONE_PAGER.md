@@ -12,7 +12,7 @@
 
 ## Value Propositions
 
-- **Deterministic Signals:** 115 protocols generate reproducible structural analysis with hash-verified outputs
+- **Deterministic Signals:** 145 protocols generate reproducible structural analysis with hash-verified outputs
 - **Offline Lab:** ApexLab v2 creates labeled datasets from historical data without cloud dependencies
 - **On-Device Models:** ApexCore v2 (Big/Mini) provides ranking assistance that never overrides engine authority
 - **Mobile Copilot:** QuantraVision Apex brings structural overlays to retail investors on Android
@@ -85,7 +85,7 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Deterministic Engine | Implemented | 115 protocols operational |
+| Deterministic Engine | Implemented | 145 protocols operational |
 | ApexLab v2 | Implemented | Labeling and dataset generation |
 | ApexCore v2 | Implemented | Big/Mini models with manifests |
 | PredictiveAdvisor | Implemented | Fail-closed ranker |

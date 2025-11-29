@@ -2,7 +2,7 @@
 
 **Institutional-Grade Deterministic AI Trading Intelligence Engine**
 
-[![Tests](https://img.shields.io/badge/tests-1099%20passed-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-1145%20passed-brightgreen)]()
 [![Compliance](https://img.shields.io/badge/regulatory-163%2B%20tests-blueviolet)]()
 [![Security](https://img.shields.io/badge/security-fail--closed-critical)]()
 [![Mode](https://img.shields.io/badge/mode-RESEARCH%20|%20PAPER%20|%20LIVE-yellow)]()
@@ -29,7 +29,7 @@
 | **ApexEngine** | Operational | Deterministic core with 80 Tier protocols |
 | **ApexDesk UI** | Operational | React 18 + Vite 5 + Tailwind CSS 3 |
 | **FastAPI Backend** | Operational | 27 REST endpoints on port 8000 |
-| **Test Suite** | **1,099 tests passing** | Regulatory excellence + hardening + institutional |
+| **Test Suite** | **1,145 tests passing** | Regulatory excellence + hardening + institutional |
 | **Universal Scanner** | Operational | 7 market cap buckets, 8 scan modes |
 | **ApexLab** | Operational | V1 + V2 offline training environment |
 | **ApexCore Models** | Operational | V1 + V2 neural models (scikit-learn) |
@@ -85,7 +85,7 @@ QuantraCore Apex is a **research and backtesting platform** that:
 ## Test Coverage
 
 ```
-1,099 tests | 100% pass rate
+1,145 tests | 100% pass rate
 ```
 
 ### Test Breakdown
@@ -96,7 +96,7 @@ QuantraCore Apex is a **research and backtesting platform** that:
 | **Broker Layer** | 34 | Order routing, risk engine, adapters |
 | **EEO Engine** | 42 | Entry/exit optimization, profiles |
 | **Core Engine** | 78 | ApexEngine instantiation, execution, result validation |
-| **Protocols** | 77 | Tier protocol loading, execution, results |
+| **Protocols** | 123 | Tier protocol loading, execution, extended Omega/MR |
 | **Scanner** | 78 | Universe scanner, volatility tags, regime detection |
 | **Model** | 68 | ApexCore model loading, inference, validation |
 | **Lab** | 97 | ApexLab label generation, feature extraction |
@@ -112,7 +112,7 @@ QuantraCore Apex is a **research and backtesting platform** that:
 ### Run Tests
 
 ```bash
-# Full suite (1,099 tests)
+# Full suite (1,145 tests)
 make test
 
 # End-to-end integration (26 tests)

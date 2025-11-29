@@ -77,10 +77,10 @@ QuantraCore Apex v9.0-A is an institutional-grade deterministic AI trading intel
 │  │  │ ApexEngine │ ZDE │ Microtraits │ Signal Engines │ QuantraScore│   │     │
 │  │  └─────────────────────────────────────────────────────────────┘   │     │
 │  │  ┌─────────────────────────────────────────────────────────────┐   │     │
-│  │  │ Protocols: T01-T80 (Tier) │ LP01-LP25 (Learning) │ MR01-MR05│   │     │
+│  │  │ Protocols: T01-T80 (Tier) │ LP01-LP25 (Learning) │ MR01-MR20│   │     │
 │  │  └─────────────────────────────────────────────────────────────┘   │     │
 │  │  ┌─────────────────────────────────────────────────────────────┐   │     │
-│  │  │ Safety: Omega Directives Ω1-Ω5 │ Compliance Mode: RESEARCH  │   │     │
+│  │  │ Safety: Omega Directives Ω1-Ω20 │ Compliance Mode: RESEARCH  │   │     │
 │  │  └─────────────────────────────────────────────────────────────┘   │     │
 │  └────────────────────────────────────────────────────────────────────┘     │
 │                          ↓                    ↓                              │
@@ -147,8 +147,8 @@ QuantraCore Apex v9.0-A is an institutional-grade deterministic AI trading intel
 |------|-------|-----|---------|
 | Tier Protocols | 80 | T01-T80 | Structural analysis rules |
 | Learning Protocols | 25 | LP01-LP25 | Label generation for training |
-| MonsterRunner | 5 | MR01-MR05 | Rare event detection |
-| Omega Directives | 5 | Ω1-Ω5 | Safety overrides |
+| MonsterRunner | 5 | MR01-MR20 | Rare event detection |
+| Omega Directives | 5 | Ω1-Ω20 | Safety overrides |
 
 ### Signal Engines
 
@@ -197,7 +197,7 @@ Market Data Input (OHLCV)
 └─────────────────────────┘
          ↓
 ┌─────────────────────────┐
-│  Omega Directives       │  Ω1-Ω5 safety checks
+│  Omega Directives       │  Ω1-Ω20 safety checks
 │  Risk Gates             │  Kill switches, limits
 └─────────────────────────┘
          ↓
@@ -223,7 +223,7 @@ quantracore-apex/
 │   ├── protocols/
 │   │   ├── tier/           # T01-T80 protocols
 │   │   ├── learning/       # LP01-LP25 protocols
-│   │   ├── monster_runner/ # MR01-MR05 protocols
+│   │   ├── monster_runner/ # MR01-MR20 protocols
 │   │   └── omega/          # Omega directives
 │   ├── data_layer/         # Adapters: Polygon, Alpha Vantage, CSV, Synthetic
 │   ├── apexlab/            # V1 + V2 training pipeline

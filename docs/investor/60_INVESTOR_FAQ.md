@@ -256,10 +256,10 @@ I want to architect and steer, not be the solo coder forever.
 
 | Moat | Description |
 |------|-------------|
-| Protocol IP | 115 protocols with unique logic |
+| Protocol IP | 145 protocols with unique logic |
 | Architecture | Deterministic-to-neural pipeline |
 | Documentation | 180-page master spec + investor docs |
-| Test Suite | 970 tests validating correctness |
+| Test Suite | 1145 tests validating correctness |
 | Provenance | SBOM, manifests, proof logs |
 
 *See: [Competitive Positioning](04_COMPETITIVE_POSITIONING.md)*

@@ -2,13 +2,13 @@
 
 **Last Updated:** November 29, 2025  
 **Status:** All Tests Passing  
-**Total Tests:** 1,099
+**Total Tests:** 1,145
 
 ---
 
 ## Executive Summary
 
-QuantraCore Apex v9.0-A maintains institutional-grade test coverage with **1,099 automated tests** covering all critical subsystems. The testing infrastructure includes unit tests, integration tests, regulatory compliance tests, and end-to-end validation.
+QuantraCore Apex v9.0-A maintains institutional-grade test coverage with **1,145 automated tests** covering all critical subsystems. The testing infrastructure includes unit tests, integration tests, regulatory compliance tests, and end-to-end validation.
 
 ---
 
@@ -26,13 +26,13 @@ QuantraCore Apex v9.0-A maintains institutional-grade test coverage with **1,099
 | ApexLab | 97 | ✅ Pass | Label generation, dataset validation |
 | ApexCore Models | 68 | ✅ Pass | Model loading, predictions, manifests |
 | Nuclear/Determinism | 106 | ✅ Pass | Determinism verification |
-| Protocols | 77 | ✅ Pass | T01-T80, LP01-LP25, MR01-MR05 |
+| Protocols | 123 | ✅ Pass | T01-T80, LP01-LP25, MR01-MR20, Ω01-Ω20 |
 | Scanner | 78 | ✅ Pass | Universe scanning, volatility |
 | Performance | 19 | ✅ Pass | Latency, throughput |
 | API | 6 | ✅ Pass | Endpoint validation |
 | Other | 297+ | ✅ Pass | Various subsystems |
 
-**Total: 1,099 tests**
+**Total: 1,145 tests**
 
 ---
 
@@ -41,7 +41,7 @@ QuantraCore Apex v9.0-A maintains institutional-grade test coverage with **1,099
 The hardening module is tested comprehensively:
 
 ### Protocol Manifest (12 tests)
-- Manifest generation with 115 protocols
+- Manifest generation with 145 protocols
 - SHA-256 hash computation with execution order
 - Hash validation on startup
 - Protocol count verification
@@ -193,7 +193,7 @@ make test-smoke
 
 ## Conclusion
 
-QuantraCore Apex v9.0-A maintains comprehensive test coverage that exceeds institutional requirements. All 1,099 tests pass with 100% success rate, validating the system's determinism, safety controls, and regulatory compliance.
+QuantraCore Apex v9.0-A maintains comprehensive test coverage that exceeds institutional requirements. All 1,145 tests pass with 100% success rate, validating the system's determinism, safety controls, and regulatory compliance.
 
 ---
 

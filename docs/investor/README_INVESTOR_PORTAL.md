@@ -164,7 +164,7 @@ All claims in this documentation are backed by:
 - **970 automated tests** with 100% pass rate
 - **99.25% regulatory compliance score** (verified via API)
 - **36 REST endpoints** (documented and operational)
-- **115 protocols** (80 Tier + 25 Learning + 5 MonsterRunner + 5 Omega)
+- **145 protocols** (80 Tier + 25 Learning + 20 MonsterRunner + 20 Omega)
 - **Production model manifests** with SHA256 verification
 
 ---

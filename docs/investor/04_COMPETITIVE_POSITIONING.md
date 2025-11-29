@@ -26,7 +26,7 @@ QuantraCore Apex operates in the intersection of quantitative trading infrastruc
 
 | Gap | Apex Solution |
 |-----|---------------|
-| No integrated signal generation | 115 protocols generate structural signals |
+| No integrated signal generation | 145 protocols generate structural signals |
 | Black-box user logic | Deterministic, auditable protocol traces |
 | No neural component | ApexCore v2 provides ranking assistance |
 | Minimal compliance | 99.25% compliance score, regulatory margins |
@@ -101,7 +101,7 @@ QuantraCore Apex operates in the intersection of quantitative trading infrastruc
 | General-purpose LLM | Purpose-built neural models |
 | No determinism | 100% reproducible outputs |
 | Hallucination risk | Fail-closed, no unsupported claims |
-| No structural analysis | 115 protocols for market structure |
+| No structural analysis | 145 protocols for market structure |
 | Chat-centric | API-first, dashboard for research |
 
 **Apex Advantage:** Purpose-built for trading research with deterministic guarantees, not a chat wrapper.
@@ -171,10 +171,10 @@ Dual-market opportunity:
 
 | Moat | Description |
 |------|-------------|
-| **Protocol IP** | 115 protocols represent years of development |
+| **Protocol IP** | 145 protocols represent years of development |
 | **Architecture** | Deterministic-to-neural pipeline is novel |
 | **Documentation** | Comprehensive specs enable rapid onboarding |
-| **Test Suite** | 970 tests validate correctness |
+| **Test Suite** | 1145 tests validate correctness |
 | **Compliance** | Exceeds regulatory requirements by 3-5x |
 
 ---

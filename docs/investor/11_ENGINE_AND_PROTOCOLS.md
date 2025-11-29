@@ -8,7 +8,7 @@
 
 ## What Does the Deterministic Engine Do?
 
-The ApexEngine is the core analysis component of QuantraCore Apex. It applies 115 protocols to market data to generate structural signals with guaranteed reproducibility.
+The ApexEngine is the core analysis component of QuantraCore Apex. It applies 145 protocols to market data to generate structural signals with guaranteed reproducibility.
 
 ---
 
@@ -16,7 +16,7 @@ The ApexEngine is the core analysis component of QuantraCore Apex. It applies 11
 
 | Responsibility | Description |
 |----------------|-------------|
-| **Protocol Execution** | Run 115 protocols in deterministic order |
+| **Protocol Execution** | Run 145 protocols in deterministic order |
 | **Signal Generation** | Produce QuantraScore and structural labels |
 | **Trace Logging** | Record every decision for audit |
 | **Determinism Guarantee** | Same inputs always produce same outputs |
@@ -61,7 +61,7 @@ The ApexEngine is the core analysis component of QuantraCore Apex. It applies 11
 
 ---
 
-### MonsterRunner Protocols (MR01-MR05)
+### MonsterRunner Protocols (MR01-MR20)
 
 **Purpose:** Detect potential extreme moves (>20% gains).
 
@@ -77,7 +77,7 @@ The ApexEngine is the core analysis component of QuantraCore Apex. It applies 11
 
 ---
 
-### Omega Directives (Ω1-Ω5)
+### Omega Directives (Ω1-Ω20)
 
 **Purpose:** Safety override protocols that can halt or modify any signal.
 
@@ -178,7 +178,7 @@ LP15 (Risk): MODERATE
 
 ### Step 5: MonsterRunner Check
 ```
-MR01-MR05: runner_prob = 0.23
+MR01-MR20: runner_prob = 0.23
 Classification: NOT_RUNNER (threshold 0.7)
 ```
 
@@ -215,9 +215,9 @@ Layer 1: Foundation (T01-T10, LP01-LP05)
     ↓
 Layer 2: Analysis (T11-T50, LP06-LP15)
     ↓
-Layer 3: Integration (T51-T80, LP16-LP25, MR01-MR05)
+Layer 3: Integration (T51-T80, LP16-LP25, MR01-MR20)
     ↓
-Layer 4: Override (Ω1-Ω5)
+Layer 4: Override (Ω1-Ω20)
 ```
 
 Each layer completes before the next begins, ensuring deterministic ordering.

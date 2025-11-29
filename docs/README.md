@@ -39,7 +39,7 @@ Welcome to the QuantraCore Apex documentation. This folder contains comprehensiv
 
 - [Tier Protocols](PROTOCOLS_TIER.md) — T01-T80 analysis protocols
 - [Learning Protocols](PROTOCOLS_LEARNING.md) — LP01-LP25 label generation
-- [Omega Directives](OMEGA_DIRECTIVES.md) — Ω1-Ω5 safety overrides
+- [Omega Directives](OMEGA_DIRECTIVES.md) — Ω1-Ω20 safety overrides
 - [Determinism Tests](DETERMINISM_TESTS.md) — Reproducibility verification
 
 ### Integration

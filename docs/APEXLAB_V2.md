@@ -125,8 +125,8 @@ The 115-dimensional protocol vector encodes:
 |-------|-----------|-------------|
 | 0-79 | T01-T80 | Tier protocol fire states |
 | 80-104 | LP01-LP25 | Learning protocol states |
-| 105-109 | MR01-MR05 | MonsterRunner states |
-| 110-114 | Ω1-Ω5 | Omega directive states |
+| 105-109 | MR01-MR20 | MonsterRunner states |
+| 110-114 | Ω1-Ω20 | Omega directive states |
 
 ---
 

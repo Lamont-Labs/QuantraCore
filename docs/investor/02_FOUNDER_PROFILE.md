@@ -40,7 +40,7 @@ QuantraCore Apex was built using a modern AI-assisted development workflow. Jess
 | Evidence | Description |
 |----------|-------------|
 | **Master Specification** | 180-page technical specification covering all system components |
-| **Protocol Inventory** | 115 protocols designed, documented, and implemented |
+| **Protocol Inventory** | 145 protocols designed, documented, and implemented |
 | **Test Suite** | 970 automated tests with determinism verification |
 | **Iteration History** | Months of development from v7.x through v9.0-A |
 | **Documentation** | Comprehensive investor, technical, and operational documentation |
@@ -89,7 +89,7 @@ The ideal outcome is a partnership where Jesse:
 
 ## Why Trust This Person?
 
-1. **The work exists.** This isn't a pitch deck — it's a working system with 970 tests and 115 protocols.
+1. **The work exists.** This isn't a pitch deck — it's a working system with 1145 tests and 145 protocols.
 
 2. **Honest positioning.** Risks and gaps are stated upfront, not hidden in footnotes.
 

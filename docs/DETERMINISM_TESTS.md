@@ -92,7 +92,7 @@ def test_protocol_T01():
 
 - All 80 Tier Protocols (T01–T80)
 - All 25 Learning Protocols (LP01–LP25)
-- All 5 Omega Directives (Ω1–Ω5)
+- All 20 Omega Directives (Ω1–Ω5)
 
 ---
 
