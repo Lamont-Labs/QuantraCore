@@ -2135,6 +2135,219 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    from src.quantracore_apex.eeo_engine import (
+        EntryExitOptimizer,
+        SignalContext as EEOSignalContext,
+        PredictiveContext,
+        MarketMicrostructure,
+        RiskContext,
+        EEOContext,
+        SignalDirection as EEOSignalDirection,
+        QualityTier,
+        ProfileType,
+        CONSERVATIVE_PROFILE,
+        BALANCED_PROFILE,
+        AGGRESSIVE_RESEARCH_PROFILE,
+        get_profile,
+    )
+    
+    class EEOPlanRequest(BaseModel):
+        symbol: str
+        direction: str = "LONG"
+        quantra_score: float = 50.0
+        current_price: float = 100.0
+        atr: float = 0.0
+        account_equity: float = 100000.0
+        runner_prob: float = 0.0
+        quality_tier: str = "C"
+        estimated_move_median: Optional[float] = None
+        estimated_move_max: Optional[float] = None
+        profile: str = "balanced"
+        signal_id: str = ""
+    
+    @app.post("/eeo/plan")
+    async def build_eeo_plan(request: EEOPlanRequest):
+        """
+        Build an Entry/Exit Optimization Plan.
+        
+        This endpoint calculates optimal entry zones, stops, and targets
+        for a given signal using deterministic + model-assisted methods.
+        """
+        try:
+            profile_map = {
+                "conservative": ProfileType.CONSERVATIVE,
+                "balanced": ProfileType.BALANCED,
+                "aggressive_research": ProfileType.AGGRESSIVE_RESEARCH,
+            }
+            profile_type = profile_map.get(request.profile.lower(), ProfileType.BALANCED)
+            
+            optimizer = EntryExitOptimizer(profile_type=profile_type)
+            
+            direction = EEOSignalDirection.LONG if request.direction.upper() == "LONG" else EEOSignalDirection.SHORT
+            
+            quality_map = {
+                "A_PLUS": QualityTier.A_PLUS,
+                "A": QualityTier.A,
+                "B": QualityTier.B,
+                "C": QualityTier.C,
+                "D": QualityTier.D,
+            }
+            quality_tier = quality_map.get(request.quality_tier.upper(), QualityTier.C)
+            
+            signal_context = EEOSignalContext(
+                symbol=request.symbol.upper(),
+                direction=direction,
+                quantra_score=request.quantra_score,
+                signal_id=request.signal_id or f"api_{request.symbol}_{datetime.utcnow().strftime('%H%M%S')}",
+            )
+            
+            predictive_context = PredictiveContext(
+                runner_prob=request.runner_prob,
+                future_quality_tier=quality_tier,
+                estimated_move_median=request.estimated_move_median,
+                estimated_move_max=request.estimated_move_max,
+            )
+            
+            atr = request.atr if request.atr > 0 else request.current_price * 0.02
+            microstructure = MarketMicrostructure.from_price(request.current_price, atr)
+            
+            risk_context = RiskContext(
+                account_equity=request.account_equity,
+                per_trade_risk_fraction=optimizer.profile.per_trade_risk_fraction,
+            )
+            
+            context = EEOContext(
+                signal=signal_context,
+                predictive=predictive_context,
+                microstructure=microstructure,
+                risk=risk_context,
+            )
+            
+            plan = optimizer.build_plan(context)
+            
+            return {
+                "success": True,
+                "plan": plan.to_dict(),
+                "profile_used": optimizer.profile.name,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/eeo/plan/execute")
+    async def execute_eeo_plan(request: EEOPlanRequest):
+        """
+        Build and execute an Entry/Exit Plan using paper trading.
+        
+        This endpoint builds a plan and immediately executes the entry
+        using the paper trading engine.
+        """
+        try:
+            profile_map = {
+                "conservative": ProfileType.CONSERVATIVE,
+                "balanced": ProfileType.BALANCED,
+                "aggressive_research": ProfileType.AGGRESSIVE_RESEARCH,
+            }
+            profile_type = profile_map.get(request.profile.lower(), ProfileType.BALANCED)
+            
+            optimizer = EntryExitOptimizer(profile_type=profile_type)
+            
+            direction = EEOSignalDirection.LONG if request.direction.upper() == "LONG" else EEOSignalDirection.SHORT
+            
+            signal_context = EEOSignalContext(
+                symbol=request.symbol.upper(),
+                direction=direction,
+                quantra_score=request.quantra_score,
+                signal_id=request.signal_id or f"eeo_{request.symbol}_{datetime.utcnow().strftime('%H%M%S')}",
+            )
+            
+            predictive_context = PredictiveContext(
+                runner_prob=request.runner_prob,
+                estimated_move_median=request.estimated_move_median,
+                estimated_move_max=request.estimated_move_max,
+            )
+            
+            atr = request.atr if request.atr > 0 else request.current_price * 0.02
+            microstructure = MarketMicrostructure.from_price(request.current_price, atr)
+            
+            risk_context = RiskContext(
+                account_equity=request.account_equity,
+                per_trade_risk_fraction=optimizer.profile.per_trade_risk_fraction,
+            )
+            
+            context = EEOContext(
+                signal=signal_context,
+                predictive=predictive_context,
+                microstructure=microstructure,
+                risk=risk_context,
+            )
+            
+            plan = optimizer.build_plan(context)
+            
+            engine = get_paper_engine()
+            execution_result = engine.execute_plan(plan)
+            
+            return {
+                "success": execution_result.get("success", False),
+                "plan": plan.to_dict(),
+                "execution": execution_result,
+                "profile_used": optimizer.profile.name,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/eeo/profiles")
+    async def list_eeo_profiles():
+        """List available EEO profiles."""
+        return {
+            "profiles": [
+                {
+                    "name": "conservative",
+                    "description": CONSERVATIVE_PROFILE.description,
+                    "risk_fraction": CONSERVATIVE_PROFILE.per_trade_risk_fraction,
+                    "aggressiveness": CONSERVATIVE_PROFILE.entry_aggressiveness,
+                },
+                {
+                    "name": "balanced",
+                    "description": BALANCED_PROFILE.description,
+                    "risk_fraction": BALANCED_PROFILE.per_trade_risk_fraction,
+                    "aggressiveness": BALANCED_PROFILE.entry_aggressiveness,
+                },
+                {
+                    "name": "aggressive_research",
+                    "description": AGGRESSIVE_RESEARCH_PROFILE.description,
+                    "risk_fraction": AGGRESSIVE_RESEARCH_PROFILE.per_trade_risk_fraction,
+                    "aggressiveness": AGGRESSIVE_RESEARCH_PROFILE.entry_aggressiveness,
+                },
+            ],
+            "default": "balanced",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.get("/eeo/profiles/{profile_name}")
+    async def get_eeo_profile(profile_name: str):
+        """Get detailed information about a specific EEO profile."""
+        profile_map = {
+            "conservative": CONSERVATIVE_PROFILE,
+            "balanced": BALANCED_PROFILE,
+            "aggressive_research": AGGRESSIVE_RESEARCH_PROFILE,
+        }
+        
+        profile = profile_map.get(profile_name.lower())
+        if not profile:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Profile '{profile_name}' not found. Available: conservative, balanced, aggressive_research"
+            )
+        
+        return {
+            "profile": profile.to_dict(),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
     return app
 
 
