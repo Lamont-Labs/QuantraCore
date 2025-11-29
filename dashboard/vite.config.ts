@@ -49,6 +49,14 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
+      '/predictive': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/compliance': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
   build: {

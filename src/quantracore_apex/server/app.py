@@ -1437,6 +1437,248 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    class PredictiveAdvisoryRequest(BaseModel):
+        symbol: str
+        timeframe: str = "1d"
+        lookback_days: int = 150
+    
+    @app.get("/predictive/status")
+    async def predictive_status():
+        """Get status of the Predictive Layer V2 (ApexCore V2)."""
+        try:
+            from src.quantracore_apex.core.integration_predictive import (
+                PredictiveAdvisor,
+                PredictiveConfig,
+            )
+            
+            config = PredictiveConfig(enabled=True)
+            advisor = PredictiveAdvisor(config=config)
+            
+            return {
+                "version": "2.0",
+                "status": advisor.status,
+                "enabled": advisor.is_enabled,
+                "model_variant": config.variant,
+                "model_dir": config.model_dir,
+                "runner_threshold": config.runner_prob_uprank_threshold,
+                "avoid_threshold": config.avoid_trade_prob_max,
+                "max_disagreement": config.max_disagreement_allowed,
+                "compliance_note": "Predictive layer is ADVISORY ONLY - engine has final authority",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting predictive status: {e}")
+            return {
+                "version": "2.0",
+                "status": "ERROR",
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/predictive/advise")
+    async def predictive_advise(request: PredictiveAdvisoryRequest):
+        """Get predictive advisory for a symbol (ApexCore V2 integration)."""
+        try:
+            from src.quantracore_apex.core.integration_predictive import (
+                PredictiveAdvisor,
+                PredictiveConfig,
+            )
+            from src.quantracore_apex.apexlab.apexlab_v2 import encode_protocol_vector
+            
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=request.lookback_days)
+            
+            bars = data_adapter.fetch_ohlcv(
+                request.symbol, start_date, end_date, request.timeframe
+            )
+            
+            if len(bars) < 100:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Insufficient data: got {len(bars)} bars, need at least 100"
+                )
+            
+            normalized_bars, _ = normalize_ohlcv(bars)
+            window = window_builder.build_single(
+                normalized_bars, request.symbol, request.timeframe
+            )
+            
+            context = ApexContext(seed=42, compliance_mode=True)
+            result = engine.run(window, context)
+            
+            protocol_ids = [p.get("protocol_id", "") for p in result.protocol_results if p]
+            protocol_vector = encode_protocol_vector(protocol_ids)
+            features = np.array(protocol_vector, dtype=np.float32)
+            
+            config = PredictiveConfig(enabled=True)
+            advisor = PredictiveAdvisor(config=config)
+            
+            advisory = advisor.advise_on_candidate(
+                symbol=request.symbol,
+                base_quantra_score=result.quantrascore,
+                features=features,
+            )
+            
+            response = advisory.to_dict()
+            response["engine_quantra_score"] = result.quantrascore
+            response["engine_regime"] = result.regime.value
+            response["engine_risk_tier"] = result.risk_tier.value
+            response["predictive_status"] = advisor.status
+            response["compliance_note"] = "Advisory only - engine has final authority"
+            response["timestamp"] = datetime.utcnow().isoformat()
+            
+            return convert_numpy_types(response)
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error getting predictive advisory for {request.symbol}: {e}")
+            return {
+                "symbol": request.symbol,
+                "error": str(e),
+                "recommendation": "DISABLED",
+                "reasons": [f"Error: {str(e)}"],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/predictive/model_info")
+    async def predictive_model_info():
+        """Get information about loaded ApexCore V2 models."""
+        try:
+            from src.quantracore_apex.apexcore.manifest import (
+                load_manifest,
+                select_best_model,
+            )
+            from pathlib import Path
+            
+            manifest_dir = Path("models/apexcore_v2/big/manifests")
+            
+            if not manifest_dir.exists():
+                return {
+                    "status": "NO_MANIFESTS",
+                    "message": "No model manifests found - models not yet trained",
+                    "manifest_dir": str(manifest_dir),
+                    "available_manifests": [],
+                    "compliance_note": "Train models using ApexLab V2 before using predictions",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            manifest_files = list(manifest_dir.glob("*.json"))
+            
+            if not manifest_files:
+                return {
+                    "status": "NO_MANIFESTS",
+                    "message": "No model manifests found in directory",
+                    "manifest_dir": str(manifest_dir),
+                    "available_manifests": [],
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            manifest_path, latest_manifest = select_best_model(str(manifest_dir))
+            
+            return {
+                "status": "MODELS_AVAILABLE",
+                "manifest_count": len(manifest_files),
+                "latest_manifest": latest_manifest.to_dict() if latest_manifest else None,
+                "available_manifests": [str(m) for m in manifest_files[:5]],
+                "model_variant": latest_manifest.variant if latest_manifest else "unknown",
+                "created_at": latest_manifest.created_utc if latest_manifest else None,
+                "compliance_note": "Models are advisory only - research mode",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting model info: {e}")
+            return {
+                "status": "ERROR",
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    class BatchAdvisoryRequest(BaseModel):
+        symbols: List[str]
+        timeframe: str = "1d"
+        lookback_days: int = 150
+        max_results: int = 50
+    
+    @app.post("/predictive/batch_advise")
+    async def predictive_batch_advise(request: BatchAdvisoryRequest):
+        """Get predictive advisory for multiple symbols (batch processing)."""
+        try:
+            from src.quantracore_apex.core.integration_predictive import (
+                PredictiveAdvisor,
+                PredictiveConfig,
+            )
+            from src.quantracore_apex.apexlab.apexlab_v2 import encode_protocol_vector
+            
+            config = PredictiveConfig(enabled=True)
+            advisor = PredictiveAdvisor(config=config)
+            
+            results = []
+            errors = []
+            
+            for symbol in request.symbols[:request.max_results]:
+                try:
+                    end_date = datetime.now()
+                    start_date = end_date - timedelta(days=request.lookback_days)
+                    
+                    bars = data_adapter.fetch_ohlcv(
+                        symbol, start_date, end_date, request.timeframe
+                    )
+                    
+                    if len(bars) < 100:
+                        errors.append({
+                            "symbol": symbol,
+                            "error": f"Insufficient data: {len(bars)} bars"
+                        })
+                        continue
+                    
+                    normalized_bars, _ = normalize_ohlcv(bars)
+                    window = window_builder.build_single(
+                        normalized_bars, symbol, request.timeframe
+                    )
+                    
+                    context = ApexContext(seed=42, compliance_mode=True)
+                    result = engine.run(window, context)
+                    
+                    protocol_ids = [p.get("protocol_id", "") for p in result.protocol_results if p]
+                    protocol_vector = encode_protocol_vector(protocol_ids)
+                    features = np.array(protocol_vector, dtype=np.float32)
+                    
+                    advisory = advisor.advise_on_candidate(
+                        symbol=symbol,
+                        base_quantra_score=result.quantrascore,
+                        features=features,
+                    )
+                    
+                    result_dict = advisory.to_dict()
+                    result_dict["engine_quantra_score"] = result.quantrascore
+                    result_dict["engine_regime"] = result.regime.value
+                    results.append(convert_numpy_types(result_dict))
+                    
+                except Exception as e:
+                    errors.append({"symbol": symbol, "error": str(e)})
+            
+            uprank_count = sum(1 for r in results if r.get("recommendation") == "UPRANK")
+            avoid_count = sum(1 for r in results if r.get("recommendation") == "AVOID")
+            
+            return {
+                "total_requested": len(request.symbols),
+                "total_processed": len(results),
+                "total_errors": len(errors),
+                "uprank_count": uprank_count,
+                "avoid_count": avoid_count,
+                "predictive_status": advisor.status,
+                "results": results,
+                "errors": errors[:10],
+                "compliance_note": "Advisory only - engine has final authority",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error in batch predictive advisory: {e}")
+            return {
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
     return app
 
 

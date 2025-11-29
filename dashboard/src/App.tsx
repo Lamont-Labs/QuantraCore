@@ -3,6 +3,7 @@ import { LeftRail } from './components/LeftRail'
 import { Header } from './components/Header'
 import { UniverseTable } from './components/UniverseTable'
 import { DetailPanel } from './components/DetailPanel'
+import { PredictivePanel } from './components/PredictivePanel'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
 export type NavItem = 'dashboard' | 'research' | 'apexlab' | 'models' | 'logs'
@@ -148,10 +149,15 @@ export default function App() {
               />
             </div>
 
-            <DetailPanel
-              symbol={selectedSymbol}
-              isLoading={isScanningSymbol}
-            />
+            <div className="w-80 flex flex-col gap-4">
+              <DetailPanel
+                symbol={selectedSymbol}
+                isLoading={isScanningSymbol}
+              />
+              <PredictivePanel
+                symbol={selectedSymbol?.symbol || null}
+              />
+            </div>
           </div>
         </main>
 
