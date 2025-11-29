@@ -1692,12 +1692,111 @@ src/quantracore_apex/autonomous/
 
 ---
 
+## 22. Battle Simulator — Competitive Intelligence
+
+### 22.1 Overview
+
+The Battle Simulator provides institutional competitive intelligence by analyzing public SEC filings to learn from top institutions.
+
+**COMPLIANCE:** All data sourced from public SEC EDGAR filings. Research and educational purposes only.
+
+### 22.2 Components
+
+| Component | Purpose |
+|-----------|---------|
+| **SECEdgarClient** | Fetches 13F filings from SEC EDGAR (public API) |
+| **StrategyAnalyzer** | Fingerprints institutional trading strategies |
+| **BattleEngine** | Compares our signals against institutional actions |
+| **AdversarialLearner** | Learns from battle results to improve |
+| **AcquirerAdapter** | Adapts to acquirer infrastructure (Bloomberg, Refinitiv) |
+
+### 22.3 Data Sources
+
+| Source | Description | Compliance |
+|--------|-------------|------------|
+| SEC EDGAR 13F | Quarterly institutional holdings ($100M+ AUM) | Public |
+| SEC Form 4 | Insider transactions | Public |
+| Company Filings | 10-K, 10-Q, 8-K | Public |
+
+### 22.4 Strategy Fingerprinting
+
+Analyzes institutional patterns from 13F filings:
+
+- **Concentration Analysis**: HHI-based portfolio concentration
+- **Turnover Analysis**: Trading frequency patterns
+- **Sector Preferences**: Industry allocations
+- **Position Sizing**: Conviction patterns
+- **Market Cap Preferences**: Size preferences
+
+### 22.5 Battle Simulation
+
+Compares our signals against institutional actions:
+
+1. Create battle scenario from our signal
+2. Fetch institution's 13F filings around signal date
+3. Determine what institution did (NEW/INCREASE/HOLD/DECREASE/EXIT)
+4. Calculate returns and alpha
+5. Extract lessons learned
+
+### 22.6 Adversarial Learning
+
+Learns from battle results:
+
+- Identifies loss patterns (timing weakness, conviction failures)
+- Reinforces win patterns (what works)
+- Generates improvement recommendations
+- Exports insights for ApexLab training
+
+### 22.7 Acquirer Adaptation
+
+Provides infrastructure abstraction for M&A:
+
+| Profile | Infrastructure | Data Format |
+|---------|---------------|-------------|
+| Bloomberg | Bloomberg Terminal | BLPAPI |
+| Refinitiv | Refinitiv Eikon | Elektron |
+| Custom | Proprietary | Configurable |
+
+### 22.8 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/battle-simulator/status` | GET | System status and compliance info |
+| `/battle-simulator/institutions` | GET | List top institutions |
+| `/battle-simulator/fingerprint` | POST | Fingerprint an institution |
+| `/battle-simulator/battle` | POST | Run battle simulation |
+| `/battle-simulator/leaderboard` | GET | Battle results leaderboard |
+| `/battle-simulator/learning/insights` | GET | Adversarial learning insights |
+| `/battle-simulator/adaptation/profiles` | GET | Available adaptation profiles |
+| `/battle-simulator/adaptation/spec/{id}` | GET | Integration specification |
+
+### 22.9 Directory Structure
+
+```
+src/quantracore_apex/battle_simulator/
+├── __init__.py                 # Package exports
+├── models.py                   # Data models
+├── data_sources/
+│   └── sec_edgar.py           # SEC EDGAR client
+├── fingerprinting/
+│   └── strategy_analyzer.py   # Strategy analysis
+├── simulation/
+│   └── battle_engine.py       # Battle simulation
+├── learning/
+│   └── adversarial_learner.py # Adversarial learning
+└── adaptation/
+    └── acquirer_adapter.py    # Acquirer adaptation
+```
+
+---
+
 ## Appendix A: Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
 | 9.0-A | 2025-11-29 | Initial release with full protocol documentation, Google Docs pipeline |
 | 9.0-A | 2025-11-29 | Added Autonomous Trading System with TradingOrchestrator, SignalQualityFilter, PositionMonitor, TradeOutcomeTracker |
+| 9.0-A | 2025-11-29 | Added Battle Simulator for competitive intelligence using public SEC data |
 
 ---
 
