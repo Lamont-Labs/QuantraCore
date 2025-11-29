@@ -36,8 +36,8 @@ The architecture prioritizes determinism, fail-closed operations, and local-only
 - **Entry/Exit Optimization Engine (EEO):** Calculates best entry zones, exit targets, stops, and position sizing using deterministic + model-assisted methods. Supports three policy profiles (conservative, balanced, aggressive_research). See [`docs/ENTRY_EXIT_OPTIMIZATION_ENGINE_SPEC.md`](docs/ENTRY_EXIT_OPTIMIZATION_ENGINE_SPEC.md).
 - **Universal Scanner:** Supports 7 market cap buckets and 8 scan modes for comprehensive market analysis.
 - **Omega Directives (Ω1-Ω5):** Five safety override protocols, with Ω4 enforcing a permanent research-only compliance mode.
-- **Regulatory Compliance:** Over 1000+ tests, including 163+ dedicated regulatory tests that exceed SEC/FINRA/MiFID II/Basel requirements by 2x-5x, ensuring institutional-grade safety margins. This includes determinism verification, stress testing, market abuse detection, and risk controls.
-- **Hardening Infrastructure:** Global hardening system implementing fail-closed behavior, protocol manifest verification, config validation, mode enforcement (RESEARCH/PAPER/LIVE), incident logging, and kill switch management. See [`docs/SECURITY_COMPLIANCE/hardening_blueprint.md`](docs/SECURITY_COMPLIANCE/hardening_blueprint.md).
+- **Regulatory Compliance:** Over 1,099 tests (as of Nov 2025), including 163+ dedicated regulatory tests that exceed SEC/FINRA/MiFID II/Basel requirements by 2x-5x, ensuring institutional-grade safety margins. This includes determinism verification, stress testing, market abuse detection, and risk controls. See [`docs/SECURITY_COMPLIANCE/TEST_COVERAGE_REPORT.md`](docs/SECURITY_COMPLIANCE/TEST_COVERAGE_REPORT.md).
+- **Hardening Infrastructure:** Global hardening system implementing fail-closed behavior, protocol manifest verification (SHA-256 with execution order), config validation, mode enforcement (RESEARCH/PAPER/LIVE), incident logging, and kill switch management. Integrated into ExecutionEngine for order-level enforcement. See [`docs/SECURITY_COMPLIANCE/hardening_blueprint.md`](docs/SECURITY_COMPLIANCE/hardening_blueprint.md).
 
 ### UI/UX Decisions
 
@@ -101,7 +101,7 @@ Full specification: [`docs/INVESTOR_DUE_DILIGENCE_REQUIREMENTS.md`](docs/INVESTO
 
 | Category | Key Items |
 |----------|-----------|
-| Technical Infrastructure | 500-700+ tests, CI/CD, API docs, build scripts |
+| Technical Infrastructure | 1,099+ tests, CI/CD, API docs, build scripts |
 | Documentation | Master spec, architecture diagrams, protocol index |
 | Model Artifacts | Manifests, calibration curves, determinism proof |
 | Product Proof | Screenshots, demo videos, end-to-end pipeline |
