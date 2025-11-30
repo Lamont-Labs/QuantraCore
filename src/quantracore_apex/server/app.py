@@ -16,7 +16,7 @@ import os
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import ApexContext
-from src.quantracore_apex.data_layer.adapters.synthetic_adapter import SyntheticAdapter
+from src.quantracore_apex.data_layer.adapters import UnifiedDataManager
 from src.quantracore_apex.data_layer.normalization import normalize_ohlcv
 from src.quantracore_apex.apexlab.windows import WindowBuilder
 from src.quantracore_apex.prediction.monster_runner import MonsterRunnerEngine
@@ -123,7 +123,7 @@ def create_app() -> FastAPI:
         app.mount("/dashboard", StaticFiles(directory=static_dir, html=True), name="dashboard")
     
     engine = ApexEngine(enable_logging=True)
-    data_adapter = SyntheticAdapter(seed=42)
+    data_manager = UnifiedDataManager()
     window_builder = WindowBuilder(window_size=100)
     monster_runner = MonsterRunnerEngine()
     omega_directives = OmegaDirectives()
@@ -159,8 +159,8 @@ def create_app() -> FastAPI:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=request.lookback_days)
             
-            bars = data_adapter.fetch_ohlcv(
-                request.symbol, start_date, end_date, request.timeframe
+            bars = data_manager.fetch_ohlcv(
+                request.symbol, start_date, end_date
             )
             
             if len(bars) < 100:
@@ -277,7 +277,7 @@ def create_app() -> FastAPI:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=lookback_days)
             
-            bars = data_adapter.fetch_ohlcv(symbol, start_date, end_date, "1d")
+            bars = data_manager.fetch_ohlcv(symbol, start_date, end_date, "1d")
             normalized_bars, _ = normalize_ohlcv(bars)
             
             window = window_builder.build_single(normalized_bars, symbol)
@@ -313,7 +313,7 @@ def create_app() -> FastAPI:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=lookback_days)
             
-            bars = data_adapter.fetch_ohlcv(symbol, start_date, end_date, "1d")
+            bars = data_manager.fetch_ohlcv(symbol, start_date, end_date, "1d")
             normalized_bars, _ = normalize_ohlcv(bars)
             window = window_builder.build_single(normalized_bars, symbol)
             
@@ -355,7 +355,7 @@ def create_app() -> FastAPI:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=lookback_days)
             
-            bars = data_adapter.fetch_ohlcv(symbol, start_date, end_date, "1d")
+            bars = data_manager.fetch_ohlcv(symbol, start_date, end_date, "1d")
             normalized_bars, _ = normalize_ohlcv(bars)
             window = window_builder.build_single(normalized_bars, symbol)
             
@@ -1211,10 +1211,9 @@ def create_app() -> FastAPI:
         try:
             from src.quantracore_apex.core.redundant_scorer import RedundantScorer
             
-            adapter = SyntheticAdapter(seed=hash(symbol) % 10000)
             end_date = datetime.utcnow()
             start_date = end_date - timedelta(days=lookback_days)
-            data = adapter.fetch_ohlcv(symbol, start_date, end_date, timeframe)
+            data = data_manager.fetch_ohlcv(symbol, start_date, end_date)
             
             if not data:
                 return {"error": "No data available", "symbol": symbol}
@@ -1504,8 +1503,8 @@ def create_app() -> FastAPI:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=request.lookback_days)
             
-            bars = data_adapter.fetch_ohlcv(
-                request.symbol, start_date, end_date, request.timeframe
+            bars = data_manager.fetch_ohlcv(
+                request.symbol, start_date, end_date
             )
             
             if len(bars) < 100:
@@ -1636,7 +1635,7 @@ def create_app() -> FastAPI:
                     end_date = datetime.now()
                     start_date = end_date - timedelta(days=request.lookback_days)
                     
-                    bars = data_adapter.fetch_ohlcv(
+                    bars = data_manager.fetch_ohlcv(
                         symbol, start_date, end_date, request.timeframe
                     )
                     
@@ -1748,7 +1747,7 @@ def create_app() -> FastAPI:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=lookback_days)
             
-            bars = data_adapter.fetch_ohlcv(symbol, start_date, end_date, timeframe)
+            bars = data_manager.fetch_ohlcv(symbol, start_date, end_date, timeframe)
             
             if len(bars) < 100:
                 raise HTTPException(
@@ -1819,7 +1818,7 @@ def create_app() -> FastAPI:
                 end_date = datetime.now()
                 start_date = end_date - timedelta(days=request.lookback_days)
                 
-                bars = data_adapter.fetch_ohlcv(
+                bars = data_manager.fetch_ohlcv(
                     symbol, start_date, end_date, request.timeframe
                 )
                 
@@ -2451,7 +2450,7 @@ def create_app() -> FastAPI:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=150)
             
-            bars = data_adapter.fetch_ohlcv(request.symbol, start_date, end_date, "1d")
+            bars = data_manager.fetch_ohlcv(request.symbol, start_date, end_date, "1d")
             normalized_bars, _ = normalize_ohlcv(bars)
             window = window_builder.build_single(normalized_bars, request.symbol)
             
@@ -2558,7 +2557,7 @@ def create_app() -> FastAPI:
                 try:
                     end_date = datetime.now()
                     start_date = end_date - timedelta(days=150)
-                    bars = data_adapter.fetch_ohlcv(symbol, start_date, end_date, "1d")
+                    bars = data_manager.fetch_ohlcv(symbol, start_date, end_date, "1d")
                     normalized_bars, _ = normalize_ohlcv(bars)
                     window = window_builder.build_single(normalized_bars, symbol)
                     
@@ -2639,7 +2638,7 @@ def create_app() -> FastAPI:
         try:
             end_date = datetime.now()
             start_date = end_date - timedelta(days=150)
-            bars = data_adapter.fetch_ohlcv(symbol, start_date, end_date, "1d")
+            bars = data_manager.fetch_ohlcv(symbol, start_date, end_date, "1d")
             normalized_bars, _ = normalize_ohlcv(bars)
             window = window_builder.build_single(normalized_bars, symbol)
             
