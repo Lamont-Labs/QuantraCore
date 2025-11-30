@@ -212,19 +212,80 @@ class AlpacaPaperAdapter(BrokerAdapter):
                 try:
                     journal = get_trade_journal()
                     direction = "LONG" if order.side == OrderSide.BUY else "SHORT"
-                    journal.log_trade_entry(
+                    
+                    account_info = self.get_account_info()
+                    equity = account_info.get("equity", 100000)
+                    cash = account_info.get("cash", 100000)
+                    buying_power = account_info.get("buying_power", 400000)
+                    
+                    positions = self.get_positions()
+                    total_exposure = sum(abs(float(p.get("market_value", 0))) for p in positions)
+                    
+                    meta = order.metadata
+                    journal.log_comprehensive_trade(
                         symbol=order.symbol,
                         direction=direction,
                         entry_price=avg_fill_price,
                         quantity=filled_qty,
                         order_type=order.order_type.value,
                         broker=self.name,
-                        signal_source=order.strategy_id or "ApexEngine",
-                        quantrascore=order.metadata.quantra_score if order.metadata else 50.0,
-                        regime=order.metadata.regime if order.metadata else "unknown",
-                        risk_tier=order.metadata.risk_tier if order.metadata else "medium",
-                        protocols_fired=order.metadata.protocols_fired if order.metadata else [],
-                        notes=f"Order ID: {response.get('id')}",
+                        order_id=response.get("id", ""),
+                        company_name=getattr(meta, 'company_name', order.symbol) if meta else order.symbol,
+                        sector=getattr(meta, 'sector', "Unknown") if meta else "Unknown",
+                        account_equity=float(equity),
+                        account_cash=float(cash),
+                        buying_power=float(buying_power),
+                        portfolio_value=float(equity),
+                        day_pnl=0.0,
+                        total_pnl=float(account_info.get("unrealized_pl", 0)),
+                        open_positions_count=len(positions),
+                        total_exposure=total_exposure,
+                        margin_used=float(account_info.get("initial_margin", 0)),
+                        quantrascore=meta.quantra_score if meta else 50.0,
+                        score_bucket=getattr(meta, 'score_bucket', "neutral") if meta else "neutral",
+                        confidence=getattr(meta, 'confidence', 0.5) if meta else 0.5,
+                        monster_runner_score=getattr(meta, 'monster_runner_score', 0.0) if meta else 0.0,
+                        monster_runner_fired=getattr(meta, 'monster_runner_fired', False) if meta else False,
+                        runner_probability=getattr(meta, 'runner_probability', 0.0) if meta else 0.0,
+                        avoid_trade_probability=getattr(meta, 'avoid_trade_probability', 0.0) if meta else 0.0,
+                        quality_tier=getattr(meta, 'quality_tier', "C") if meta else "C",
+                        entropy_state=getattr(meta, 'entropy_state', "mid") if meta else "mid",
+                        suppression_state=getattr(meta, 'suppression_state', "none") if meta else "none",
+                        drift_state=getattr(meta, 'drift_state', "none") if meta else "none",
+                        regime=meta.regime if meta else "unknown",
+                        vix_level=getattr(meta, 'vix_level', 20.0) if meta else 20.0,
+                        vix_percentile=getattr(meta, 'vix_percentile', 50.0) if meta else 50.0,
+                        sector_momentum=getattr(meta, 'sector_momentum', "neutral") if meta else "neutral",
+                        market_breadth=getattr(meta, 'market_breadth', 0.5) if meta else 0.5,
+                        spy_change_pct=getattr(meta, 'spy_change_pct', 0.0) if meta else 0.0,
+                        trading_session="regular",
+                        market_phase="open",
+                        risk_tier=meta.risk_tier if meta else "medium",
+                        risk_approved=True,
+                        risk_score=getattr(meta, 'risk_score', 50.0) if meta else 50.0,
+                        max_position_size=10000.0,
+                        stop_loss_price=getattr(meta, 'stop_loss_price', None) if meta else None,
+                        stop_loss_pct=getattr(meta, 'stop_loss_pct', None) if meta else None,
+                        take_profit_price=getattr(meta, 'take_profit_price', None) if meta else None,
+                        take_profit_pct=getattr(meta, 'take_profit_pct', None) if meta else None,
+                        risk_reward_ratio=getattr(meta, 'risk_reward_ratio', None) if meta else None,
+                        max_drawdown_allowed=0.02,
+                        volatility_adjusted=True,
+                        protocols_fired=meta.protocols_fired if meta else [],
+                        tier_protocols=getattr(meta, 'tier_protocols', None) if meta else None,
+                        monster_runner_protocols=getattr(meta, 'monster_runner_protocols', None) if meta else None,
+                        omega_alerts=getattr(meta, 'omega_alerts', []) if meta else [],
+                        omega_blocked=getattr(meta, 'omega_blocked', False) if meta else False,
+                        consensus_direction=getattr(meta, 'consensus_direction', direction.lower()) if meta else direction.lower(),
+                        protocol_confidence=getattr(meta, 'protocol_confidence', 0.5) if meta else 0.5,
+                        time_in_force=order.time_in_force.value,
+                        limit_price=order.limit_price,
+                        stop_price=order.stop_price,
+                        slippage=0.0,
+                        commission=0.0,
+                        execution_time_ms=0,
+                        research_notes=f"Order ID: {response.get('id')} | Strategy: {order.strategy_id or 'ApexEngine'}",
+                        compliance_notes="Paper trading - no regulatory concerns",
                     )
                 except Exception as e:
                     logger.warning(f"Failed to log trade to investor journal: {e}")
