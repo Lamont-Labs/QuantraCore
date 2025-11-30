@@ -56,6 +56,7 @@ QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading inte
 - **Multi-Horizon Prediction:** Separate models for 1d, 3d, 5d, 10d forecasts
 - **Cross-Asset Features:** VIX regime, sector rotation, market breadth context
 - **ApexCore V3:** Unified model integrating all accuracy optimizations
+- **Bootstrap Models:** Initial artifacts created for system initialization, automatically retrained with real market data via Alpha Factory
 
 ## User Preferences
 

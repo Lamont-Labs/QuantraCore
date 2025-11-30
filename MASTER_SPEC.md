@@ -894,6 +894,8 @@ print(f"Risk Appetite: {features.risk_appetite_score:.2f}")
 
 ApexCore V3 integrates all accuracy optimizations into a unified prediction engine.
 
+**Bootstrap Status:** Initial model artifacts are created with synthetic bootstrap data for system initialization. Production models are retrained with real market data via Alpha Factory feedback loop and the auto-retraining system.
+
 ```python
 from src.quantracore_apex.prediction.apexcore_v3 import ApexCoreV3Model
 
