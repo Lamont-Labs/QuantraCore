@@ -2,29 +2,48 @@
 
 ## Overview
 
-QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading intelligence engine for desktop use. It features a complete offline learning ecosystem (ApexLab) and on-device neural assistant models (ApexCore). The system is strictly for **research and backtesting only**, providing structural probabilities rather than trading advice.
+QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading intelligence engine for desktop use. It features a complete offline learning ecosystem (ApexLab) and on-device neural assistant models (ApexCore). The system supports **all trading types** including long, short, intraday, swing, and scalping through Alpaca paper trading.
 
 ### Key Capabilities
 - **145+ Protocols:** 80 Tier + 25 Learning + 20 MonsterRunner + 20 Omega
 - **QuantraScore:** 0-100 probability-weighted composite score
 - **Deterministic Core:** Same inputs always produce identical outputs
 - **Offline ML:** On-device ApexCore v2 neural models (scikit-learn)
-- **Paper Trading:** Alpaca integration (LIVE mode disabled)
+- **Full Paper Trading:** Alpaca integration with all position types enabled
 - **Self-Learning:** Alpha Factory feedback loop with automatic retraining
 - **Google Docs Export:** Automated investor/acquirer reporting pipeline
+- **Dual Data Sources:** Alpaca (200 req/min) + Polygon (5 req/min) for reliability
 
 ## Recent Changes (November 2025)
 
-### Security Hardening (v9.0-A)
+### Full Trading Capabilities (v9.0-A)
+- **All Position Types Enabled:** Long, short, margin, intraday, swing, scalping
+- **Execution Mode:** Upgraded from RESEARCH to PAPER (live paper trading)
+- **Short Selling:** Unblocked for full directional flexibility
+- **Margin Trading:** Enabled with 4x max leverage
+- **Risk Limits Updated:** $100K max exposure, $10K per symbol, 50 positions max
+
+### Alpaca Data Adapter
+- **New Primary Data Source:** Alpaca Markets API (200 requests/minute - 40x faster than Polygon)
+- **Retry Logic:** Exponential backoff with 3 retries for production resilience
+- **Rate Limiting:** Smart delays prevent API throttling
+- **Error Handling:** Graceful recovery from timeouts, connection errors, server errors
+
+### Swing Trading Scanner
+- **Real Scan Modes API:** Uses `/scan_universe_mode` endpoint with `config/scan_modes.yaml`
+- **4 Pre-configured Modes:** Momentum Runners, Mid-Cap Focus, Blue Chips, High Vol Small Caps
+- **Data Provider Validation:** Verifies real data sources before scanning
+- **No Hardcoded Symbols:** All universes configured via YAML
+
+### Security Hardening
 - **API Authentication:** Added `X-API-Key` header verification for protected endpoints
-- **CORS Restriction:** Changed from wildcard (`*`) to regex pattern allowing only localhost and Replit domains
-- **Non-blocking Rate Limiting:** Updated Polygon and Binance adapters to use async-compatible delays
-- **Timeframe Validation:** Added case-insensitive matching with warning logs for unknown timeframes
-- **Cache Limits:** Implemented TTL cache with 1000 entry limit and 5-minute expiration
+- **CORS Restriction:** Regex pattern allowing only localhost and Replit domains
+- **Non-blocking Rate Limiting:** Async-compatible delays for Polygon and Binance
+- **Cache Limits:** TTL cache with 1000 entry limit and 5-minute expiration
 
 ### Frontend Updates
 - **Tailwind CSS v4:** Migrated to `@theme` blocks for custom color definitions
-- **Custom Design System:** Institutional trading terminal aesthetic with apex/lamont color palette
+- **Custom Design System:** Institutional trading terminal aesthetic
 
 ## User Preferences
 
@@ -33,6 +52,47 @@ QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading inte
 - **Coding Style:** Functional programming paradigms preferred
 - **Data Policy:** Absolutely no placeholders - everything must use real data
 - **Restrictions:** Do not modify folder `Z` or file `Y`
+
+## Trading Capabilities
+
+### Position Types
+| Type | Status | Description |
+|------|--------|-------------|
+| Long | Enabled | Buy to open, sell to close |
+| Short | Enabled | Sell to open, buy to close |
+| Margin | Enabled | Up to 4x leverage |
+| Intraday | Enabled | Same-day entry/exit |
+| Swing | Enabled | 2-10+ day holds |
+| Scalping | Enabled | Sub-5 minute trades |
+
+### Order Types
+- **MARKET** - Immediate execution
+- **LIMIT** - Price-controlled entry
+- **STOP** - Triggered at price level
+- **STOP_LIMIT** - Stop with limit protection
+
+### Entry Strategies (Auto-Selected)
+1. **Baseline Long/Short** - Standard entries for normal conditions
+2. **High Volatility** - Conservative limits, scaled entries
+3. **Low Liquidity** - Careful entries inside spread
+4. **Runner Anticipation** - Aggressive for monster runners
+5. **ZDE-Aware** - Tight stops from Zero-Depth Excursion research
+
+### Exit Strategies
+- **Protective Stops** - ATR-based with ZDE adjustments
+- **Trailing Stops** - ATR, percentage, or structural
+- **Profit Targets** - Multiple scaled targets
+- **Time-Based Exits** - Auto-close after X bars
+- **EOD Exits** - End-of-day flat for day trades
+
+### Risk Configuration
+| Parameter | Value |
+|-----------|-------|
+| Max Exposure | $100,000 |
+| Max Per Symbol | $10,000 |
+| Max Positions | 50 |
+| Max Leverage | 4x |
+| Risk Per Trade | 2% |
 
 ## System Architecture
 
@@ -51,6 +111,15 @@ QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading inte
 | ApexDesk Frontend | 5000 | React dashboard (main UI) |
 | FastAPI Backend | 8000 | REST API server |
 | Alpha Factory Dashboard | 8080 | Static HTML dashboard |
+
+### API Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/trading_capabilities` | GET | Current trading config and limits |
+| `/data_providers` | GET | Status of all data sources |
+| `/scan_universe_mode` | POST | Run swing scan with mode config |
+| `/scan_symbol` | POST | Analyze single symbol |
+| `/health` | GET | System health check |
 
 ### Security Configuration
 
@@ -91,7 +160,9 @@ A 24/7 live research loop utilizing Polygon (equities) and Binance (crypto) WebS
 Provides 8 chaos scenarios (flash crash, volatility spike, gap event, liquidity void, momentum exhaustion, squeeze, correlation breakdown, black swan) for stress testing.
 
 #### Broker Layer
-Supports a NullAdapter (research mode), PaperSimAdapter (offline simulation), and AlpacaPaperAdapter for Alpaca paper trading. Live mode is disabled.
+- **NullAdapter:** Research mode (signals only)
+- **PaperSimAdapter:** Offline simulation
+- **AlpacaPaperAdapter:** Live paper trading via Alpaca
 
 ### Protocol System
 - **Tier Protocols (T01-T80):** 80 deterministic analysis protocols covering trend, volatility, continuation, reversal, momentum, volume, patterns, and support/resistance levels.
@@ -99,37 +170,20 @@ Supports a NullAdapter (research mode), PaperSimAdapter (offline simulation), an
 - **MonsterRunner Protocols (MR01-MR20):** Detect explosive movements like compression explosions and volume anomalies.
 - **Omega Directives (Ω1-Ω20):** Safety overrides including hard locks, entropy/drift/compliance overrides, and kill switches.
 
-## External Dependencies
+## Data Providers
 
-### Data Providers (15 Total via UnifiedDataManager)
-**OHLCV & Market Data:**
-- **Polygon.io:** Primary provider ($29/mo) - US equities, options, crypto
-- **Alpha Vantage:** Secondary ($49/mo) - technicals, forex, crypto
-- **EODHD:** International markets ($20/mo) - 70+ global exchanges
-- **Interactive Brokers:** Broker-integrated (free with account) - requires IB Gateway
+### Primary Sources (Active)
+| Provider | Rate Limit | Use Case |
+|----------|------------|----------|
+| **Alpaca** | 200/min | Primary OHLCV, quotes (FREE) |
+| **Polygon** | 5/min | Backup OHLCV, options data |
+| **Binance** | 1200/min | Crypto data (FREE) |
 
-**Fundamentals & Filings:**
-- **Financial Modeling Prep:** Fundamentals, SEC filings ($20/mo)
-- **Nasdaq Data Link:** Economic indicators, Fed data (free tier)
-
-**Options Flow & Dark Pool:**
-- **Unusual Whales:** Unusual activity, congressional trades ($35/mo)
-- **FlowAlgo:** Sweeps, blocks, institutional flow ($150/mo)
-- **InsiderFinance:** Correlated flow analysis ($49/mo)
-
-**Alternative Data & Sentiment:**
-- **Finnhub:** News, sentiment, insider trades (free tier)
-- **AltIndex:** AI stock scores, social sentiment ($29/mo)
-- **Stocktwits:** Social sentiment (free, no API key)
-
-**Cryptocurrency:**
-- **Binance:** Free crypto data (no key for public endpoints)
-- **CoinGecko:** 10,000+ coins (free tier)
-
-**Testing:**
-- **Synthetic:** Deterministic data for testing (free)
-
-**Current Active:** Polygon, Alternative Data (Stocktwits), Crypto (Binance), Synthetic
+### Secondary Sources (Available)
+- **Alpha Vantage:** Technicals, forex, crypto
+- **EODHD:** International markets (70+ exchanges)
+- **Finnhub:** News, sentiment, insider trades
+- **CoinGecko:** 10,000+ crypto coins
 
 ### Environment Variables
 
@@ -146,9 +200,6 @@ Supports a NullAdapter (research mode), PaperSimAdapter (offline simulation), an
 | `APEX_AUTH_DISABLED` | `false` | Disable API authentication |
 | `APEX_API_KEY` | - | Primary API key for authentication |
 
-### Broker Integration
-- **Alpaca Paper:** For paper trading.
-
 ### Google Docs Integration
 Connected via Replit OAuth2 for an automated export pipeline supporting:
 - Investor reports (daily/weekly/monthly)
@@ -157,6 +208,23 @@ Connected via Replit OAuth2 for an automated export pipeline supporting:
 - Trade journals with research notes
 - Monthly investor updates
 
+## Configuration Files
+
+### Broker Configuration (`config/broker.yaml`)
+Controls execution mode, risk limits, and trading capabilities:
+- Execution mode (RESEARCH/PAPER/LIVE)
+- Position type toggles (long/short/margin)
+- Risk parameters and limits
+- EEO profile selection
+
+### Scan Modes (`config/scan_modes.yaml`)
+Pre-configured universe scanning modes:
+- `momentum_runners` - High momentum across all caps
+- `mid_cap_focus` - Growth potential, moderate risk
+- `mega_large_focus` - Blue chips, high liquidity
+- `high_vol_small_caps` - Volatile small caps
+- `demo` - Testing mode (20 symbols)
+
 ## File Structure
 
 ```
@@ -164,17 +232,29 @@ quantracore-apex/
 ├── src/quantracore_apex/     # Backend Python source
 │   ├── core/                 # Engine, schemas, types
 │   ├── data_layer/           # Data adapters and normalization
+│   │   └── adapters/         # Alpaca, Polygon, Binance adapters
 │   ├── server/               # FastAPI application
 │   ├── protocols/            # Tier, Learning, Omega protocols
 │   ├── prediction/           # MonsterRunner, ApexCore models
+│   ├── eeo_engine/           # Entry/Exit Optimization
 │   ├── risk/                 # Risk engine
-│   ├── broker/               # OMS, broker adapters
+│   ├── broker/               # OMS, broker adapters, execution
 │   └── portfolio/            # Portfolio management
 ├── dashboard/                # React frontend
 │   ├── src/
-│   │   ├── components/       # React components
+│   │   ├── components/       # React components (SwingTradePage, etc.)
 │   │   └── index.css         # Tailwind v4 theme
 │   └── vite.config.ts        # Vite configuration
+├── config/                   # Configuration files
+│   ├── broker.yaml           # Trading & risk config
+│   └── scan_modes.yaml       # Universe scanning modes
 ├── static/                   # Alpha Factory static dashboard
 └── tests/                    # Test suites
 ```
+
+## Deployment Notes
+
+- **Execution Mode:** Currently set to PAPER for safe paper trading
+- **Live Trading:** Disabled by design - requires explicit institution approval
+- **Data Sources:** Alpaca primary (200/min), Polygon backup (5/min)
+- **All Workflows:** Running and healthy
