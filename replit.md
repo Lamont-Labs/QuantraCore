@@ -133,6 +133,10 @@ QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading inte
 | `/scan_universe_mode` | POST | Run swing scan with mode config |
 | `/scan_symbol` | POST | Analyze single symbol |
 | `/health` | GET | System health check |
+| `/investor/trades` | GET | Recent paper trades for investors |
+| `/investor/summary` | GET | Daily trading summary |
+| `/investor/stats` | GET | Cumulative trading statistics |
+| `/investor/export` | POST | Export all trades to CSV |
 
 ### Security Configuration
 

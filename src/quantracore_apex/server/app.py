@@ -5077,6 +5077,120 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    from src.quantracore_apex.investor import get_trade_journal
+    
+    @app.get("/investor/trades")
+    async def get_investor_trades(limit: int = 50):
+        """
+        Get recent paper trades for investor reporting.
+        
+        Returns trade history in investor-friendly format.
+        """
+        try:
+            journal = get_trade_journal()
+            trades = journal.get_recent_trades(limit=limit)
+            stats = journal.get_cumulative_stats()
+            
+            return {
+                "trades": trades,
+                "count": len(trades),
+                "cumulative_stats": stats,
+                "log_directory": "investor_logs/",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching investor trades: {e}")
+            return {
+                "trades": [],
+                "count": 0,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/investor/summary")
+    async def get_investor_summary(date: Optional[str] = None):
+        """
+        Get daily trading summary for investors.
+        
+        Args:
+            date: Date in YYYYMMDD format (defaults to today)
+        """
+        try:
+            journal = get_trade_journal()
+            summary = journal.generate_daily_summary(date)
+            
+            if summary:
+                return {
+                    "summary": summary.to_dict(),
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                return {
+                    "summary": None,
+                    "message": "No trades found for this date",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+        except Exception as e:
+            logger.error(f"Error generating investor summary: {e}")
+            return {
+                "summary": None,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/investor/stats")
+    async def get_investor_stats():
+        """
+        Get cumulative trading statistics for investors.
+        
+        Returns lifetime performance metrics.
+        """
+        try:
+            journal = get_trade_journal()
+            stats = journal.get_cumulative_stats()
+            
+            return {
+                "stats": stats,
+                "log_files": {
+                    "trades_json": "investor_logs/trades/",
+                    "trades_csv": "investor_logs/trades/",
+                    "summaries": "investor_logs/summaries/",
+                    "cumulative": "investor_logs/cumulative_stats.json"
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching investor stats: {e}")
+            return {
+                "stats": {},
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/investor/export")
+    async def export_investor_trades():
+        """
+        Export all trades to a consolidated CSV file.
+        
+        Returns path to the exported file.
+        """
+        try:
+            journal = get_trade_journal()
+            export_path = journal.export_all_trades_csv()
+            
+            return {
+                "export_path": export_path,
+                "message": "All trades exported successfully",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error exporting investor trades: {e}")
+            return {
+                "export_path": None,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
     return app
 
 

@@ -21,6 +21,11 @@ from .base_adapter import BrokerAdapter
 from ..models import OrderTicket, ExecutionResult, BrokerPosition
 from ..enums import OrderStatus, OrderSide, OrderType, TimeInForce
 
+try:
+    from ...investor import get_trade_journal
+except ImportError:
+    get_trade_journal = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -202,6 +207,27 @@ class AlpacaPaperAdapter(BrokerAdapter):
                 f"[ALPACA] Order placed: {response.get('id')} - "
                 f"{order.side.value} {order.qty} {order.symbol} status={status.value}"
             )
+            
+            if get_trade_journal is not None and filled_qty > 0:
+                try:
+                    journal = get_trade_journal()
+                    direction = "LONG" if order.side == OrderSide.BUY else "SHORT"
+                    journal.log_trade_entry(
+                        symbol=order.symbol,
+                        direction=direction,
+                        entry_price=avg_fill_price,
+                        quantity=filled_qty,
+                        order_type=order.order_type.value,
+                        broker=self.name,
+                        signal_source=order.strategy_id or "ApexEngine",
+                        quantrascore=order.metadata.quantra_score if order.metadata else 50.0,
+                        regime=order.metadata.regime if order.metadata else "unknown",
+                        risk_tier=order.metadata.risk_tier if order.metadata else "medium",
+                        protocols_fired=order.metadata.protocols_fired if order.metadata else [],
+                        notes=f"Order ID: {response.get('id')}",
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to log trade to investor journal: {e}")
             
             return ExecutionResult(
                 order_id=response.get("id", ""),
