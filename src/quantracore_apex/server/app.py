@@ -1551,6 +1551,37 @@ def create_app() -> FastAPI:
     async def predictive_status():
         """Get status of the Predictive Layer V2 (ApexCore V2)."""
         try:
+            from pathlib import Path
+            import json
+            
+            model_dir = Path("models/apexcore_v2/big")
+            manifest_path = model_dir / "manifest.json"
+            
+            if manifest_path.exists():
+                with open(manifest_path) as f:
+                    manifest = json.load(f)
+                
+                required_heads = ["quantrascore_head.joblib", "runner_head.joblib", 
+                                  "quality_head.joblib", "avoid_head.joblib", "regime_head.joblib"]
+                all_heads_present = all((model_dir / h).exists() for h in required_heads)
+                
+                if all_heads_present:
+                    return {
+                        "version": manifest.get("version", "2.0.0"),
+                        "status": "MODEL_LOADED",
+                        "enabled": True,
+                        "model_variant": manifest.get("model_size", "big"),
+                        "model_dir": str(model_dir),
+                        "training_samples": manifest.get("training_samples", 0),
+                        "trained_at": manifest.get("trained_at"),
+                        "metrics": manifest.get("metrics", {}),
+                        "runner_threshold": 0.7,
+                        "avoid_threshold": 0.3,
+                        "max_disagreement": 0.2,
+                        "compliance_note": "Predictive layer is ADVISORY ONLY - engine has final authority",
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+            
             from src.quantracore_apex.core.integration_predictive import (
                 PredictiveAdvisor,
                 PredictiveConfig,
@@ -1584,11 +1615,8 @@ def create_app() -> FastAPI:
     async def predictive_advise(request: PredictiveAdvisoryRequest):
         """Get predictive advisory for a symbol (ApexCore V2 integration)."""
         try:
-            from src.quantracore_apex.core.integration_predictive import (
-                PredictiveAdvisor,
-                PredictiveConfig,
-            )
-            from src.quantracore_apex.apexlab.apexlab_v2 import encode_protocol_vector
+            from pathlib import Path
+            import joblib
             
             end_date = datetime.now()
             start_date = end_date - timedelta(days=request.lookback_days)
@@ -1597,10 +1625,10 @@ def create_app() -> FastAPI:
                 request.symbol, start_date, end_date
             )
             
-            if len(bars) < 100:
+            if bars is None or len(bars) < 100:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Insufficient data: got {len(bars)} bars, need at least 100"
+                    detail=f"Insufficient data: got {len(bars) if bars else 0} bars, need at least 100. Polygon API may be rate limiting."
                 )
             
             normalized_bars, _ = normalize_ohlcv(bars)
@@ -1611,28 +1639,177 @@ def create_app() -> FastAPI:
             context = ApexContext(seed=42, compliance_mode=True)
             result = engine.run(window, context)
             
-            protocol_ids = [p.get("protocol_id", "") for p in result.protocol_results if p]
-            protocol_vector = encode_protocol_vector(protocol_ids)
-            features = np.array(protocol_vector, dtype=np.float32)
+            model_dir = Path("models/apexcore_v2/big")
+            required_heads = ["quantrascore_head.joblib", "runner_head.joblib", 
+                              "quality_head.joblib", "avoid_head.joblib", "regime_head.joblib"]
             
-            config = PredictiveConfig(enabled=True)
-            advisor = PredictiveAdvisor(config=config)
-            
-            advisory = advisor.advise_on_candidate(
-                symbol=request.symbol,
-                base_quantra_score=result.quantrascore,
-                features=features,
-            )
-            
-            response = advisory.to_dict()
-            response["engine_quantra_score"] = result.quantrascore
-            response["engine_regime"] = result.regime.value
-            response["engine_risk_tier"] = result.risk_tier.value
-            response["predictive_status"] = advisor.status
-            response["compliance_note"] = "Advisory only - engine has final authority"
-            response["timestamp"] = datetime.utcnow().isoformat()
-            
-            return convert_numpy_types(response)
+            if all((model_dir / h).exists() for h in required_heads):
+                scaler = joblib.load(model_dir / "scaler.joblib")
+                quantrascore_head = joblib.load(model_dir / "quantrascore_head.joblib")
+                runner_head = joblib.load(model_dir / "runner_head.joblib")
+                quality_head = joblib.load(model_dir / "quality_head.joblib")
+                avoid_head = joblib.load(model_dir / "avoid_head.joblib")
+                regime_head = joblib.load(model_dir / "regime_head.joblib")
+                
+                entropy_map = {"low": 0, "medium": 1, "high": 2}
+                suppression_map = {"none": 0, "partial": 1, "full": 2}
+                regime_map = {"ranging": 0, "trending_bullish": 1, "trending_bearish": 2, "high_volatility": 3, "breakout": 4}
+                volatility_map = {"low": 0, "medium": 1, "high": 2}
+                liquidity_map = {"low": 0, "medium": 1, "high": 2}
+                risk_map = {"T1": 0, "T2": 1, "T3": 2, "T4": 3}
+                
+                closes = [b.close for b in normalized_bars]
+                if len(closes) >= 5:
+                    ret_1d = (closes[-1] - closes[-2]) / closes[-2] if closes[-2] != 0 else 0.0
+                    ret_3d = (closes[-1] - closes[-4]) / closes[-4] if len(closes) >= 4 and closes[-4] != 0 else 0.0
+                    ret_5d = (closes[-1] - closes[-6]) / closes[-6] if len(closes) >= 6 and closes[-6] != 0 else 0.0
+                    
+                    highs_5d = [b.high for b in normalized_bars[-5:]]
+                    lows_5d = [b.low for b in normalized_bars[-5:]]
+                    max_runup_5d = (max(highs_5d) - closes[-6]) / closes[-6] if len(closes) >= 6 and closes[-6] != 0 else 0.0
+                    max_drawdown_5d = (closes[-6] - min(lows_5d)) / closes[-6] if len(closes) >= 6 and closes[-6] != 0 else 0.0
+                else:
+                    ret_1d = ret_3d = ret_5d = max_runup_5d = max_drawdown_5d = 0.0
+                
+                features = np.array([[
+                    result.quantrascore,
+                    entropy_map.get(result.microtraits.get("entropy_band", "medium"), 1),
+                    suppression_map.get(result.microtraits.get("suppression_state", "none"), 0),
+                    regime_map.get(result.regime.value, 0),
+                    volatility_map.get(result.microtraits.get("volatility_band", "medium"), 1),
+                    liquidity_map.get(result.microtraits.get("liquidity_band", "medium"), 1),
+                    risk_map.get(result.risk_tier.value, 0),
+                    len([p for p in result.protocol_results if p]),
+                    ret_1d, ret_3d, ret_5d, max_runup_5d, max_drawdown_5d
+                ]], dtype=np.float32)
+                
+                features_scaled = scaler.transform(features)
+                
+                model_quantrascore = float(np.clip(quantrascore_head.predict(features_scaled)[0], 0, 100))
+                
+                runner_prob = 0.3
+                try:
+                    if hasattr(runner_head, 'predict_proba'):
+                        proba = runner_head.predict_proba(features_scaled)
+                        if proba.shape[1] > 1:
+                            runner_prob = float(proba[0][1])
+                        else:
+                            runner_prob = float(proba[0][0])
+                except Exception:
+                    try:
+                        runner_pred = runner_head.predict(features_scaled)[0]
+                        runner_prob = 0.7 if runner_pred == 1 else 0.3
+                    except:
+                        runner_prob = 0.3
+                
+                quality_pred = quality_head.predict(features_scaled)[0]
+                quality_encoder = joblib.load(model_dir / "quality_encoder.joblib")
+                try:
+                    quality_tier = quality_encoder.inverse_transform([quality_pred])[0]
+                except:
+                    quality_tiers = ["A_PLUS", "A", "B", "C", "D"]
+                    quality_tier = quality_tiers[min(quality_pred, len(quality_tiers)-1)]
+                
+                avoid_prob = 0.2
+                try:
+                    if hasattr(avoid_head, 'predict_proba'):
+                        proba = avoid_head.predict_proba(features_scaled)
+                        if proba.shape[1] > 1:
+                            avoid_prob = float(proba[0][1])
+                        else:
+                            avoid_prob = float(proba[0][0])
+                except Exception:
+                    try:
+                        avoid_pred = avoid_head.predict(features_scaled)[0]
+                        avoid_prob = 0.7 if avoid_pred == 1 else 0.2
+                    except:
+                        avoid_prob = 0.2
+                
+                disagreement = abs(model_quantrascore - result.quantrascore) / 50.0
+                max_disagreement = 0.2
+                
+                runner_uprank_threshold = 0.7
+                runner_min_threshold = 0.1
+                avoid_max_threshold = 0.3
+                
+                if avoid_prob > avoid_max_threshold:
+                    recommendation = "AVOID"
+                    reasons = [
+                        f"High avoid probability: {avoid_prob*100:.1f}%",
+                        f"Threshold exceeded: {avoid_max_threshold*100:.0f}%"
+                    ]
+                    confidence = min(0.9, avoid_prob)
+                elif disagreement > max_disagreement:
+                    recommendation = "NEUTRAL"
+                    reasons = [
+                        f"Model/engine disagreement: {disagreement*50:.1f} points",
+                        "Confidence reduced due to uncertainty"
+                    ]
+                    confidence = max(0.3, 1.0 - disagreement)
+                elif runner_prob >= runner_uprank_threshold and quality_tier in ["A_PLUS", "A", "B"]:
+                    recommendation = "UPRANK"
+                    reasons = [
+                        f"High runner probability: {runner_prob*100:.1f}%",
+                        f"Quality tier: {quality_tier}",
+                        f"Model QS: {model_quantrascore:.1f}"
+                    ]
+                    confidence = min(0.95, (runner_prob + 0.7) / 2)
+                elif runner_prob < runner_min_threshold or quality_tier in ["D"]:
+                    recommendation = "DOWNRANK"
+                    reasons = [
+                        f"Low runner probability: {runner_prob*100:.1f}%",
+                        f"Quality tier: {quality_tier}"
+                    ]
+                    confidence = max(0.4, 1.0 - runner_prob)
+                else:
+                    recommendation = "NEUTRAL"
+                    reasons = [
+                        f"Runner: {runner_prob*100:.1f}%",
+                        f"Quality: {quality_tier}",
+                        "Within normal parameters"
+                    ]
+                    confidence = 0.5 + (1.0 - disagreement) * 0.2
+                
+                response = {
+                    "symbol": request.symbol,
+                    "base_quantra_score": result.quantrascore,
+                    "model_quantra_score": model_quantrascore,
+                    "runner_prob": runner_prob,
+                    "quality_tier": quality_tier,
+                    "avoid_trade_prob": avoid_prob,
+                    "ensemble_disagreement": disagreement,
+                    "recommendation": recommendation,
+                    "confidence": confidence,
+                    "reasons": reasons,
+                    "engine_quantra_score": result.quantrascore,
+                    "engine_regime": result.regime.value,
+                    "engine_risk_tier": result.risk_tier.value,
+                    "predictive_status": "MODEL_LOADED",
+                    "compliance_note": "Advisory only - engine has final authority",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+                
+                return convert_numpy_types(response)
+            else:
+                return {
+                    "symbol": request.symbol,
+                    "base_quantra_score": result.quantrascore,
+                    "model_quantra_score": result.quantrascore,
+                    "runner_prob": 0.0,
+                    "quality_tier": "C",
+                    "avoid_trade_prob": 0.0,
+                    "ensemble_disagreement": 1.0,
+                    "recommendation": "DISABLED",
+                    "confidence": 0.0,
+                    "reasons": ["No trained models available"],
+                    "engine_quantra_score": result.quantrascore,
+                    "engine_regime": result.regime.value,
+                    "engine_risk_tier": result.risk_tier.value,
+                    "predictive_status": "MODEL_NOT_FOUND",
+                    "compliance_note": "Advisory only - engine has final authority",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+                
         except HTTPException:
             raise
         except Exception as e:
