@@ -4,6 +4,10 @@ import { Header } from './components/Header'
 import { UniverseTable } from './components/UniverseTable'
 import { DetailPanel } from './components/DetailPanel'
 import { PredictivePanel } from './components/PredictivePanel'
+import { ResearchPage } from './components/ResearchPage'
+import { ApexLabPage } from './components/ApexLabPage'
+import { ModelsPage } from './components/ModelsPage'
+import { LogsPage } from './components/LogsPage'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
 export type NavItem = 'dashboard' | 'research' | 'apexlab' | 'models' | 'logs'
@@ -109,56 +113,65 @@ export default function App() {
         />
 
         <main className="flex-1 overflow-hidden p-6">
-          {(isSmallCapMode || isExtremeRiskMode) && (
-            <div className={`mb-4 p-4 rounded-lg border ${
-              isExtremeRiskMode 
-                ? 'bg-red-900/20 border-red-500/50 text-red-200' 
-                : 'bg-amber-900/20 border-amber-500/50 text-amber-200'
-            }`}>
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <span className="font-semibold">
-                  {isExtremeRiskMode ? 'EXTREME RISK MODE' : 'SMALL-CAP MODE'}
-                </span>
-              </div>
-              <p className="mt-1 text-sm opacity-80">
-                {isExtremeRiskMode 
-                  ? 'Low-float and penny stocks carry extreme volatility risk. These are structural analysis outputs only, not trading recommendations.'
-                  : 'Small-cap and micro-cap stocks carry elevated risk. MonsterRunner fuse scores may indicate potential volatility events.'
-                }
-              </p>
-            </div>
-          )}
-
-          <div className="h-full flex gap-6">
-            <div className="flex-1 flex flex-col min-w-0">
-              {error && (
-                <div className="mb-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200">
-                  {error}
+          {activeNav === 'dashboard' && (
+            <>
+              {(isSmallCapMode || isExtremeRiskMode) && (
+                <div className={`mb-4 p-4 rounded-lg border ${
+                  isExtremeRiskMode 
+                    ? 'bg-red-900/20 border-red-500/50 text-red-200' 
+                    : 'bg-amber-900/20 border-amber-500/50 text-amber-200'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span className="font-semibold">
+                      {isExtremeRiskMode ? 'EXTREME RISK MODE' : 'SMALL-CAP MODE'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm opacity-80">
+                    {isExtremeRiskMode 
+                      ? 'Low-float and penny stocks carry extreme volatility risk. These are structural analysis outputs only, not trading recommendations.'
+                      : 'Small-cap and micro-cap stocks carry elevated risk. MonsterRunner fuse scores may indicate potential volatility events.'
+                    }
+                  </p>
                 </div>
               )}
 
-              <UniverseTable
-                data={universeData}
-                selectedSymbol={selectedSymbol?.symbol}
-                onSymbolClick={handleSymbolClick}
-                isLoading={isScanning}
-                scanMode={scanMode}
-              />
-            </div>
+              <div className="h-full flex gap-6">
+                <div className="flex-1 flex flex-col min-w-0">
+                  {error && (
+                    <div className="mb-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200">
+                      {error}
+                    </div>
+                  )}
 
-            <div className="w-80 flex flex-col gap-4">
-              <DetailPanel
-                symbol={selectedSymbol}
-                isLoading={isScanningSymbol}
-              />
-              <PredictivePanel
-                symbol={selectedSymbol?.symbol || null}
-              />
-            </div>
-          </div>
+                  <UniverseTable
+                    data={universeData}
+                    selectedSymbol={selectedSymbol?.symbol}
+                    onSymbolClick={handleSymbolClick}
+                    isLoading={isScanning}
+                    scanMode={scanMode}
+                  />
+                </div>
+
+                <div className="w-80 flex flex-col gap-4">
+                  <DetailPanel
+                    symbol={selectedSymbol}
+                    isLoading={isScanningSymbol}
+                  />
+                  <PredictivePanel
+                    symbol={selectedSymbol?.symbol || null}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {activeNav === 'research' && <ResearchPage />}
+          {activeNav === 'apexlab' && <ApexLabPage />}
+          {activeNav === 'models' && <ModelsPage />}
+          {activeNav === 'logs' && <LogsPage />}
         </main>
 
         <footer className="h-8 bg-[#030508] border-t border-[#0096ff]/20 px-6 flex items-center justify-between text-xs text-slate-500">
