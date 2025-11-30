@@ -405,7 +405,10 @@ class ApexLabV2Builder:
         context = ApexContext(seed=42, compliance_mode=True)
         result = self.engine.run(window, context)
         
-        entry_price = window.close[-1]
+        closes = np.array([bar.close for bar in window.bars])
+        volumes = np.array([bar.volume for bar in window.bars])
+        
+        entry_price = closes[-1]
         bars_per_day = self._timeframe_to_bars_per_day(timeframe)
         future_returns = compute_future_returns(entry_price, future_prices, bars_per_day)
         
@@ -421,11 +424,11 @@ class ApexLabV2Builder:
             self.monster_threshold,
         )
         
-        volatility = np.std(np.diff(np.log(window.close + 1e-10)))
+        volatility = np.std(np.diff(np.log(closes + 1e-10)))
         volatility_band = compute_volatility_band(volatility)
         
-        avg_volume = np.mean(window.volume)
-        avg_dollar_volume = avg_volume * np.mean(window.close)
+        avg_volume = np.mean(volumes)
+        avg_dollar_volume = avg_volume * np.mean(closes)
         liquidity_band = compute_liquidity_band(avg_volume, avg_dollar_volume)
         
         entropy_band = compute_entropy_band(result.entropy_state.value)
@@ -436,10 +439,10 @@ class ApexLabV2Builder:
             volatility_band, liquidity_band, suppression_state, result.risk_tier.value
         )
         
-        protocol_ids = [p.get("protocol_id", "") for p in result.protocol_results if p]
+        protocol_ids = [p.protocol_id for p in result.protocol_results if hasattr(p, 'protocol_id') and p.fired]
         protocol_vector = encode_protocol_vector(protocol_ids)
         
-        scanner_snapshot_id = generate_scanner_snapshot_id(window.close)
+        scanner_snapshot_id = generate_scanner_snapshot_id(closes)
         
         return ApexLabV2Row(
             symbol=window.symbol,
@@ -545,12 +548,76 @@ class ApexLabV2DatasetBuilder:
         data_provider: Optional[Any] = None,
     ) -> "ApexLabV2DatasetBuilder":
         """
-        Build dataset for a universe of symbols.
+        Build dataset for a universe of symbols using real market data.
         
-        In actual use, this would pull data from data_provider.
-        For now, returns empty dataset (to be populated by actual data).
+        Args:
+            universe: List of symbols to process
+            start_date: Start date for data fetch
+            end_date: End date for data fetch
+            timeframe: Timeframe (1d, 1h, etc)
+            data_provider: Data manager instance for fetching OHLCV
+            
+        Returns:
+            Self with populated dataset
         """
+        from src.quantracore_apex.data_layer.adapters.data_manager import UnifiedDataManager
+        from src.quantracore_apex.core.window_builder import WindowBuilder
+        
         self._dataset = []
+        
+        if data_provider is None:
+            data_provider = UnifiedDataManager()
+        
+        window_builder = WindowBuilder()
+        lookback_days = (end_date - start_date).days
+        
+        for symbol in universe:
+            try:
+                bars = data_provider.get_ohlcv(
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    lookback_days=lookback_days + 20
+                )
+                
+                if bars is None or len(bars) < 120:
+                    continue
+                
+                normalized_bars = []
+                for bar in bars:
+                    if isinstance(bar, dict):
+                        normalized_bars.append({
+                            "open": float(bar.get("open", bar.get("o", 0))),
+                            "high": float(bar.get("high", bar.get("h", 0))),
+                            "low": float(bar.get("low", bar.get("l", 0))),
+                            "close": float(bar.get("close", bar.get("c", 0))),
+                            "volume": float(bar.get("volume", bar.get("v", 0))),
+                        })
+                    else:
+                        normalized_bars.append(bar)
+                
+                for i in range(100, len(normalized_bars) - 15, 10):
+                    window_slice = normalized_bars[i-100:i]
+                    future_slice = normalized_bars[i:i+15]
+                    
+                    window = window_builder.build_single(window_slice, symbol, timeframe)
+                    if window is None:
+                        continue
+                    
+                    future_prices = np.array([bar["close"] for bar in future_slice])
+                    
+                    row = self.builder.build_row(
+                        window=window,
+                        future_prices=future_prices,
+                        timeframe=timeframe,
+                        sector="unknown",
+                        market_cap_band="mid"
+                    )
+                    self._dataset.append(row)
+                    
+            except Exception as e:
+                print(f"Error processing {symbol}: {e}")
+                continue
+        
         return self
     
     def add_row(self, row: ApexLabV2Row) -> None:

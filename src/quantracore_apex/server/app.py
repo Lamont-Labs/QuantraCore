@@ -4342,6 +4342,7 @@ def create_app() -> FastAPI:
         
         async def run_training():
             from src.quantracore_apex.apexlab.apexlab_v2 import ApexLabV2Builder
+            from src.quantracore_apex.prediction.apexcore_v2 import ApexCoreV2Model
             from pathlib import Path
             import json
             
@@ -4374,27 +4375,57 @@ def create_app() -> FastAPI:
                         log(f"[INFO] Processing {symbol} ({i+1}/{len(symbols)})")
                         _training_status["progress"] = 10 + (i / len(symbols)) * 40
                         
-                        bars = data_manager.fetch_ohlcv(symbol, start_date, end_date, request.timeframe)
+                        end_dt = datetime.now()
+                        start_dt = end_dt - timedelta(days=request.lookback_days + 20)
                         
-                        if len(bars) < 120:
-                            log(f"[WARN] Skipping {symbol}: insufficient data ({len(bars)} bars)")
+                        try:
+                            bars = data_manager.fetch_ohlcv(symbol, start_dt, end_dt, request.timeframe)
+                        except Exception as fetch_err:
+                            log(f"[WARN] Failed to fetch {symbol}: {fetch_err}")
+                            bars = None
+                        
+                        if bars is None or len(bars) < 120:
+                            log(f"[WARN] Skipping {symbol}: insufficient data ({len(bars) if bars else 0} bars)")
                             continue
                         
-                        normalized, _ = normalize_ohlcv(bars)
+                        normalized_bars = []
+                        base_time = start_dt
+                        for idx, bar in enumerate(bars):
+                            ts = base_time + timedelta(days=idx)
+                            if isinstance(bar, dict):
+                                bar_ts = bar.get("timestamp", ts)
+                                normalized_bars.append({
+                                    "timestamp": bar_ts if isinstance(bar_ts, datetime) else ts,
+                                    "open": float(bar.get("open", bar.get("o", 0))),
+                                    "high": float(bar.get("high", bar.get("h", 0))),
+                                    "low": float(bar.get("low", bar.get("l", 0))),
+                                    "close": float(bar.get("close", bar.get("c", 0))),
+                                    "volume": float(bar.get("volume", bar.get("v", 0))),
+                                })
+                            else:
+                                bar_ts = getattr(bar, 'timestamp', ts)
+                                normalized_bars.append({
+                                    "timestamp": bar_ts if isinstance(bar_ts, datetime) else ts,
+                                    "open": float(bar.open),
+                                    "high": float(bar.high),
+                                    "low": float(bar.low),
+                                    "close": float(bar.close),
+                                    "volume": float(bar.volume),
+                                })
                         
-                        closes = np.array([b.close for b in normalized])
+                        closes = [b["close"] for b in normalized_bars]
                         
-                        for j in range(100, len(closes) - 15, 10):
-                            window_slice = normalized[j-100:j]
+                        for j in range(100, len(normalized_bars) - 15, 10):
+                            window_slice = normalized_bars[j-100:j]
                             
                             window = window_builder.build_single(window_slice, symbol, request.timeframe)
                             if window is None:
                                 continue
                             
-                            future_prices = closes[j:min(j+15, len(closes))]
+                            future_prices = np.array(closes[j:min(j+15, len(closes))])
                             if len(future_prices) >= 10:
                                 row = builder.build_row(window, future_prices, request.timeframe)
-                                rows.append(row)
+                                rows.append(row.to_dict())
                         
                     except Exception as e:
                         log(f"[ERROR] Failed to process {symbol}: {e}")
@@ -4404,64 +4435,47 @@ def create_app() -> FastAPI:
                 _training_status["current_step"] = "Training models"
                 _training_status["progress"] = 55
                 
-                if len(rows) < 10:
-                    log("[ERROR] Insufficient training samples")
-                    raise ValueError("Need at least 10 training samples")
+                if len(rows) < 20:
+                    log("[ERROR] Insufficient training samples (need 20+)")
+                    raise ValueError("Need at least 20 training samples")
                 
-                log("[INFO] Training GradientBoosting ensemble (5 models)...")
+                log("[INFO] Training ApexCore V2 multi-head model (5 heads)...")
                 _training_status["progress"] = 60
                 
-                from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier
-                from sklearn.model_selection import train_test_split
-                import joblib
+                model = ApexCoreV2Model(model_size="big")
                 
-                df = builder.to_dataframe(rows)
+                log("[INFO] Training QuantraScore regression head...")
+                _training_status["progress"] = 65
                 
-                features = df[["quantra_score"]].values
-                targets_runner = df["hit_runner_threshold"].values
-                targets_quality = df["future_quality_tier"].values
-                targets_avoid = df["avoid_trade"].values
-                
-                X_train, X_val, y_runner_train, y_runner_val = train_test_split(
-                    features, targets_runner, test_size=0.2, random_state=42
-                )
-                
-                log("[INFO] Training runner probability model...")
+                log("[INFO] Training Runner probability head...")
                 _training_status["progress"] = 70
-                runner_model = GradientBoostingClassifier(n_estimators=100, max_depth=3, random_state=42)
-                runner_model.fit(X_train, y_runner_train)
-                runner_auc = runner_model.score(X_val, y_runner_val)
-                log(f"[INFO] Runner model accuracy: {runner_auc:.3f}")
                 
-                log("[INFO] Training quality tier model...")
+                log("[INFO] Training Quality tier classification head...")
+                _training_status["progress"] = 75
+                
+                log("[INFO] Training Avoid-trade classification head...")
                 _training_status["progress"] = 80
                 
-                log("[INFO] Training avoid-trade model...")
+                log("[INFO] Training Regime classification head...")
                 _training_status["progress"] = 85
                 
-                log("[INFO] Saving models and manifest...")
+                metrics = model.fit(rows)
+                
+                log(f"[INFO] QuantraScore RMSE: {metrics['quantrascore_rmse']:.3f}")
+                log(f"[INFO] Runner accuracy: {metrics['runner_accuracy']:.3f}")
+                log(f"[INFO] Quality accuracy: {metrics['quality_accuracy']:.3f}")
+                log(f"[INFO] Avoid accuracy: {metrics['avoid_accuracy']:.3f}")
+                log(f"[INFO] Regime accuracy: {metrics['regime_accuracy']:.3f}")
+                
+                log("[INFO] Saving model artifacts...")
                 _training_status["progress"] = 90
                 
-                model_dir = Path("models/apexcore_v2/training_run")
-                model_dir.mkdir(parents=True, exist_ok=True)
+                save_path = model.save()
+                log(f"[INFO] Model saved to {save_path}")
                 
-                joblib.dump(runner_model, model_dir / "runner_model.joblib")
-                
-                manifest = {
-                    "model_family": "apexcore_v2",
-                    "variant": "training_run",
-                    "ensemble_size": 5,
-                    "created_utc": datetime.utcnow().isoformat(),
-                    "training_samples": len(rows),
-                    "symbols_used": symbols,
-                    "lookback_days": request.lookback_days,
-                    "metrics": {
-                        "val_accuracy_runner": float(runner_auc),
-                    },
-                }
-                
-                with open(model_dir / "manifest.json", "w") as f:
-                    json.dump(manifest, f, indent=2)
+                manifest = model.manifest.to_dict() if model.manifest else {}
+                manifest["symbols_used"] = symbols
+                manifest["lookback_days"] = request.lookback_days
                 
                 log("[SUCCESS] Training complete!")
                 _training_status["progress"] = 100
@@ -4471,6 +4485,8 @@ def create_app() -> FastAPI:
                 
             except Exception as e:
                 log(f"[ERROR] Training failed: {e}")
+                import traceback
+                log(f"[DEBUG] {traceback.format_exc()}")
                 _training_status["current_step"] = f"Failed: {e}"
             finally:
                 _training_status["is_training"] = False
@@ -4482,6 +4498,141 @@ def create_app() -> FastAPI:
             "message": "Training pipeline started in background",
             "timestamp": datetime.utcnow().isoformat()
         }
+    
+    # =========================================================================
+    # PREDICTION ENDPOINTS - Real model inference
+    # =========================================================================
+    
+    class PredictionRequest(BaseModel):
+        symbol: str
+        lookback_days: int = 150
+        timeframe: str = "1d"
+    
+    class PredictionResponse(BaseModel):
+        symbol: str
+        quantrascore_pred: float
+        runner_probability: float
+        quality_tier_pred: str
+        avoid_trade_probability: float
+        regime_pred: str
+        confidence: float
+        model_version: str
+        model_status: str
+        timestamp: str
+    
+    @app.get("/prediction/status")
+    async def get_prediction_status():
+        """Get status of trained prediction models."""
+        from src.quantracore_apex.prediction.apexcore_v2 import get_model_status
+        
+        big_status = get_model_status("big")
+        mini_status = get_model_status("mini")
+        
+        return {
+            "big": big_status,
+            "mini": mini_status,
+            "default_model": "big" if big_status.get("status") == "trained" else "mini" if mini_status.get("status") == "trained" else None,
+        }
+    
+    @app.post("/prediction/predict", response_model=PredictionResponse)
+    async def get_prediction(request: PredictionRequest):
+        """
+        Generate prediction using trained ApexCore V2 model.
+        
+        Fetches real market data, runs engine analysis, then generates
+        predictions using the trained multi-head model.
+        """
+        from src.quantracore_apex.prediction.apexcore_v2 import ApexCoreV2Model, get_model_status
+        
+        big_status = get_model_status("big")
+        if big_status.get("status") != "trained":
+            raise HTTPException(
+                status_code=400,
+                detail="No trained model available. Please train a model first via /apexlab/train"
+            )
+        
+        try:
+            end_dt = datetime.now()
+            start_dt = end_dt - timedelta(days=request.lookback_days)
+            bars = data_manager.fetch_ohlcv(request.symbol, start_dt, end_dt, request.timeframe)
+            
+            if bars is None or len(bars) < 115:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Insufficient data for {request.symbol}. Polygon API may be rate limiting. Please try again in a few minutes."
+                )
+            
+            normalized_bars = []
+            base_time = start_dt
+            for idx, bar in enumerate(bars):
+                ts = base_time + timedelta(days=idx)
+                if isinstance(bar, dict):
+                    bar_ts = bar.get("timestamp", ts)
+                    normalized_bars.append({
+                        "timestamp": bar_ts if isinstance(bar_ts, datetime) else ts,
+                        "open": float(bar.get("open", bar.get("o", 0))),
+                        "high": float(bar.get("high", bar.get("h", 0))),
+                        "low": float(bar.get("low", bar.get("l", 0))),
+                        "close": float(bar.get("close", bar.get("c", 0))),
+                        "volume": float(bar.get("volume", bar.get("v", 0))),
+                    })
+                else:
+                    bar_ts = getattr(bar, 'timestamp', ts)
+                    normalized_bars.append({
+                        "timestamp": bar_ts if isinstance(bar_ts, datetime) else ts,
+                        "open": float(bar.open),
+                        "high": float(bar.high),
+                        "low": float(bar.low),
+                        "close": float(bar.close),
+                        "volume": float(bar.volume),
+                    })
+            
+            window_slice = normalized_bars[-100:]
+            window = window_builder.build_single(window_slice, request.symbol, request.timeframe)
+            
+            if window is None:
+                raise HTTPException(status_code=500, detail="Failed to build analysis window")
+            
+            context = ApexContext(seed=42, compliance_mode=True)
+            result = engine.run(window, context)
+            
+            row_data = {
+                "quantra_score": result.quantrascore,
+                "entropy_band": result.entropy_state.value,
+                "suppression_state": result.suppression_state.value,
+                "regime_type": result.regime.value,
+                "volatility_band": "mid",
+                "liquidity_band": "mid",
+                "risk_tier": result.risk_tier.value,
+                "protocol_ids": [p.protocol_id for p in result.protocol_results if p.fired],
+                "ret_1d": 0,
+                "ret_3d": 0,
+                "ret_5d": 0,
+                "max_runup_5d": 0,
+                "max_drawdown_5d": 0,
+            }
+            
+            model = ApexCoreV2Model.load(model_size="big")
+            prediction = model.predict(row_data)
+            
+            return PredictionResponse(
+                symbol=request.symbol,
+                quantrascore_pred=prediction.quantrascore_pred,
+                runner_probability=prediction.runner_probability,
+                quality_tier_pred=prediction.quality_tier_pred,
+                avoid_trade_probability=prediction.avoid_trade_probability,
+                regime_pred=prediction.regime_pred,
+                confidence=prediction.confidence,
+                model_version=prediction.model_version,
+                model_status="trained",
+                timestamp=datetime.utcnow().isoformat(),
+            )
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Prediction error for {request.symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
     
     # =========================================================================
     # LOGS ENDPOINTS - Real system logs
