@@ -62,16 +62,35 @@ Supports a NullAdapter (research mode), PaperSimAdapter (offline simulation), an
 
 ## External Dependencies
 
-### Data Providers
-- **Polygon.io:** Primary market data provider.
-- **Alpha Vantage:** Backup market data provider (optional).
-- **Yahoo Finance:** Fallback market data provider.
-- **Financial Modeling Prep:** Fundamental data.
-- **Nasdaq Data Link:** Economic data.
-- **Unusual Whales, FlowAlgo, InsiderFinance:** Options flow data.
-- **Finnhub, AltIndex, Stocktwits:** Alternative data (news, sentiment).
-- **Binance, CoinGecko:** Cryptocurrency data.
-- **Synthetic:** For testing and demos.
+### Data Providers (15 Total via UnifiedDataManager)
+**OHLCV & Market Data:**
+- **Polygon.io:** Primary provider ($29/mo) - US equities, options, crypto
+- **Alpha Vantage:** Secondary ($49/mo) - technicals, forex, crypto
+- **EODHD:** International markets ($20/mo) - 70+ global exchanges
+- **Interactive Brokers:** Broker-integrated (free with account) - requires IB Gateway
+
+**Fundamentals & Filings:**
+- **Financial Modeling Prep:** Fundamentals, SEC filings ($20/mo)
+- **Nasdaq Data Link:** Economic indicators, Fed data (free tier)
+
+**Options Flow & Dark Pool:**
+- **Unusual Whales:** Unusual activity, congressional trades ($35/mo)
+- **FlowAlgo:** Sweeps, blocks, institutional flow ($150/mo)
+- **InsiderFinance:** Correlated flow analysis ($49/mo)
+
+**Alternative Data & Sentiment:**
+- **Finnhub:** News, sentiment, insider trades (free tier)
+- **AltIndex:** AI stock scores, social sentiment ($29/mo)
+- **Stocktwits:** Social sentiment (free, no API key)
+
+**Cryptocurrency:**
+- **Binance:** Free crypto data (no key for public endpoints)
+- **CoinGecko:** 10,000+ coins (free tier)
+
+**Testing:**
+- **Synthetic:** Deterministic data for testing (free)
+
+**Current Active:** Polygon, Alternative Data (Stocktwits), Crypto (Binance), Synthetic
 
 ### Broker Integration
 - **Alpaca Paper:** For paper trading.
