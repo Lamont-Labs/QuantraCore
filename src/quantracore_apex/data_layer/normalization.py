@@ -5,11 +5,28 @@ Handles timestamp normalization, scaling, and data cleaning.
 """
 
 import numpy as np
-from typing import List
+from typing import List, Sequence, Any, Union
 from datetime import timezone
 from copy import deepcopy
 
 from src.quantracore_apex.core.schemas import OhlcvBar, OhlcvWindow
+from src.quantracore_apex.data_layer.adapters.base_enhanced import OhlcvBar as DataclassOhlcvBar
+
+AnyOhlcvBar = Union[OhlcvBar, DataclassOhlcvBar]
+
+
+def _to_pydantic_bar(bar: AnyOhlcvBar) -> OhlcvBar:
+    """Convert any OhlcvBar type to Pydantic OhlcvBar."""
+    if isinstance(bar, OhlcvBar):
+        return bar
+    return OhlcvBar(
+        timestamp=bar.timestamp,
+        open=bar.open,
+        high=bar.high,
+        low=bar.low,
+        close=bar.close,
+        volume=bar.volume
+    )
 
 
 def normalize_timestamps(bars: List[OhlcvBar]) -> List[OhlcvBar]:
@@ -93,7 +110,7 @@ def apply_volatility_scaling(bars: List[OhlcvBar]) -> List[OhlcvBar]:
 
 
 def normalize_ohlcv(
-    bars: List[OhlcvBar],
+    bars: Sequence[AnyOhlcvBar],
     remove_invalid: bool = True,
     zscore_window: int = 20
 ) -> tuple:
@@ -101,14 +118,15 @@ def normalize_ohlcv(
     Full normalization pipeline for OHLCV data.
     
     Args:
-        bars: Raw OHLCV bars
+        bars: Raw OHLCV bars (accepts both Pydantic and dataclass OhlcvBar)
         remove_invalid: Whether to remove invalid bars
         zscore_window: Window for Z-score calculation
         
     Returns:
         Tuple of (normalized_bars, zscore_prices)
     """
-    normalized = normalize_timestamps(bars)
+    pydantic_bars = [_to_pydantic_bar(b) for b in bars]
+    normalized = normalize_timestamps(pydantic_bars)
     
     if remove_invalid:
         normalized = remove_zero_volume(normalized)
