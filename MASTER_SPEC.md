@@ -1,7 +1,7 @@
 # QuantraCore Apex v9.0-A — Master Specification
 
 **Version:** 9.0-A (Alpha)  
-**Last Updated:** 2025-11-29  
+**Last Updated:** 2025-11-30  
 **Classification:** Technical Build Specification  
 **Purpose:** Complete technical reference for development teams
 
@@ -34,6 +34,10 @@
 18. [Data Schemas](#18-data-schemas)
 19. [Testing Framework](#19-testing-framework)
 20. [Deployment](#20-deployment)
+21. [Autonomous Trading System](#21-autonomous-trading-system)
+22. [Battle Simulator](#22-battle-simulator)
+23. [HyperLearner](#23-hyperlearner)
+24. [Vision & Roadmap](#24-vision--roadmap)
 
 ---
 
@@ -1925,6 +1929,153 @@ src/quantracore_apex/hyperlearner/
 
 ---
 
+## 24. Vision & Roadmap
+
+### 24.1 System Potential
+
+QuantraCore Apex is architected as a **self-improving institutional-grade trading intelligence system**. While currently operating in research mode with limited data connectivity, the infrastructure supports full-scale quantitative operations.
+
+### 24.2 Current State vs. Full Potential
+
+| Capability | Current State | Full Connectivity |
+|------------|---------------|-------------------|
+| Training Samples | ~235 samples | 500,000+ samples |
+| Symbols Covered | 5 test symbols | 10,000+ symbols |
+| Historical Depth | 6 months | 20+ years |
+| Data Granularity | Daily bars | Tick-by-tick |
+| Model Accuracy | ~66% | 75%+ (projected) |
+| Learning Cycle | Manual training | Continuous retraining |
+| Execution Mode | Paper only | Paper → Live ready |
+
+### 24.3 Full Connectivity Roadmap
+
+#### Phase 1: Data Ingestion (Day 1)
+When premium data subscriptions activate:
+- Polygon Elite tier streams every US equity tick in real-time
+- Options flow data reveals institutional positioning
+- Alternative data feeds (news sentiment, earnings whispers) integrate
+- Historical database fills with 20+ years of clean OHLCV across 10,000+ symbols
+
+#### Phase 2: Mass Training (Week 1)
+- `LiveDataTrainer` generates 500,000+ labeled training samples
+- ApexCore models retrain across all market regimes (bull, bear, sideways, crash)
+- Walk-forward validation ensures no lookahead bias
+- Accuracy climbs from 66% → 75%+ as patterns emerge from scale
+
+#### Phase 3: Pattern Discovery (Month 1)
+- HyperLearner's `PatternMiner` identifies 1,000+ winning setups
+- `MetaLearner` optimizes which patterns to trust in which regimes
+- Battle Simulator fingerprints institutional strategies from 13F filings
+- System learns to anticipate or fade smart money based on context
+
+#### Phase 4: Autonomous Operation (Ongoing)
+- Alpha Factory runs 24/7, scanning every symbol every minute
+- `SignalQualityFilter` surfaces only QuantraScore 80+ / A+ tier setups
+- `TradingOrchestrator` executes via Alpaca (paper → live when enabled)
+- Every trade outcome feeds back into HyperLearner
+- Models retrain weekly on fresh outcomes — **compounding intelligence**
+
+### 24.4 The Flywheel Effect
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    INTELLIGENCE FLYWHEEL                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│    ┌──────────┐     ┌──────────┐     ┌──────────┐           │
+│    │  More    │────▶│  Better  │────▶│  More    │           │
+│    │  Data    │     │  Models  │     │  Wins    │           │
+│    └──────────┘     └──────────┘     └──────────┘           │
+│         ▲                                   │                │
+│         │                                   ▼                │
+│    ┌──────────┐                      ┌──────────┐           │
+│    │  Better  │◀─────────────────────│  More    │           │
+│    │  Models  │                      │ Feedback │           │
+│    └──────────┘                      └──────────┘           │
+│                                                              │
+│    Each cycle compounds learning, improving future cycles    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 24.5 Infrastructure Already Built
+
+| Component | Purpose | Status |
+|-----------|---------|--------|
+| **Data Layer** | Polygon, Alpha Vantage, Yahoo Finance adapters | Ready for premium feeds |
+| **Alpha Factory** | 24/7 live research loop with WebSocket support | Ready |
+| **HyperLearner** | Continuous learning from every system event | Ready |
+| **Autonomous Trading** | Full orchestration pipeline | Ready (paper mode) |
+| **Broker Layer** | NullAdapter → PaperSim → Alpaca → (Live) | Staged rollout ready |
+| **Battle Simulator** | SEC EDGAR institutional intelligence | Active |
+| **Training Pipeline** | Polygon live data → ApexCore models | Tested & validated |
+
+### 24.6 Competitive Positioning
+
+#### What Top Quant Firms Have
+- Billions in capital and infrastructure
+- Tick-by-tick data and co-location (microsecond execution)
+- Hundreds of PhDs (mathematics, physics, computer science)
+- Decades of proprietary research
+- Exotic alternative data (satellite imagery, credit card transactions)
+- Ultra-low latency market making relationships
+
+#### QuantraCore Apex Differentiation
+- **Systematic Pattern Recognition**: 145+ protocols codify decades of technical analysis
+- **Deterministic Reproducibility**: Same inputs always produce same outputs
+- **Self-Improving Architecture**: HyperLearner compounds intelligence over time
+- **Institutional Intelligence**: Battle Simulator learns from public 13F filings
+- **Desktop-Scale Efficiency**: Runs on-device without cloud dependencies
+
+### 24.7 End State Vision
+
+A fully operational QuantraCore Apex system:
+1. **Scans** the entire market continuously (10,000+ symbols)
+2. **Identifies** high-probability setups before they become obvious
+3. **Executes** with institutional-grade risk management (EEO Engine)
+4. **Learns** from every outcome to improve future decisions
+5. **Adapts** to regime changes automatically (regime classification)
+6. **Compounds** intelligence through the flywheel effect
+
+### 24.8 Data Subscription Requirements
+
+| Data Type | Provider | Purpose |
+|-----------|----------|---------|
+| Real-time Equities | Polygon Elite | Tick-by-tick US equities |
+| Historical OHLCV | Polygon | 20+ years backfill |
+| Options Flow | Polygon Options | Institutional positioning |
+| News/Sentiment | Polygon News | Event-driven signals |
+| SEC Filings | EDGAR (free) | Institutional holdings (active) |
+| Fundamentals | Polygon Fundamentals | Earnings, financials |
+
+### 24.9 Activation Sequence
+
+When data subscriptions are connected:
+
+```python
+# 1. Configure data sources
+config.set_polygon_tier("elite")
+config.enable_realtime_websocket(True)
+config.set_historical_depth_years(20)
+
+# 2. Run mass training
+trainer = LiveDataTrainer(symbols=SP500_SYMBOLS)
+trainer.train(samples_target=500000)
+
+# 3. Enable autonomous mode
+orchestrator = TradingOrchestrator(
+    broker=AlpacaPaperAdapter(),  # or AlpacaLiveAdapter() when ready
+    mode="autonomous"
+)
+orchestrator.start()
+
+# 4. System runs continuously, learning and improving
+# HyperLearner captures every event
+# Models retrain weekly on fresh outcomes
+# Intelligence compounds over time
+```
+
+---
+
 ## Appendix A: Version History
 
 | Version | Date | Changes |
@@ -1933,6 +2084,8 @@ src/quantracore_apex/hyperlearner/
 | 9.0-A | 2025-11-29 | Added Autonomous Trading System with TradingOrchestrator, SignalQualityFilter, PositionMonitor, TradeOutcomeTracker |
 | 9.0-A | 2025-11-29 | Added Battle Simulator for competitive intelligence using public SEC data |
 | 9.0-A | 2025-11-29 | Added HyperLearner hyper-velocity learning system |
+| 9.0-A | 2025-11-30 | Added Polygon Live Data Training Pipeline with real market data training |
+| 9.0-A | 2025-11-30 | Added Section 24: Vision & Roadmap documenting full system potential |
 
 ---
 

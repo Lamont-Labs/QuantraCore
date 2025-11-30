@@ -186,6 +186,13 @@ Connected via Replit OAuth2 connector for automated export pipeline:
 
 ## Recent Changes
 
+- **2025-11-30:** Added Vision & Roadmap Documentation (Section 24)
+  - Documented full system potential with data connectivity
+  - Intelligence Flywheel effect explained
+  - Competitive positioning vs quant firms
+  - Data subscription requirements and activation sequence
+  - End state vision: self-improving institutional-grade system
+
 - **2025-11-30:** Added Polygon Live Data Training Pipeline
   - **PolygonDataFetcher**: Fetches historical OHLCV from Polygon.io with retry logic
   - **WindowGenerator**: Creates 100-bar sliding windows for training
