@@ -150,10 +150,14 @@ class UniverseScanner:
                 )
             
             if self.engine is None:
-                from src.quantracore_apex.core.apex_engine import ApexEngine
+                from src.quantracore_apex.core.engine import ApexEngine
                 self.engine = ApexEngine()
             
-            engine_result = self.engine.analyze(fetch_result.bars)
+            engine_result = self.engine.run_scan(
+                bars=fetch_result.bars,
+                symbol=symbol,
+                timeframe=timeframe
+            )
             
             from src.quantracore_apex.protocols.monster_runner.fuse_score import (
                 calculate_mr_fuse_score
@@ -177,6 +181,10 @@ class UniverseScanner:
             
             scan_time = (time.time() - start_time) * 1000
             
+            omega_alerts = [k for k, v in engine_result.omega_overrides.items() if v]
+            
+            protocol_fired_count = len([p for p in engine_result.protocol_results if p.fired])
+            
             return ScanResult(
                 symbol=symbol,
                 quantrascore=engine_result.quantrascore,
@@ -188,8 +196,8 @@ class UniverseScanner:
                 drift_state=engine_result.drift_state,
                 verdict_action=engine_result.verdict.action,
                 verdict_confidence=engine_result.verdict.confidence,
-                omega_alerts=[d.id for d in engine_result.omega_directives if d.triggered],
-                protocol_fired_count=engine_result.protocols_fired_count,
+                omega_alerts=omega_alerts,
+                protocol_fired_count=protocol_fired_count,
                 window_hash=engine_result.window_hash,
                 timestamp=datetime.now().isoformat(),
                 market_cap_bucket=market_cap_bucket,
