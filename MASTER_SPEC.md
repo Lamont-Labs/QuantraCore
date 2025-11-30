@@ -1019,38 +1019,145 @@ print(f"Bars generated: {len(result.bars)}")
 
 **Location:** `src/quantracore_apex/data_layer/`
 
-### 11.2 Data Adapters
+The data layer provides a unified interface for ingesting market data from 15+ providers across multiple asset classes and data types.
 
-| Adapter | Source | API Key | Priority | Description |
-|---------|--------|---------|----------|-------------|
-| `PolygonAdapter` | Polygon.io | `POLYGON_API_KEY` | 1 | Primary production data |
-| `AlphaVantageAdapter` | Alpha Vantage | `ALPHA_VANTAGE_API_KEY` | 2 | Backup provider |
-| `SyntheticAdapter` | Generated | None | 3 | Testing/demo fallback |
-
-### 11.3 Data Client
+### 11.2 Unified Data Manager
 
 ```python
-from src.quantracore_apex.data_layer import DataClient
+from src.quantracore_apex.data_layer.adapters import UnifiedDataManager
 
-client = DataClient()
+manager = UnifiedDataManager()
 
-# Automatic fallback: Polygon → Alpha Vantage → Synthetic
-bars = client.fetch_ohlcv(
-    symbol="AAPL",
-    start=datetime(2024, 1, 1),
-    end=datetime(2024, 12, 31),
-    timeframe="1d"
-)
+# Automatic fallback chain: Polygon → Alpha Vantage → EODHD → Synthetic
+bars = manager.fetch_ohlcv("AAPL", start, end)
+
+# Get fundamentals from best available provider
+fundamentals = manager.fetch_fundamentals("AAPL")
+
+# Aggregate options flow from all providers
+flow = manager.fetch_options_flow("AAPL", min_premium=50000)
+
+# Combined sentiment from multiple sources
+sentiment = manager.fetch_sentiment("AAPL")
+
+# Check all provider status
+status = manager.get_all_provider_status()
 ```
 
-### 11.4 WebSocket Feeds
+### 11.3 Market Data Providers (OHLCV, Ticks, Quotes)
+
+| Provider | Adapter | Cost | Data Types | Best For |
+|----------|---------|------|------------|----------|
+| **Polygon.io** | `PolygonAdapter` | $29-1999/mo | OHLCV, ticks, quotes, options | US equities (primary) |
+| **Alpha Vantage** | `AlphaVantageAdapter` | $49/mo | OHLCV, technicals | Technical indicators |
+| **EODHD** | `EODHDAdapter` | $20-200/mo | OHLCV, fundamentals | 70+ global exchanges |
+| **Interactive Brokers** | `InteractiveBrokersAdapter` | Free* | All + execution | Broker-integrated data |
+| **Synthetic** | `SyntheticAdapter` | Free | OHLCV | Testing/demo |
+
+### 11.4 Fundamental Data Providers
+
+| Provider | Adapter | Cost | Features |
+|----------|---------|------|----------|
+| **Financial Modeling Prep** | `FMPAdapter` | $20-100/mo | Income statements, balance sheets, ratios, SEC filings |
+| **Nasdaq Data Link** | `NasdaqDataLinkAdapter` | Varies | Economic indicators, Fed data, Treasury yields |
+| **EODHD** | `EODHDAdapter` | Included | Basic fundamentals |
+
+### 11.5 Options Flow Providers
+
+| Provider | Adapter | Cost | Features |
+|----------|---------|------|----------|
+| **Unusual Whales** | `UnusualWhalesAdapter` | $35/mo | Unusual activity, congressional trades, dark pool |
+| **FlowAlgo** | `FlowAlgoAdapter` | $150-200/mo | Sweeps, blocks, dark pool levels |
+| **InsiderFinance** | `InsiderFinanceAdapter` | $49/mo | Correlated flow + dark pool |
+
+### 11.6 Alternative Data Providers
+
+| Provider | Adapter | Cost | Features |
+|----------|---------|------|----------|
+| **Finnhub** | `FinnhubAdapter` | Free-$75/mo | News, sentiment, insider trades |
+| **AltIndex** | `AltIndexAdapter` | $0-99/mo | AI stock scores, social aggregation |
+| **Stocktwits** | `StocktwitsAdapter` | Free | Real-time social sentiment |
+
+### 11.7 Cryptocurrency Providers
+
+| Provider | Adapter | Cost | Features |
+|----------|---------|------|----------|
+| **Binance** | `BinanceAdapter` | Free | Spot, futures, funding rates, order books |
+| **CoinGecko** | `CoinGeckoAdapter` | Free-$130/mo | 10,000+ coins, market data |
+
+### 11.8 Environment Variables
+
+```bash
+# Market Data
+POLYGON_API_KEY=               # Primary US equities
+ALPHA_VANTAGE_API_KEY=         # Technical indicators
+EODHD_API_KEY=                 # Global markets
+
+# Broker Integration
+IB_HOST=127.0.0.1              # Interactive Brokers Gateway
+IB_PORT=7497                   # 7497=paper, 7496=live
+IB_CLIENT_ID=1
+ALPACA_PAPER_API_KEY=          # Alpaca paper trading
+ALPACA_PAPER_API_SECRET=
+
+# Fundamentals
+FMP_API_KEY=                   # Financial Modeling Prep
+NASDAQ_DATA_LINK_API_KEY=      # Nasdaq Data Link (Quandl)
+
+# Options Flow
+UNUSUAL_WHALES_API_KEY=        # Unusual Whales
+FLOWALGO_API_KEY=              # FlowAlgo
+INSIDER_FINANCE_API_KEY=       # InsiderFinance
+
+# Alternative Data
+FINNHUB_API_KEY=               # News/sentiment
+ALTINDEX_API_KEY=              # AI scores
+STOCKTWITS_ACCESS_TOKEN=       # Social sentiment
+
+# Cryptocurrency
+BINANCE_API_KEY=               # Binance (optional)
+BINANCE_API_SECRET=
+COINGECKO_API_KEY=             # CoinGecko Pro
+```
+
+### 11.9 Recommended Stacks by Budget
+
+| Budget | Monthly Cost | Stack |
+|--------|--------------|-------|
+| **Basic** | ~$50/mo | Polygon Starter + Finnhub Free + Binance |
+| **Standard** | ~$150/mo | Polygon Dev + FMP + Unusual Whales + Finnhub |
+| **Advanced** | ~$500/mo | Polygon Advanced + FMP + FlowAlgo + AltIndex |
+| **Professional** | ~$2000+/mo | Polygon Business + IB + FlowAlgo + Full alt data |
+
+### 11.10 WebSocket Feeds
 
 | WebSocket | Provider | Assets | Use Case |
 |-----------|----------|--------|----------|
 | `polygon_ws.py` | Polygon.io | US Equities | Alpha Factory equities |
 | `binance_ws.py` | Binance | Crypto pairs | Alpha Factory crypto |
 
-### 11.5 Caching
+### 11.11 Data Types
+
+```python
+from src.quantracore_apex.data_layer.adapters import DataType
+
+# Available data types
+DataType.OHLCV           # Price bars
+DataType.TICK            # Individual trades
+DataType.QUOTE           # Bid/ask quotes
+DataType.TRADE           # Trade executions
+DataType.OPTIONS_FLOW    # Options orders
+DataType.OPTIONS_CHAIN   # Options chains
+DataType.DARK_POOL       # Dark pool prints
+DataType.NEWS            # Market news
+DataType.SENTIMENT       # Social sentiment
+DataType.FUNDAMENTALS    # Financial data
+DataType.SEC_FILINGS     # SEC filings
+DataType.ECONOMIC        # Economic indicators
+DataType.CRYPTO          # Cryptocurrency data
+```
+
+### 11.12 Caching
 
 ```
 data/
