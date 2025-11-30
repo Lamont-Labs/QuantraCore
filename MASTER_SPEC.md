@@ -74,7 +74,7 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 - **145+ Protocols**: 80 Tier + 25 Learning + 20 MonsterRunner + 20 Omega
 - **QuantraScore**: 0-100 probability-weighted composite score
 - **Universal Scanner**: 7 market cap buckets × 4 scan modes
-- **Offline ML**: On-device ApexCore v2 neural models
+- **Offline ML**: On-device ApexCore v3 neural models with 5 prediction heads
 - **Full Paper Trading**: Alpaca integration with all position types
 - **Self-Learning**: Feedback loop → ApexLab → periodic retraining
 - **All Trading Types**: Long, short, margin, intraday, swing, scalping
@@ -147,7 +147,7 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 │                                    │                                 │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐    │
 │  │  ApexCore  │  │  ApexLab   │  │   Broker   │  │    EEO     │    │
-│  │    v2      │  │    v2      │  │   Layer    │  │   Engine   │    │
+│  │    v3      │  │    v2      │  │   Layer    │  │   Engine   │    │
 │  └────────────┘  └────────────┘  └────────────┘  └────────────┘    │
 │                                    │                                 │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐    │
@@ -168,8 +168,9 @@ quantracore-apex/
 │   │   ├── learning/           # LP01-LP25 (25 protocols)
 │   │   ├── monster_runner/     # MR01-MR20 (20 protocols)
 │   │   └── omega/              # Ω1-Ω20 (20 directives)
-│   ├── apexcore/               # Neural models (v2)
+│   ├── apexcore/               # Neural models (v3)
 │   ├── apexlab/                # Training pipeline (v2)
+│   ├── investor/               # Investor trade logging
 │   ├── broker/                 # Broker adapters
 │   ├── eeo_engine/             # Entry/Exit Optimization
 │   ├── alpha_factory/          # 24/7 live research loop
@@ -540,9 +541,11 @@ Safety override protocols that enforce fail-closed behavior.
 
 ### 5.1 Architecture Overview
 
-**Location:** `src/quantracore_apex/apexcore/`
+**Location:** `src/quantracore_apex/prediction/apexcore_v3.py`
 
-ApexCore v2 is a multi-head neural assistant using scikit-learn Gradient Boosting models.
+ApexCore v3 is the institutional-grade multi-head neural prediction engine using scikit-learn Gradient Boosting models with integrated accuracy optimization.
+
+**Bootstrap Status:** Initial model artifacts are created with synthetic bootstrap data for system initialization. Production models are retrained with real market data via Alpha Factory feedback loop and the auto-retraining system.
 
 ### 5.2 Model Variants
 
@@ -555,11 +558,23 @@ ApexCore v2 is a multi-head neural assistant using scikit-learn Gradient Boostin
 
 | Head | Type | Output | Description |
 |------|------|--------|-------------|
-| `quantra_score` | Regression | 0-100 | Predicted QuantraScore |
-| `runner_prob` | Binary Classification | 0-1 | Probability of runner status |
+| `quantra_score` | Regression | 0-100 | Calibrated QuantraScore with Platt scaling |
+| `runner_prob` | Binary Classification | 0-1 | Monster runner probability with isotonic calibration |
 | `quality_tier` | Multi-class | A+, A, B, C, D | Trade quality classification |
 | `avoid_trade` | Binary Classification | 0-1 | Probability should avoid trade |
-| `regime` | Multi-class | 5 classes | Market regime prediction |
+| `regime` | Multi-class | 6 classes | Market regime prediction (trend_up, trend_down, chop, squeeze, volatile, crash) |
+
+### 5.3.1 V3 Enhancements Over V2
+
+| Feature | V2 | V3 |
+|---------|-----|-----|
+| Calibration | None | Platt/Isotonic/Temperature ensemble |
+| Uncertainty | None | Conformal prediction bounds |
+| Multi-Horizon | None | 1D, 3D, 5D, 10D predictions |
+| Cross-Asset | None | VIX, sector, breadth features |
+| Protocol Telemetry | None | Weighted protocol integration |
+| Regime Routing | None | Regime-gated specialist models |
+| Auto-Retrain | None | Drift detection + triggered retraining |
 
 ### 5.4 Feature Encoding
 
@@ -572,38 +587,37 @@ ApexCore v2 is a multi-head neural assistant using scikit-learn Gradient Boostin
 ### 5.5 Ensemble Architecture
 
 ```python
-class ApexCoreV2Ensemble:
+class ApexCoreV3Model:
     """
-    Ensemble of N models with uncertainty quantification.
+    Unified prediction engine with 5 heads and 9 accuracy modules.
     
     Provides:
-    - Mean predictions across ensemble
-    - Disagreement metrics for fail-closed behavior
-    - Bootstrap training for diversity
+    - Calibrated predictions across all heads
+    - Regime-gated routing to specialist models
+    - Uncertainty quantification with conformal bounds
+    - Multi-horizon predictions (1D, 3D, 5D, 10D)
+    - Cross-asset feature integration
     """
-    ensemble_size: int = 3
-    members: List[ApexCoreV2Model]
     
-    def predict_with_uncertainty(self, features: np.ndarray) -> Dict:
-        predictions = [m.predict(features) for m in self.members]
-        mean_pred = np.mean(predictions, axis=0)
-        std_pred = np.std(predictions, axis=0)
-        disagreement = std_pred / (mean_pred + 1e-8)
-        return {"prediction": mean_pred, "uncertainty": std_pred, "disagreement": disagreement}
+    def predict(self, row, current_price) -> ApexCoreV3Prediction:
+        # Returns calibrated prediction with:
+        # - quantrascore_calibrated: 0-100
+        # - confidence: 0-1
+        # - uncertainty_lower/upper: bounds
+        # - regime: market regime
+        # - should_trade: boolean
+        # - multi_horizon: predictions by horizon
+        pass
 ```
 
 ### 5.6 Model Persistence
 
 ```
-data/training/models/
-├── apexcore_demo.pkl          # Trained model (joblib)
-├── apexcore_demo_metadata.json # Training metadata
-└── ensemble/
-    ├── member_0.joblib
-    ├── member_1.joblib
-    ├── member_2.joblib
-    └── manifests/
-        └── latest.json        # Manifest with SHA256 hashes
+models/apexcore_v3/
+├── apexcore_v3_big.joblib           # BIG variant model
+├── apexcore_v3_big_manifest.json    # Manifest with SHA256 hashes
+├── apexcore_v3_mini.joblib          # MINI variant model
+└── apexcore_v3_mini_manifest.json   # Manifest with SHA256 hashes
 ```
 
 ---
@@ -1720,6 +1734,15 @@ compliance_note = (
 | `/google-docs/journal/list` | GET | List all journals |
 | `/google-docs/investor-update/monthly` | POST | Monthly update |
 
+### 15.5 Investor Trade Logging Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/investor/trades` | GET | Get recent paper trades with full context |
+| `/investor/summary` | GET | Daily trading summary and performance |
+| `/investor/stats` | GET | Cumulative lifetime statistics |
+| `/investor/export` | POST | Export all trades to consolidated CSV |
+
 ---
 
 ## 16. Google Docs Integration
@@ -1749,7 +1772,106 @@ Automated export pipeline for investor and acquirer documentation.
 | **Trade Journal** | Daily entries with research notes | Daily |
 | **Monthly Update** | Monthly performance summary | Monthly |
 
-### 16.4 Performance Metrics
+---
+
+## 16.5 Investor Trade Journal
+
+**Location:** `src/quantracore_apex/investor/trade_journal.py`
+
+Comprehensive paper trade logging for institutional due diligence and investor reporting.
+
+### 16.5.1 Storage Location
+
+All trades are logged to `investor_logs/` with the following structure:
+
+```
+investor_logs/
+├── trades/              # Daily trade logs (JSON + CSV per day)
+│   ├── trades_20251130.json
+│   └── trades_20251130.csv
+├── summaries/           # Daily performance summaries
+│   └── summary_20251130.json
+├── reports/             # Monthly investor reports
+├── exports/             # Consolidated CSV exports
+└── cumulative_stats.json  # Lifetime statistics
+```
+
+### 16.5.2 Data Captured Per Trade
+
+| Category | Fields |
+|----------|--------|
+| **Core Trade Info** | trade_id, timestamp, symbol, company_name, sector, direction, entry_price, quantity, notional_value, status, broker |
+| **Account Snapshot** | equity, cash, buying_power, portfolio_value, day_pnl, total_pnl, open_positions_count, total_exposure, exposure_pct, margin_used |
+| **Signal Quality** | quantrascore, score_bucket, confidence, monster_runner_score, monster_runner_fired, runner_probability, avoid_trade_probability, quality_tier, entropy_state, suppression_state, drift_state |
+| **Market Context** | regime, vix_level, vix_percentile, sector_momentum, market_breadth, spy_change_pct, trading_session, market_phase |
+| **Risk Assessment** | risk_tier, risk_approved, risk_score, max_position_size, actual_position_size, stop_loss_price, stop_loss_pct, take_profit_price, take_profit_pct, risk_reward_ratio, max_drawdown_allowed, volatility_adjusted |
+| **Protocol Analysis** | protocols_fired, protocol_count, tier_protocols, monster_runner_protocols, learning_protocols, omega_alerts, omega_blocked, consensus_direction, protocol_confidence |
+| **Execution Details** | order_id, order_type, time_in_force, limit_price, stop_price, filled_price, slippage, slippage_pct, commission, execution_time_ms, fill_quality |
+| **Trade Outcome** | exit_price, exit_timestamp, realized_pnl, realized_pnl_pct, hold_duration_hours, exit_reason |
+| **Compliance** | research_notes, compliance_notes, audit_hash |
+
+### 16.5.3 Daily Summary Metrics
+
+```python
+@dataclass
+class DailySummary:
+    date: str
+    total_trades: int
+    winning_trades: int
+    losing_trades: int
+    open_trades: int
+    gross_pnl: float
+    net_pnl: float
+    commission_paid: float
+    win_rate: float
+    profit_factor: float
+    avg_winner: float
+    avg_loser: float
+    largest_winner: float
+    largest_loser: float
+    avg_hold_time_hours: float
+    total_volume: float
+    starting_equity: float
+    ending_equity: float
+    equity_change_pct: float
+    symbols_traded: List[str]
+    long_trades: int
+    short_trades: int
+    long_pnl: float
+    short_pnl: float
+    regimes_traded: Dict[str, int]
+    avg_quantrascore: float
+```
+
+### 16.5.4 Cumulative Statistics
+
+```python
+cumulative_stats = {
+    "total_trades": 0,
+    "total_winning": 0,
+    "total_losing": 0,
+    "gross_pnl": 0.0,
+    "net_pnl": 0.0,
+    "total_commission": 0.0,
+    "total_volume": 0.0,
+    "largest_winner": 0.0,
+    "largest_loser": 0.0,
+    "max_drawdown": 0.0,
+    "peak_equity": 0.0,
+    "first_trade_date": null,
+    "last_trade_date": null,
+    "symbols_traded": [],
+    "total_long_trades": 0,
+    "total_short_trades": 0,
+    "long_pnl": 0.0,
+    "short_pnl": 0.0,
+    "avg_hold_time_hours": 0.0,
+    "win_rate": 0.0,
+    "profit_factor": 0.0,
+}
+```
+
+### 16.6 Performance Metrics
 
 ```python
 @dataclass
