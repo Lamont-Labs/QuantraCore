@@ -3876,6 +3876,154 @@ def create_app() -> FastAPI:
             logger.error(f"Export training data error: {e}")
             raise HTTPException(status_code=500, detail=str(e))
     
+    @app.post("/training/train-from-polygon")
+    async def train_from_polygon_endpoint(
+        symbols: Optional[List[str]] = None,
+        lookback_days: int = 365,
+    ):
+        """
+        Train ApexCore models on real Polygon.io data.
+        
+        This fetches historical market data and trains the AI models
+        on actual price movements and outcomes.
+        
+        Args:
+            symbols: List of symbols to train on (default: top stocks + ETFs)
+            lookback_days: Days of history to fetch (default: 365)
+        """
+        try:
+            from src.quantracore_apex.apexlab.polygon_trainer import (
+                LiveDataTrainer,
+                TrainingConfig,
+            )
+            
+            config = TrainingConfig(lookback_days=lookback_days)
+            if symbols:
+                config.symbols = symbols
+            
+            trainer = LiveDataTrainer(config)
+            results = trainer.run_full_pipeline()
+            
+            return {
+                "status": "success",
+                "training_results": results,
+                "message": f"Trained on {results['samples']} samples from {results['symbols']} symbols",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Training error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/training/model-status")
+    async def get_model_status():
+        """
+        Check if trained models exist and their status.
+        """
+        try:
+            from pathlib import Path
+            import os
+            
+            model_dir = Path("data/models")
+            latest_path = model_dir / "apexcore_latest.pkl"
+            
+            if latest_path.exists():
+                import pickle
+                with open(latest_path, 'rb') as f:
+                    model_data = pickle.load(f)
+                
+                config = model_data.get('config', {})
+                config_dict = {}
+                if hasattr(config, '__dict__'):
+                    config_dict = {
+                        "hidden_layers": getattr(config, 'hidden_layers', []),
+                        "input_dim": getattr(config, 'input_dim', 30),
+                        "max_iter": getattr(config, 'max_iter', 500),
+                    }
+                
+                file_size = os.path.getsize(latest_path)
+                
+                return {
+                    "model_exists": True,
+                    "model_path": str(latest_path),
+                    "is_trained": model_data.get('is_trained', False),
+                    "config": config_dict,
+                    "file_size_kb": round(file_size / 1024, 2),
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                return {
+                    "model_exists": False,
+                    "message": "No trained model found. Run /training/train-from-polygon to train.",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+        except Exception as e:
+            logger.error(f"Model status error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/training/predict")
+    async def predict_with_trained_model(symbol: str = "AAPL"):
+        """
+        Make a prediction using the trained model on current data.
+        
+        Fetches latest data from Polygon and runs through the trained model.
+        """
+        try:
+            from pathlib import Path
+            from src.quantracore_apex.apexcore.models import ApexCoreFull
+            from src.quantracore_apex.apexlab.polygon_trainer import PolygonDataFetcher
+            from src.quantracore_apex.apexlab.features import FeatureExtractor
+            from src.quantracore_apex.core.schemas import OhlcvWindow
+            
+            model_path = Path("data/models/apexcore_latest.pkl")
+            if not model_path.exists():
+                raise HTTPException(status_code=404, detail="No trained model. Run training first.")
+            
+            model = ApexCoreFull()
+            model.load(str(model_path))
+            
+            fetcher = PolygonDataFetcher()
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=150)
+            bars = fetcher.fetch_daily_bars(symbol, start_date, end_date)
+            
+            if len(bars) < 100:
+                raise HTTPException(status_code=400, detail=f"Not enough data for {symbol}")
+            
+            window = OhlcvWindow(
+                symbol=symbol,
+                bars=bars[-100:],
+                timeframe="1d",
+            )
+            
+            feature_extractor = FeatureExtractor()
+            features = feature_extractor.extract(window)
+            
+            prediction = model.predict(features)
+            
+            regime_map = {"0": "bullish", "1": "bearish", "2": "neutral", 0: "bullish", 1: "bearish", 2: "neutral"}
+            risk_map = {"0": "low", "1": "medium", "2": "high", 0: "low", 1: "medium", 2: "high"}
+            
+            regime_name = regime_map.get(prediction.regime_prediction, str(prediction.regime_prediction))
+            risk_name = risk_map.get(prediction.risk_tier, str(prediction.risk_tier))
+            
+            return {
+                "symbol": symbol,
+                "prediction": {
+                    "quantrascore": prediction.quantrascore,
+                    "regime": regime_name,
+                    "risk_tier": risk_name,
+                    "score_bucket": prediction.score_bucket,
+                    "confidence": prediction.confidence,
+                },
+                "latest_price": bars[-1].close,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Prediction error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     return app
 
 

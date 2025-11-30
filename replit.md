@@ -1,6 +1,6 @@
 # QuantraCore Apex — Replit Project Documentation
 
-**Version:** 9.0-A | **Updated:** 2025-11-29
+**Version:** 9.0-A | **Updated:** 2025-11-30
 
 > For complete technical specifications, see [MASTER_SPEC.md](./MASTER_SPEC.md)
 
@@ -185,6 +185,18 @@ Connected via Replit OAuth2 connector for automated export pipeline:
 | Alpha Factory Dashboard | `cd static && python -m http.server 8080` | 8080 |
 
 ## Recent Changes
+
+- **2025-11-30:** Added Polygon Live Data Training Pipeline
+  - **PolygonDataFetcher**: Fetches historical OHLCV from Polygon.io with retry logic
+  - **WindowGenerator**: Creates 100-bar sliding windows for training
+  - **OutcomeLabelGenerator**: Creates win/loss labels from future price movements
+  - **LiveDataTrainer**: Orchestrates full training pipeline
+  - **Training API Endpoints**:
+    - `/training/train-from-polygon` - Train models on real Polygon data
+    - `/training/model-status` - Check trained model status
+    - `/training/predict` - Make predictions with trained model
+  - **Training Results**: 66.4% regime accuracy, 66.4% risk accuracy on real data
+  - **Model Output**: Saved to `data/models/apexcore_latest.pkl`
 
 - **2025-11-29:** Added HyperLearner — Hyper-Velocity Learning System
   - **EventBus**: Universal event capture with priority queuing
