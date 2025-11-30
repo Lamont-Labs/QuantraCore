@@ -69,7 +69,7 @@ class ProviderPriority(Enum):
 @dataclass
 class ProviderConfig:
     name: str
-    adapter_class: Type
+    adapter_class: Optional[Type]
     priority: ProviderPriority
     env_key: Optional[str]
     data_types: List[DataType]
@@ -247,7 +247,7 @@ class UnifiedDataManager:
     
     def __init__(self, enable_cache: bool = True):
         self.enable_cache = enable_cache
-        self._adapters: Dict[str, EnhancedDataAdapter] = {}
+        self._adapters: Dict[str, Any] = {}
         self._cache: Dict[str, Any] = {}
         self._initialize_adapters()
     
