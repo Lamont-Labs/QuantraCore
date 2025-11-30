@@ -30,6 +30,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+_alpha_factory = None
 
 def convert_numpy_types(obj: Any) -> Any:
     """Convert numpy types to native Python types for JSON serialization."""
@@ -2836,8 +2837,6 @@ def create_app() -> FastAPI:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-    
-    _alpha_factory = None
     
     @app.get("/alpha-factory/status")
     async def get_alpha_factory_status():
