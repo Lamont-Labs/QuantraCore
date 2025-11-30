@@ -159,6 +159,18 @@ class TTLCache:
     
     def __len__(self):
         return len(self._cache)
+    
+    def __contains__(self, key: str) -> bool:
+        return self.get(key) is not None
+    
+    def __setitem__(self, key: str, value: Any):
+        self.set(key, value)
+    
+    def __getitem__(self, key: str) -> Any:
+        value = self.get(key)
+        if value is None:
+            raise KeyError(key)
+        return value
 
 
 def verify_api_key(x_api_key: Optional[str] = Header(None, alias=API_KEY_HEADER)) -> str:
