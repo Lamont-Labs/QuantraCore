@@ -1,27 +1,14 @@
 import { useState, useEffect } from 'react'
-
-interface LogEntry {
-  timestamp: string
-  level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG'
-  component: string
-  message: string
-  hash?: string
-}
-
-interface ProvenanceRecord {
-  hash: string
-  timestamp: string
-  symbol: string
-  quantrascore: number
-  protocols_fired: number
-}
+import { api, type LogEntry, type ProvenanceRecord } from '../lib/api'
 
 export function LogsPage() {
   const [activeTab, setActiveTab] = useState<'logs' | 'provenance'>('logs')
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [provenance, setProvenance] = useState<ProvenanceRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'INFO' | 'WARN' | 'ERROR'>('all')
+  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
     loadData()
@@ -29,48 +16,66 @@ export function LogsPage() {
 
   async function loadData() {
     setIsLoading(true)
+    setError(null)
     
-    const mockLogs: LogEntry[] = [
-      { timestamp: new Date().toISOString(), level: 'INFO', component: 'ApexEngine', message: 'Engine initialized successfully' },
-      { timestamp: new Date().toISOString(), level: 'INFO', component: 'DataManager', message: 'Connected to Polygon.io' },
-      { timestamp: new Date().toISOString(), level: 'WARN', component: 'RateLimit', message: 'Approaching API rate limit (80%)' },
-      { timestamp: new Date().toISOString(), level: 'INFO', component: 'ProtocolRunner', message: '80 Tier protocols loaded' },
-      { timestamp: new Date().toISOString(), level: 'DEBUG', component: 'Cache', message: 'TTL cache initialized: 1000 entries, 5min TTL' },
-      { timestamp: new Date().toISOString(), level: 'INFO', component: 'OmegaDirectives', message: '20 safety directives active' },
-    ]
-    
-    const mockProvenance: ProvenanceRecord[] = [
-      { hash: 'd680e6cc41aabd1c', timestamp: new Date().toISOString(), symbol: 'AAPL', quantrascore: 72.5, protocols_fired: 45 },
-      { hash: 'a1b2c3d4e5f67890', timestamp: new Date().toISOString(), symbol: 'MSFT', quantrascore: 68.2, protocols_fired: 42 },
-      { hash: 'f0e9d8c7b6a59483', timestamp: new Date().toISOString(), symbol: 'GOOGL', quantrascore: 55.8, protocols_fired: 38 },
-    ]
-    
-    setLogs(mockLogs)
-    setProvenance(mockProvenance)
-    setIsLoading(false)
+    try {
+      const [logsData, provenanceData] = await Promise.all([
+        api.getSystemLogs({ limit: 200 }),
+        api.getProvenanceRecords(50)
+      ])
+      
+      setLogs(logsData.logs)
+      setTotalCount(logsData.total_count)
+      setProvenance(provenanceData.records)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function handleRefresh() {
+    await loadData()
   }
 
   function getLevelColor(level: string) {
-    switch (level) {
+    switch (level.toUpperCase()) {
       case 'ERROR': return 'text-red-400'
-      case 'WARN': return 'text-yellow-400'
+      case 'WARN': case 'WARNING': return 'text-yellow-400'
       case 'DEBUG': return 'text-slate-500'
       default: return 'text-cyan-400'
     }
   }
 
-  const filteredLogs = filter === 'all' ? logs : logs.filter(l => l.level === filter)
+  const filteredLogs = filter === 'all' 
+    ? logs 
+    : logs.filter(l => l.level.toUpperCase() === filter)
 
   return (
     <div className="h-full flex flex-col gap-6">
       <div className="apex-card">
-        <h2 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">
-          <span className="text-2xl">≡</span>
-          Logs & Provenance
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-cyan-400 flex items-center gap-2">
+            <span className="text-2xl">≡</span>
+            Logs & Provenance
+          </h2>
+          <button
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-[#0a0f1a] border border-[#0096ff]/30 text-cyan-400 hover:bg-[#0096ff]/10 transition-colors disabled:opacity-50"
+          >
+            {isLoading ? 'Loading...' : 'Refresh'}
+          </button>
+        </div>
         <p className="text-slate-400 text-sm">
-          System logs and cryptographic provenance records for audit trail and reproducibility verification.
+          Real system logs from engine operations and cryptographic provenance records for audit trail verification.
         </p>
+        
+        {error && (
+          <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200 text-sm">
+            {error}
+          </div>
+        )}
       </div>
 
       <div className="flex gap-2">
@@ -82,7 +87,7 @@ export function LogsPage() {
               : 'text-slate-400 hover:text-cyan-300 border border-transparent'
           }`}
         >
-          System Logs
+          System Logs ({totalCount})
         </button>
         <button
           onClick={() => setActiveTab('provenance')}
@@ -92,14 +97,14 @@ export function LogsPage() {
               : 'text-slate-400 hover:text-cyan-300 border border-transparent'
           }`}
         >
-          Provenance Records
+          Provenance Records ({provenance.length})
         </button>
       </div>
 
       {activeTab === 'logs' && (
         <div className="flex-1 apex-card overflow-hidden flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-300">Recent Logs</h3>
+            <h3 className="text-lg font-semibold text-slate-300">Real-time Logs</h3>
             <div className="flex gap-2">
               {(['all', 'INFO', 'WARN', 'ERROR'] as const).map((level) => (
                 <button
@@ -119,13 +124,13 @@ export function LogsPage() {
           
           <div className="flex-1 bg-[#030508] rounded-lg p-4 font-mono text-sm overflow-y-auto">
             {isLoading ? (
-              <div className="text-slate-500">Loading logs...</div>
+              <div className="text-slate-500">Loading logs from server...</div>
             ) : filteredLogs.length === 0 ? (
               <div className="text-slate-500">No logs matching filter</div>
             ) : (
               filteredLogs.map((log, i) => (
                 <div key={i} className="flex gap-4 py-1 hover:bg-[#0096ff]/5">
-                  <span className="text-slate-500 w-48 flex-shrink-0">
+                  <span className="text-slate-500 w-36 flex-shrink-0">
                     {new Date(log.timestamp).toLocaleTimeString()}
                   </span>
                   <span className={`w-16 flex-shrink-0 ${getLevelColor(log.level)}`}>
@@ -134,7 +139,10 @@ export function LogsPage() {
                   <span className="text-slate-400 w-32 flex-shrink-0">
                     {log.component}
                   </span>
-                  <span className="text-slate-300">{log.message}</span>
+                  <span className="text-slate-300 flex-1">{log.message}</span>
+                  {log.file && (
+                    <span className="text-slate-600 text-xs">{log.file}</span>
+                  )}
                 </div>
               ))
             )}
@@ -146,34 +154,62 @@ export function LogsPage() {
         <div className="flex-1 apex-card overflow-hidden">
           <h3 className="text-lg font-semibold text-slate-300 mb-4">Provenance Records</h3>
           <p className="text-slate-400 text-sm mb-4">
-            Every analysis produces a cryptographic hash for reproducibility verification.
+            Every analysis produces a cryptographic hash for reproducibility verification. Same inputs always produce identical outputs.
           </p>
           
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-slate-400 border-b border-[#0096ff]/20">
-                  <th className="text-left py-2 px-3">Hash</th>
-                  <th className="text-left py-2 px-3">Timestamp</th>
-                  <th className="text-left py-2 px-3">Symbol</th>
-                  <th className="text-right py-2 px-3">QuantraScore</th>
-                  <th className="text-right py-2 px-3">Protocols</th>
-                </tr>
-              </thead>
-              <tbody>
-                {provenance.map((record) => (
-                  <tr key={record.hash} className="border-b border-[#0096ff]/10 hover:bg-[#0096ff]/5">
-                    <td className="py-3 px-3 font-mono text-cyan-400">{record.hash}</td>
-                    <td className="py-3 px-3 text-slate-400">
-                      {new Date(record.timestamp).toLocaleString()}
-                    </td>
-                    <td className="py-3 px-3 font-semibold">{record.symbol}</td>
-                    <td className="py-3 px-3 text-right">{record.quantrascore.toFixed(1)}</td>
-                    <td className="py-3 px-3 text-right">{record.protocols_fired}</td>
+          {isLoading ? (
+            <div className="text-slate-500">Loading provenance records...</div>
+          ) : provenance.length === 0 ? (
+            <div className="h-32 flex items-center justify-center text-slate-500">
+              <div className="text-center">
+                <div className="text-3xl mb-2 opacity-30">🔐</div>
+                <div>No provenance records yet</div>
+                <div className="text-sm mt-1">Run scans to generate provenance hashes</div>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-slate-400 border-b border-[#0096ff]/20">
+                    <th className="text-left py-2 px-3">Hash</th>
+                    <th className="text-left py-2 px-3">Timestamp</th>
+                    <th className="text-left py-2 px-3">Symbol</th>
+                    <th className="text-right py-2 px-3">QuantraScore</th>
+                    <th className="text-right py-2 px-3">Protocols</th>
+                    <th className="text-left py-2 px-3">Regime</th>
+                    <th className="text-left py-2 px-3">Risk</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {provenance.map((record) => (
+                    <tr key={record.hash} className="border-b border-[#0096ff]/10 hover:bg-[#0096ff]/5">
+                      <td className="py-3 px-3 font-mono text-cyan-400">{record.hash}</td>
+                      <td className="py-3 px-3 text-slate-400">
+                        {new Date(record.timestamp).toLocaleString()}
+                      </td>
+                      <td className="py-3 px-3 font-semibold">{record.symbol}</td>
+                      <td className="py-3 px-3 text-right">{record.quantrascore.toFixed(1)}</td>
+                      <td className="py-3 px-3 text-right">{record.protocols_fired}</td>
+                      <td className="py-3 px-3 text-slate-300">{record.regime.replace(/_/g, ' ')}</td>
+                      <td className={`py-3 px-3 ${
+                        record.risk_tier === 'high' ? 'text-red-400' :
+                        record.risk_tier === 'medium' ? 'text-yellow-400' :
+                        'text-green-400'
+                      }`}>
+                        {record.risk_tier}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          <div className="mt-4 p-3 bg-[#0a0f1a] border border-[#0096ff]/20 rounded-lg text-slate-400 text-sm">
+            <strong className="text-cyan-400">Deterministic Guarantee:</strong> Given identical OHLCV windows and seed values, 
+            the engine will produce the same window_hash, QuantraScore, and protocol outputs. 
+            This enables perfect reproducibility for audit and verification purposes.
           </div>
         </div>
       )}

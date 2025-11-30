@@ -296,4 +296,124 @@ export const api = {
       body: JSON.stringify(params),
     })
   },
+
+  // Backtest endpoints
+  runBacktest(params: BacktestRequest): Promise<BacktestResult> {
+    return request('/backtest', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  },
+
+  // ApexLab endpoints
+  getApexLabStatus(): Promise<ApexLabStatusResponse> {
+    return request('/apexlab/status')
+  },
+
+  startApexLabTraining(params: ApexLabTrainRequest): Promise<{ status: string; message: string; timestamp: string }> {
+    return request('/apexlab/train', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  },
+
+  // Logs endpoints
+  getSystemLogs(params?: LogsQueryParams): Promise<LogsResponse> {
+    const queryParams = new URLSearchParams()
+    if (params?.level) queryParams.append('level', params.level)
+    if (params?.limit) queryParams.append('limit', params.limit.toString())
+    if (params?.offset) queryParams.append('offset', params.offset.toString())
+    const query = queryParams.toString() ? `?${queryParams.toString()}` : ''
+    return request(`/logs/system${query}`)
+  },
+
+  getProvenanceRecords(limit?: number): Promise<ProvenanceResponse> {
+    const query = limit ? `?limit=${limit}` : ''
+    return request(`/logs/provenance${query}`)
+  },
+}
+
+// Backtest types
+export interface BacktestRequest {
+  symbol: string
+  start_date?: string
+  end_date?: string
+  lookback_days?: number
+  timeframe?: string
+}
+
+export interface BacktestResult {
+  symbol: string
+  start_date: string
+  end_date: string
+  trades: number
+  win_count: number
+  loss_count: number
+  win_rate: number
+  total_return: number
+  avg_return: number
+  sharpe_ratio: number
+  max_drawdown: number
+  avg_quantrascore: number
+  regime_distribution: Record<string, number>
+  protocol_frequency: Record<string, number>
+  timestamp: string
+}
+
+// ApexLab types
+export interface ApexLabStatusResponse {
+  version: string
+  schema_fields: number
+  training_samples: number
+  last_training: string | null
+  is_training: boolean
+  progress: number
+  current_step: string
+  logs: string[]
+  manifests_available: number
+}
+
+export interface ApexLabTrainRequest {
+  symbols?: string[]
+  lookback_days?: number
+  timeframe?: string
+}
+
+// Logs types
+export interface LogEntry {
+  timestamp: string
+  level: string
+  component: string
+  message: string
+  file?: string
+}
+
+export interface LogsResponse {
+  logs: LogEntry[]
+  total_count: number
+  has_more: boolean
+}
+
+export interface LogsQueryParams {
+  level?: string
+  component?: string
+  limit?: number
+  offset?: number
+}
+
+export interface ProvenanceRecord {
+  hash: string
+  timestamp: string
+  symbol: string
+  quantrascore: number
+  protocols_fired: number
+  regime: string
+  risk_tier: string
+}
+
+export interface ProvenanceResponse {
+  records: ProvenanceRecord[]
+  count: number
+  note: string
+  timestamp: string
 }
