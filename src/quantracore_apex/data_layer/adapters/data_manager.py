@@ -18,7 +18,7 @@ Usage:
 """
 
 import os
-from typing import List, Optional, Dict, Any, Type
+from typing import List, Optional, Dict, Any, Type, Union
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from enum import Enum
@@ -29,6 +29,28 @@ from .base_enhanced import (
     OhlcvBar, OptionsFlow, DarkPoolPrint, NewsItem, 
     SentimentData, FundamentalsData, ProviderStatus
 )
+
+
+def _normalize_timeframe(tf: Union[str, TimeFrame]) -> TimeFrame:
+    """Convert string or TimeFrame to TimeFrame enum."""
+    if isinstance(tf, TimeFrame):
+        return tf
+    
+    tf_map = {
+        "tick": TimeFrame.TICK,
+        "1s": TimeFrame.SECOND_1,
+        "1m": TimeFrame.MINUTE_1,
+        "5m": TimeFrame.MINUTE_5,
+        "15m": TimeFrame.MINUTE_15,
+        "30m": TimeFrame.MINUTE_30,
+        "1h": TimeFrame.HOUR_1,
+        "4h": TimeFrame.HOUR_4,
+        "1d": TimeFrame.DAY_1,
+        "1w": TimeFrame.WEEK_1,
+        "1M": TimeFrame.MONTH_1,
+    }
+    
+    return tf_map.get(tf, TimeFrame.DAY_1)
 
 from .polygon_adapter import PolygonAdapter
 from .alpha_vantage_adapter import AlphaVantageAdapter
@@ -339,13 +361,15 @@ class UnifiedDataManager:
         symbol: str,
         start: datetime,
         end: datetime,
-        timeframe: TimeFrame = TimeFrame.DAY_1,
+        timeframe: Union[str, TimeFrame] = TimeFrame.DAY_1,
         provider: Optional[str] = None
     ) -> List[OhlcvBar]:
+        tf = _normalize_timeframe(timeframe)
+        
         if provider and provider in self._adapters:
             adapter = self._adapters[provider]
             if hasattr(adapter, 'fetch_ohlcv'):
-                return adapter.fetch_ohlcv(symbol, start, end, timeframe)
+                return adapter.fetch_ohlcv(symbol, start, end, tf)
             elif hasattr(adapter, 'fetch'):
                 days = (end - start).days
                 return adapter.fetch(symbol, days=days)
@@ -357,7 +381,7 @@ class UnifiedDataManager:
                 try:
                     adapter = self._adapters[prov]
                     if hasattr(adapter, 'fetch_ohlcv'):
-                        return adapter.fetch_ohlcv(symbol, start, end, timeframe)
+                        return adapter.fetch_ohlcv(symbol, start, end, tf)
                     elif hasattr(adapter, 'fetch'):
                         days = (end - start).days
                         return adapter.fetch(symbol, days=days)
@@ -365,7 +389,7 @@ class UnifiedDataManager:
                     logger.warning(f"{prov} failed for {symbol}: {e}")
                     continue
         
-        return self._adapters["synthetic"].fetch_ohlcv(symbol, start, end, "1d")
+        return self._adapters["synthetic"].fetch_ohlcv(symbol, start, end, tf)
     
     def fetch_fundamentals(
         self,
@@ -442,11 +466,12 @@ class UnifiedDataManager:
         symbol: str,
         start: datetime,
         end: datetime,
-        timeframe: TimeFrame = TimeFrame.DAY_1
+        timeframe: Union[str, TimeFrame] = TimeFrame.DAY_1
     ) -> List[OhlcvBar]:
+        tf = _normalize_timeframe(timeframe)
         if "crypto" in self._adapters:
             try:
-                return self._adapters["crypto"].fetch_ohlcv(symbol, start, end, timeframe)
+                return self._adapters["crypto"].fetch_ohlcv(symbol, start, end, tf)
             except Exception as e:
                 logger.warning(f"Crypto fetch failed for {symbol}: {e}")
         
