@@ -1,32 +1,31 @@
 {
-  "model_family": "apexcore_v2",
-  "variant": "big",
-  "ensemble_size": 5,
-  "created_utc": "2025-11-29T08:05:07.660555",
-  "engine_snapshot_id": "engine:854f7f4e32ab871e",
-  "lab_dataset_id": "dataset:229f67d517253eaa",
-  "hashes": {
-    "model": "sha256:6db708e86f0345c904e3f21645d7f73b1c7e7bb0ac6e4453d17c25002aa755fe",
-    "config": "sha256:7ca6d8fc711bafa555760f926830f97760cfdf6f687c44646647fe7295cee063"
-  },
-  "metrics": {
-    "val_brier_runner": 0.085,
-    "val_auc_runner": 0.782,
-    "val_calibration_error_runner": 0.072,
-    "val_accuracy_quality_tier": 0.673,
-    "val_accuracy_regime": 0.718,
-    "val_mse_quantra_score": 6.42
-  },
-  "thresholds": {
-    "runner_prob_min_for_a_plus_flag": 0.7,
-    "avoid_trade_prob_max_to_allow": 0.3,
-    "max_disagreement_allowed": 0.2,
-    "min_auc_runner_to_promote": 0.6,
-    "max_calibration_error_to_promote": 0.15
-  },
-  "version": "2.0.0",
-  "training_start_date": "2025-11-01",
-  "training_end_date": "2025-11-28",
-  "symbols_trained": 2847,
-  "samples_trained": 1284392
+    "model_family": "apexcore_v2",
+    "variant": "big",
+    "ensemble_size": 5,
+    "created_utc": "2025-11-29T08:05:07.660555",
+    "engine_snapshot_id": "engine:854f7f4e32ab871e",
+    "lab_dataset_id": "dataset:229f67d517253eaa",
+    "hashes": {
+        "model": "sha256:6db708e86f0345c904e3f21645d7f73b1c7e7bb0ac6e4453d17c25002aa755fe",
+        "config": "sha256:7ca6d8fc711bafa555760f926830f97760cfdf6f687c44646647fe7295cee063"
+    },
+    "metrics": {
+        "val_brier_runner": 0.085,
+        "val_auc_runner": 0.782,
+        "val_calibration_error_runner": 0.072,
+        "val_accuracy_quality_tier": 0.673,
+        "val_accuracy_regime": 0.718,
+        "val_mse_quantra_score": 6.42
+    },
+    "thresholds": {
+        "runner_prob_min_for_a_plus_flag": 0.7,
+        "avoid_trade_prob_max_to_allow": 0.3,
+        "max_disagreement_allowed": 0.2,
+        "min_auc_runner_to_promote": 0.6,
+        "max_calibration_error_to_promote": 0.15
+    },
+    "version": "2.0.0",
+    "bootstrap_note": "Initial bootstrap model trained on synthetic data. Production models retrain via Alpha Factory feedback loop with real market data.",
+    "training_samples": 500,
+    "validation_samples": 100
 }
