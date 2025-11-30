@@ -1,18 +1,18 @@
 # QuantraCore Apex Broker Configuration
 # SAFETY: Live trading is DISABLED by default. Paper trading only.
-# Version: 1.0
+# Version: 2.0 - Full Trading Capabilities
 # Date: November 2025
 
 execution:
-  mode: "RESEARCH"  # RESEARCH | PAPER | LIVE
+  mode: "PAPER"  # RESEARCH | PAPER | LIVE
   default_account: "primary"
 
 accounts:
   primary:
-    description: "Default account for paper/live"
+    description: "Primary paper trading account - all position types enabled"
     broker: "ALPACA"
-    mode: "PAPER"  # LIVE not allowed until explicitly enabled
-    risk_profile: "standard"
+    mode: "PAPER"
+    risk_profile: "active_trader"
 
 brokers:
   alpaca:
@@ -29,18 +29,95 @@ brokers:
       enabled: false  # Must remain false until institution flips
 
 risk:
-  # Global risk limits (tunable)
-  max_notional_exposure_usd: 50000
-  max_position_notional_per_symbol_usd: 5000
-  max_positions: 30
-  max_daily_turnover_usd: 100000
-  max_order_notional_usd: 3000
-  max_leverage: 2.0
-  per_trade_risk_fraction: 0.01  # 1% of equity per trade
-  # Safety switches
-  block_short_selling: true
-  block_margin: true
+  # Position limits
+  max_notional_exposure_usd: 100000
+  max_position_notional_per_symbol_usd: 10000
+  max_positions: 50
+  max_daily_turnover_usd: 500000
+  max_order_notional_usd: 10000
+  max_leverage: 4.0
+  per_trade_risk_fraction: 0.02  # 2% of equity per trade
+  
+  # Trading capabilities - ALL ENABLED
+  block_short_selling: false     # Short selling ENABLED
+  block_margin: false            # Margin ENABLED
   require_positive_equity: true
+  
+  # Position type settings
+  allow_intraday: true           # Day trading enabled
+  allow_swing: true              # Swing trading enabled
+  allow_position: true           # Position trading enabled
+  allow_scalping: true           # Scalping enabled
+  
+  # Timeframe restrictions (none = all allowed)
+  min_hold_seconds: 0            # No minimum hold time
+  max_hold_days: 365             # Up to 1 year positions
+
+# Supported trade types and strategies
+trade_types:
+  long:
+    enabled: true
+    order_types: ["MARKET", "LIMIT", "STOP", "STOP_LIMIT"]
+    entry_strategies: ["baseline", "high_volatility", "low_liquidity", "runner_anticipation", "zde_aware"]
+  
+  short:
+    enabled: true
+    order_types: ["MARKET", "LIMIT", "STOP", "STOP_LIMIT"]
+    entry_strategies: ["baseline", "high_volatility", "low_liquidity"]
+    restrictions:
+      - "Requires marginable security"
+      - "Subject to short locate availability"
+  
+  swing:
+    enabled: true
+    typical_hold_days: [2, 10]
+    timeframes: ["1d", "4h"]
+    exit_strategies: ["profit_target", "trailing_stop", "time_based"]
+  
+  intraday:
+    enabled: true
+    typical_hold_minutes: [5, 390]  # 5 min to full session
+    timeframes: ["1m", "5m", "15m", "1h"]
+    exit_strategies: ["profit_target", "trailing_stop", "eod_exit"]
+    pdt_warning: true  # Pattern Day Trader rule applies
+  
+  scalp:
+    enabled: true
+    typical_hold_seconds: [30, 300]  # 30 sec to 5 min
+    timeframes: ["1m", "5m"]
+    exit_strategies: ["quick_profit", "tight_stop"]
+    min_volume: 1000000  # High liquidity required
+
+# Entry/Exit Optimization profiles
+eeo_profiles:
+  conservative:
+    stop_atr_multiple: 2.0
+    target_atr_multiple: 3.0
+    max_entries_scaled: 2
+    require_protective_stop: true
+    trailing_stop_enabled: false
+  
+  balanced:
+    stop_atr_multiple: 1.5
+    target_atr_multiple: 2.5
+    max_entries_scaled: 3
+    require_protective_stop: true
+    trailing_stop_enabled: true
+  
+  aggressive:
+    stop_atr_multiple: 1.0
+    target_atr_multiple: 4.0
+    max_entries_scaled: 5
+    require_protective_stop: true
+    trailing_stop_enabled: true
+  
+  runner_hunter:
+    stop_atr_multiple: 0.75
+    target_atr_multiple: 10.0
+    max_entries_scaled: 1
+    require_protective_stop: true
+    trailing_stop_enabled: true
+    allow_runner_extension: true
 
 logging:
   execution_log_dir: "logs/execution/"

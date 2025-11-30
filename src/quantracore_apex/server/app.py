@@ -242,6 +242,57 @@ def create_app() -> FastAPI:
             "data_layer": "operational"
         }
     
+    @app.get("/trading_capabilities")
+    async def get_trading_capabilities():
+        """Get current trading capabilities and configuration."""
+        try:
+            from src.quantracore_apex.broker.config import load_broker_config
+            config = load_broker_config()
+            
+            return {
+                "execution_mode": config.execution_mode.value,
+                "alpaca_configured": config.alpaca_paper.is_configured,
+                "capabilities": {
+                    "long": True,
+                    "short": not config.risk.block_short_selling,
+                    "margin": not config.risk.block_margin,
+                    "intraday": True,
+                    "swing": True,
+                    "scalping": True,
+                },
+                "order_types": ["MARKET", "LIMIT", "STOP", "STOP_LIMIT"],
+                "entry_strategies": [
+                    "baseline_long",
+                    "baseline_short", 
+                    "high_volatility",
+                    "low_liquidity",
+                    "runner_anticipation",
+                    "zde_aware"
+                ],
+                "exit_strategies": [
+                    "protective_stop",
+                    "trailing_stop",
+                    "profit_target",
+                    "time_based",
+                    "eod_exit"
+                ],
+                "risk_limits": {
+                    "max_exposure_usd": config.risk.max_notional_exposure_usd,
+                    "max_per_symbol_usd": config.risk.max_position_notional_per_symbol_usd,
+                    "max_positions": config.risk.max_positions,
+                    "max_leverage": config.risk.max_leverage,
+                    "per_trade_risk_pct": config.risk.per_trade_risk_fraction * 100,
+                },
+                "timeframes_supported": ["1m", "5m", "15m", "1h", "4h", "1d", "1w"],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            return {
+                "execution_mode": "RESEARCH",
+                "error": str(e),
+                "capabilities": {"long": True, "short": False, "margin": False},
+            }
+    
     @app.get("/data_providers")
     async def get_data_providers():
         """Get status of all data providers."""
