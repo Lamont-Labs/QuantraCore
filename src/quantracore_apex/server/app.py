@@ -4,7 +4,7 @@ FastAPI Application for QuantraCore Apex.
 Provides REST API for Apex engine functionality.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -13,6 +13,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import logging
 import os
+import time
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import ApexContext
@@ -99,6 +100,81 @@ class ScanResult(BaseModel):
     timestamp: str
 
 
+API_KEY_HEADER = "X-API-Key"
+VALID_API_KEYS = set(filter(None, [
+    os.getenv("APEX_API_KEY"),
+    os.getenv("APEX_API_KEY_2"),
+]))
+
+ALLOWED_ORIGINS = [
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+    "https://*.replit.dev",
+    "https://*.repl.co",
+]
+
+CACHE_MAX_SIZE = 1000
+CACHE_TTL_SECONDS = 300
+
+
+class CacheEntry:
+    """Cache entry with TTL support."""
+    def __init__(self, value: Any, ttl: int = CACHE_TTL_SECONDS):
+        self.value = value
+        self.expires_at = time.time() + ttl
+    
+    @property
+    def is_expired(self) -> bool:
+        return time.time() > self.expires_at
+
+
+class TTLCache:
+    """Simple TTL cache with size limits."""
+    def __init__(self, max_size: int = CACHE_MAX_SIZE, ttl: int = CACHE_TTL_SECONDS):
+        self._cache: Dict[str, CacheEntry] = {}
+        self.max_size = max_size
+        self.ttl = ttl
+    
+    def get(self, key: str) -> Optional[Any]:
+        entry = self._cache.get(key)
+        if entry is None:
+            return None
+        if entry.is_expired:
+            del self._cache[key]
+            return None
+        return entry.value
+    
+    def set(self, key: str, value: Any):
+        if len(self._cache) >= self.max_size:
+            expired = [k for k, v in self._cache.items() if v.is_expired]
+            for k in expired:
+                del self._cache[k]
+            if len(self._cache) >= self.max_size:
+                oldest_key = next(iter(self._cache))
+                del self._cache[oldest_key]
+        self._cache[key] = CacheEntry(value, self.ttl)
+    
+    def clear(self):
+        self._cache.clear()
+    
+    def __len__(self):
+        return len(self._cache)
+
+
+def verify_api_key(x_api_key: Optional[str] = Header(None, alias=API_KEY_HEADER)) -> str:
+    """Verify API key for protected endpoints."""
+    if os.getenv("APEX_AUTH_DISABLED", "false").lower() == "true":
+        return "auth-disabled"
+    
+    if not x_api_key or x_api_key not in VALID_API_KEYS:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key",
+            headers={"WWW-Authenticate": "API-Key"}
+        )
+    return x_api_key
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     
@@ -110,11 +186,13 @@ def create_app() -> FastAPI:
         redoc_url="/redoc"
     )
     
+    allowed_origin_regex = r"https://.*\.(replit\.dev|repl\.co)|http://localhost:\d+|http://127\.0\.0\.1:\d+"
+    
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origin_regex=allowed_origin_regex,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
         allow_headers=["*"],
     )
     
@@ -132,13 +210,13 @@ def create_app() -> FastAPI:
     portfolio = Portfolio(initial_cash=100000.0)
     signal_builder = SignalBuilder()
     
-    scan_cache: Dict[str, Any] = {}
+    scan_cache = TTLCache(max_size=CACHE_MAX_SIZE, ttl=CACHE_TTL_SECONDS)
     
     @app.get("/")
     async def root():
         return {
             "name": "QuantraCore Apex",
-            "version": "8.0.0",
+            "version": "9.0-A",
             "status": "operational",
             "compliance_note": "Structural analysis only - not trading advice"
         }

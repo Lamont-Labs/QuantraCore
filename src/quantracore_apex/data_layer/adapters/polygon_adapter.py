@@ -6,12 +6,16 @@ Fetches real OHLCV data from Polygon.io API.
 
 import os
 import time
+import asyncio
+import logging
 from typing import List, Optional
 from datetime import datetime, timedelta
 from polygon import RESTClient
 from src.quantracore_apex.core.schemas import OhlcvBar
 
 DEFAULT_RATE_LIMIT_DELAY = 12.5
+
+logger = logging.getLogger(__name__)
 
 
 class PolygonAdapter:
@@ -28,13 +32,22 @@ class PolygonAdapter:
         self.client = RESTClient(api_key=self.api_key)
         self.rate_limit = rate_limit
         self.last_request_time = 0
+        self._lock = asyncio.Lock() if asyncio.get_event_loop().is_running() else None
     
     def _rate_limit_wait(self):
-        """Wait to respect rate limits (5 calls/min on free tier)."""
+        """Wait to respect rate limits (5 calls/min on free tier).
+        
+        Uses non-blocking sleep when possible.
+        """
         if self.rate_limit:
             elapsed = time.time() - self.last_request_time
             if elapsed < DEFAULT_RATE_LIMIT_DELAY:
-                time.sleep(DEFAULT_RATE_LIMIT_DELAY - elapsed)
+                wait_time = DEFAULT_RATE_LIMIT_DELAY - elapsed
+                try:
+                    loop = asyncio.get_running_loop()
+                    asyncio.create_task(asyncio.sleep(wait_time))
+                except RuntimeError:
+                    time.sleep(wait_time)
             self.last_request_time = time.time()
     
     def fetch(

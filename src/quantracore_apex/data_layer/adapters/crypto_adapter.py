@@ -91,9 +91,15 @@ class BinanceAdapter(EnhancedDataAdapter):
         )
     
     def _rate_limit(self):
+        """Non-blocking rate limiting."""
         elapsed = time.time() - self._last_request
         if elapsed < self._rate_limit_delay:
-            time.sleep(self._rate_limit_delay - elapsed)
+            wait_time = self._rate_limit_delay - elapsed
+            try:
+                import asyncio
+                asyncio.get_running_loop()
+            except RuntimeError:
+                time.sleep(wait_time)
         self._last_request = time.time()
     
     def _request(self, endpoint: str, params: Dict[str, Any] = None) -> Any:

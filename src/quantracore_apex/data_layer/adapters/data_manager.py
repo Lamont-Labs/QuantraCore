@@ -32,9 +32,15 @@ from .base_enhanced import (
 
 
 def _normalize_timeframe(tf: Union[str, TimeFrame]) -> TimeFrame:
-    """Convert string or TimeFrame to TimeFrame enum."""
+    """Convert string or TimeFrame to TimeFrame enum.
+    
+    Raises:
+        ValueError: If timeframe string is not recognized
+    """
     if isinstance(tf, TimeFrame):
         return tf
+    
+    tf_lower = tf.lower() if isinstance(tf, str) else tf
     
     tf_map = {
         "tick": TimeFrame.TICK,
@@ -48,9 +54,16 @@ def _normalize_timeframe(tf: Union[str, TimeFrame]) -> TimeFrame:
         "1d": TimeFrame.DAY_1,
         "1w": TimeFrame.WEEK_1,
         "1M": TimeFrame.MONTH_1,
+        "day": TimeFrame.DAY_1,
+        "hour": TimeFrame.HOUR_1,
+        "minute": TimeFrame.MINUTE_1,
     }
     
-    return tf_map.get(tf, TimeFrame.DAY_1)
+    result = tf_map.get(tf_lower)
+    if result is None:
+        logger.warning(f"Unknown timeframe '{tf}', defaulting to DAY_1")
+        return TimeFrame.DAY_1
+    return result
 
 from .polygon_adapter import PolygonAdapter
 from .alpha_vantage_adapter import AlphaVantageAdapter
