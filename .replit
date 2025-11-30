@@ -132,5 +132,5 @@ localPort = 8000
 externalPort = 8000
 
 [deployment]
-deploymentTarget = "autoscale"
-run = ["uvicorn", "src.quantracore_apex.server.app:app"]
+deploymentTarget = "vm"
+run = ["python", "-m", "uvicorn", "src.quantracore_apex.server.app:app", "--host", "0.0.0.0", "--port", "5000"]
