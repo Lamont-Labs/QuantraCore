@@ -8,9 +8,10 @@ import { ResearchPage } from './components/ResearchPage'
 import { ApexLabPage } from './components/ApexLabPage'
 import { ModelsPage } from './components/ModelsPage'
 import { LogsPage } from './components/LogsPage'
+import { SwingTradePage } from './components/SwingTradePage'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
-export type NavItem = 'dashboard' | 'research' | 'apexlab' | 'models' | 'logs'
+export type NavItem = 'dashboard' | 'swing' | 'research' | 'apexlab' | 'models' | 'logs'
 
 const DEFAULT_UNIVERSE = [
   'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'AMD', 'INTC', 'NFLX',
@@ -168,6 +169,7 @@ export default function App() {
             </>
           )}
 
+          {activeNav === 'swing' && <SwingTradePage />}
           {activeNav === 'research' && <ResearchPage />}
           {activeNav === 'apexlab' && <ApexLabPage />}
           {activeNav === 'models' && <ModelsPage />}

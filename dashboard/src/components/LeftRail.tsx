@@ -7,6 +7,7 @@ interface LeftRailProps {
 
 const navItems: { id: NavItem; label: string; icon: string }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: '◉' },
+  { id: 'swing', label: 'Swing Scanner', icon: '◐' },
   { id: 'research', label: 'Research / Backtests', icon: '◎' },
   { id: 'apexlab', label: 'ApexLab', icon: '⬡' },
   { id: 'models', label: 'ApexCore Models', icon: '◈' },

@@ -242,6 +242,35 @@ def create_app() -> FastAPI:
             "data_layer": "operational"
         }
     
+    @app.get("/data_providers")
+    async def get_data_providers():
+        """Get status of all data providers."""
+        providers = []
+        
+        available = data_manager.get_available_providers()
+        
+        provider_info = {
+            "alpaca": {"name": "Alpaca", "rate_limit": 200},
+            "polygon": {"name": "Polygon", "rate_limit": 5},
+            "alpha_vantage": {"name": "AlphaVantage", "rate_limit": 75},
+            "synthetic": {"name": "Synthetic", "rate_limit": None},
+            "crypto": {"name": "Crypto", "rate_limit": 1200},
+            "eodhd": {"name": "EODHD", "rate_limit": 100},
+        }
+        
+        for key, info in provider_info.items():
+            providers.append({
+                "name": info["name"],
+                "available": key in available,
+                "rate_limit": info.get("rate_limit")
+            })
+        
+        return {
+            "providers": providers,
+            "active_count": len(available),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
     @app.post("/scan_symbol", response_model=ScanResult)
     async def scan_symbol(request: ScanRequest):
         """Scan a single symbol and return Apex analysis."""

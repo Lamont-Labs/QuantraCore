@@ -68,6 +68,7 @@ def _normalize_timeframe(tf: Union[str, TimeFrame]) -> TimeFrame:
 from .polygon_adapter import PolygonAdapter
 from .alpha_vantage_adapter import AlphaVantageAdapter
 from .synthetic_adapter import SyntheticAdapter
+from .alpaca_data_adapter import AlpacaDataAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +93,16 @@ class ProviderConfig:
 
 
 PROVIDER_REGISTRY: List[ProviderConfig] = [
+    ProviderConfig(
+        name="Alpaca",
+        adapter_class=AlpacaDataAdapter,
+        priority=ProviderPriority.PRIMARY,
+        env_key="ALPACA_PAPER_API_KEY",
+        data_types=[DataType.OHLCV, DataType.TICK, DataType.QUOTE],
+        monthly_cost=0.0,
+        rate_limit=200,
+        notes="Free market data with paper trading account. Higher rate limits than Polygon free tier."
+    ),
     ProviderConfig(
         name="Polygon.io",
         adapter_class=PolygonAdapter,
@@ -265,6 +276,15 @@ class UnifiedDataManager:
         self._initialize_adapters()
     
     def _initialize_adapters(self):
+        if os.getenv("ALPACA_PAPER_API_KEY") and os.getenv("ALPACA_PAPER_API_SECRET"):
+            try:
+                alpaca = AlpacaDataAdapter()
+                if alpaca.is_available():
+                    self._adapters["alpaca"] = alpaca
+                    logger.info("Alpaca data adapter initialized (free market data)")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Alpaca data adapter: {e}")
+        
         if os.getenv("POLYGON_API_KEY"):
             try:
                 self._adapters["polygon"] = PolygonAdapter()
