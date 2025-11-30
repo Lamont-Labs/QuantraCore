@@ -11,7 +11,7 @@
 [![React](https://img.shields.io/badge/React-18.2-61DAFB)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6)]()
 [![Vite](https://img.shields.io/badge/Vite-5.0-646CFF)]()
-[![Tailwind](https://img.shields.io/badge/Tailwind-3.4-06B6D4)]()
+[![Tailwind](https://img.shields.io/badge/Tailwind-4.0-06B6D4)]()
 [![Desktop](https://img.shields.io/badge/platform-desktop%20only-orange)]()
 [![License](https://img.shields.io/badge/license-proprietary-red)]()
 [![Status](https://img.shields.io/badge/status-operational-success)]()
@@ -27,7 +27,7 @@
 | Component | Status | Details |
 |-----------|--------|---------|
 | **ApexEngine** | Operational | Deterministic core with 80 Tier protocols |
-| **ApexDesk UI** | Operational | React 18 + Vite 5 + Tailwind CSS 3 |
+| **ApexDesk UI** | Operational | React 18 + Vite 5 + Tailwind CSS 4 |
 | **FastAPI Backend** | Operational | 27 REST endpoints on port 8000 |
 | **Test Suite** | **1,145 tests passing** | Regulatory excellence + hardening + institutional |
 | **Universal Scanner** | Operational | 7 market cap buckets, 8 scan modes |
@@ -255,7 +255,7 @@ src/quantracore_apex/
 
 tests/              # 1,099 institutional-grade tests
 
-dashboard/          # React 18 + Vite 5 + Tailwind CSS 3 frontend
+dashboard/          # React 18 + Vite 5 + Tailwind CSS 4 frontend
 ```
 
 ---

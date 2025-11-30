@@ -1,14 +1,49 @@
 # QuantraCore Apex™ — Security & Compliance
 
-**Version:** 8.0  
+**Version:** 9.0-A  
 **Component:** System Security & Regulatory Compliance  
-**Status:** Active
+**Status:** Active  
+**Last Updated:** November 2025
 
 ---
 
 ## Overview
 
 This document covers the comprehensive security and compliance framework for QuantraCore Apex, including authentication, data integrity, anti-tamper measures, and regulatory compliance.
+
+---
+
+## API Security (v9.0-A)
+
+### Authentication
+
+All protected API endpoints require the `X-API-Key` header for authentication.
+
+| Configuration | Description |
+|--------------|-------------|
+| `APEX_API_KEY` | Primary API key (environment variable) |
+| `APEX_API_KEY_2` | Secondary API key (optional) |
+| `APEX_AUTH_DISABLED=true` | Bypass authentication (development only) |
+
+### CORS Policy
+
+Allowed origins are restricted to:
+- `http://localhost:*` and `http://127.0.0.1:*`
+- `https://*.replit.dev` and `https://*.repl.co`
+
+### Rate Limiting
+
+Data adapters implement non-blocking rate limiting to prevent API quota exhaustion:
+- **Polygon.io:** 12.5 second delay (5 calls/min on free tier)
+- **Binance:** 0.1 second delay (async-compatible)
+
+### Cache Security
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| Max Entries | 1000 | Prevents memory exhaustion |
+| TTL | 300 seconds | 5-minute expiration |
+| Eviction | LRU | Least recently used removal |
 
 ---
 

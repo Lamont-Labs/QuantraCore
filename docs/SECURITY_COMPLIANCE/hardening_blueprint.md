@@ -1,8 +1,20 @@
-# QuantraCore Apex — Global Hardening Blueprint v1.0
+# QuantraCore Apex — Global Hardening Blueprint v1.1
+
+**Last Updated:** November 2025
 
 ## Overview
 
 This document defines the hardening measures implemented across QuantraCore Apex to ensure determinism, safety, security, and compliance without sacrificing capability.
+
+## v9.0-A Security Additions
+
+| Feature | Description |
+|---------|-------------|
+| **API Authentication** | `X-API-Key` header required for protected endpoints |
+| **CORS Restriction** | Regex pattern allowing only localhost and Replit domains |
+| **Non-blocking Rate Limiting** | Async-compatible delays in Polygon/Binance adapters |
+| **TTL Cache** | 1000 entries max, 5-minute expiration, LRU eviction |
+| **Timeframe Validation** | Case-insensitive with warning logs for unknown values |
 
 ## Global Principles
 
