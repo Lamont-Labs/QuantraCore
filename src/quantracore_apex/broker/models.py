@@ -32,6 +32,37 @@ class OrderMetadata:
     regime: str = ""
     volatility_band: str = ""
     notes: Optional[str] = None
+    company_name: str = ""
+    sector: str = "Unknown"
+    score_bucket: str = "neutral"
+    confidence: float = 0.5
+    monster_runner_score: float = 0.0
+    monster_runner_fired: bool = False
+    runner_probability: float = 0.0
+    avoid_trade_probability: float = 0.0
+    quality_tier: str = "C"
+    entropy_state: str = "mid"
+    suppression_state: str = "none"
+    drift_state: str = "none"
+    vix_level: float = 20.0
+    vix_percentile: float = 50.0
+    sector_momentum: str = "neutral"
+    market_breadth: float = 0.5
+    spy_change_pct: float = 0.0
+    risk_tier: str = "medium"
+    risk_score: float = 50.0
+    stop_loss_price: Optional[float] = None
+    stop_loss_pct: Optional[float] = None
+    take_profit_price: Optional[float] = None
+    take_profit_pct: Optional[float] = None
+    risk_reward_ratio: Optional[float] = None
+    protocols_fired: List[str] = field(default_factory=list)
+    tier_protocols: Optional[List[str]] = None
+    monster_runner_protocols: Optional[List[str]] = None
+    omega_alerts: List[str] = field(default_factory=list)
+    omega_blocked: bool = False
+    consensus_direction: str = "neutral"
+    protocol_confidence: float = 0.5
     
     def to_dict(self) -> Dict:
         return {
@@ -41,6 +72,19 @@ class OrderMetadata:
             "regime": self.regime,
             "volatility_band": self.volatility_band,
             "notes": self.notes,
+            "company_name": self.company_name,
+            "sector": self.sector,
+            "score_bucket": self.score_bucket,
+            "confidence": self.confidence,
+            "monster_runner_score": self.monster_runner_score,
+            "monster_runner_fired": self.monster_runner_fired,
+            "runner_probability": self.runner_probability,
+            "avoid_trade_probability": self.avoid_trade_probability,
+            "quality_tier": self.quality_tier,
+            "risk_tier": self.risk_tier,
+            "protocols_fired": self.protocols_fired,
+            "omega_alerts": self.omega_alerts,
+            "omega_blocked": self.omega_blocked,
         }
 
 

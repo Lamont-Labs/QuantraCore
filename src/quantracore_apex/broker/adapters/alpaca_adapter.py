@@ -7,19 +7,19 @@ LIVE trading is NOT supported - paper only.
 
 import logging
 import json
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, TYPE_CHECKING
 from datetime import datetime
 import os
 from pathlib import Path
 
-try:
-    import requests
-except ImportError:
-    requests = None
+import requests
 
 from .base_adapter import BrokerAdapter
 from ..models import OrderTicket, ExecutionResult, BrokerPosition
 from ..enums import OrderStatus, OrderSide, OrderType, TimeInForce
+
+if TYPE_CHECKING:
+    from ...investor import get_trade_journal as _get_trade_journal
 
 try:
     from ...investor import get_trade_journal
@@ -219,7 +219,7 @@ class AlpacaPaperAdapter(BrokerAdapter):
                     buying_power = account_info.get("buying_power", 400000)
                     
                     positions = self.get_positions()
-                    total_exposure = sum(abs(float(p.get("market_value", 0))) for p in positions)
+                    total_exposure = sum(abs(float(getattr(p, 'market_value', 0) if hasattr(p, 'market_value') else p.get("market_value", 0) if hasattr(p, 'get') else 0)) for p in positions)
                     
                     meta = order.metadata
                     journal.log_comprehensive_trade(
