@@ -11,6 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Full Trading Capabilities (November 2025)
+- **All Position Types Enabled:** Long, short, margin, intraday, swing, scalping
+- **Execution Mode:** Upgraded from RESEARCH to PAPER (live paper trading)
+- **Short Selling:** Unblocked for full directional flexibility
+- **Margin Trading:** Enabled with 4x max leverage
+- **Risk Limits:** $100K max exposure, $10K per symbol, 50 positions max
+- **Trading Capabilities Endpoint:** `/trading_capabilities` for real-time config
+
+#### Alpaca Data Adapter
+- **New Primary Data Source:** Alpaca Markets API (200 requests/minute - 40x faster than Polygon)
+- **Retry Logic:** Exponential backoff with 3 retries for production resilience
+- **Rate Limiting:** Smart delays prevent API throttling
+- **Error Handling:** Graceful recovery from timeouts, connection errors, server errors
+
+#### Swing Trading Scanner
+- **Real Scan Modes API:** Uses `/scan_universe_mode` endpoint with `config/scan_modes.yaml`
+- **4 Pre-configured Modes:** Momentum Runners, Mid-Cap Focus, Blue Chips, High Vol Small Caps
+- **Data Provider Validation:** Verifies real data sources before scanning
+- **No Hardcoded Symbols:** All universes configured via YAML
+
 #### Security Hardening
 - **API Authentication:** Added `X-API-Key` header verification for protected endpoints
 - **CORS Restriction:** Changed from wildcard to regex pattern (localhost + Replit domains only)
@@ -22,12 +42,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tailwind CSS v4:** Migrated to `@theme` blocks for custom color definitions
 - **Custom Design System:** Institutional trading terminal aesthetic with apex/lamont color palette
 
+#### System Statistics
+- **Total Files:** 516 source files
+- **Total Lines:** 121,207 lines of code
+- **API Endpoints:** 123 REST endpoints
+- **Development Stage:** Beta / Production-Ready (Paper Mode)
+
 #### Core System
-- Complete deterministic analysis engine with 115 protocols
+- Complete deterministic analysis engine with 145 protocols
   - 80 Tier protocols (T01-T80) for structural analysis
   - 25 Learning protocols (LP01-LP25) for label generation
-  - 5 MonsterRunner protocols (MR01-MR05) for extreme move detection
-  - 5 Omega directives (Ω1-Ω5) for safety overrides
+  - 20 MonsterRunner protocols (MR01-MR20) for extreme move detection
+  - 20 Omega directives (Ω1-Ω20) for safety overrides
 - ApexLab v2 offline labeling environment
   - Window-based feature extraction
   - Teacher labeling via deterministic engine

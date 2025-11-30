@@ -5,7 +5,7 @@
 [![Tests](https://img.shields.io/badge/tests-1145%20passed-brightgreen)]()
 [![Compliance](https://img.shields.io/badge/regulatory-163%2B%20tests-blueviolet)]()
 [![Security](https://img.shields.io/badge/security-fail--closed-critical)]()
-[![Mode](https://img.shields.io/badge/mode-RESEARCH%20|%20PAPER%20|%20LIVE-yellow)]()
+[![Mode](https://img.shields.io/badge/mode-PAPER%20TRADING-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.11-blue)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)]()
 [![React](https://img.shields.io/badge/React-18.2-61DAFB)]()
@@ -14,11 +14,14 @@
 [![Tailwind](https://img.shields.io/badge/Tailwind-4.0-06B6D4)]()
 [![Desktop](https://img.shields.io/badge/platform-desktop%20only-orange)]()
 [![License](https://img.shields.io/badge/license-proprietary-red)]()
-[![Status](https://img.shields.io/badge/status-operational-success)]()
+[![Status](https://img.shields.io/badge/status-production--ready-success)]()
+[![Code](https://img.shields.io/badge/lines-121K+-informational)]()
+[![Endpoints](https://img.shields.io/badge/API-123%20endpoints-blueviolet)]()
 
 **Owner:** Lamont Labs - Jesse J. Lamont  
-**Version:** v9.0-A (Institutional Hardening)  
-**Architecture:** Desktop-Only | Modes: RESEARCH (default) / PAPER / LIVE  
+**Version:** v9.0-A (Production-Ready Paper Trading)  
+**Architecture:** Desktop-Only | Mode: PAPER (Alpaca Connected)  
+**Stage:** Beta / Production-Ready  
 
 ---
 
@@ -28,17 +31,35 @@
 |-----------|--------|---------|
 | **ApexEngine** | Operational | Deterministic core with 80 Tier protocols |
 | **ApexDesk UI** | Operational | React 18 + Vite 5 + Tailwind CSS 4 |
-| **FastAPI Backend** | Operational | 27 REST endpoints on port 8000 |
+| **FastAPI Backend** | Operational | **123 REST endpoints** on port 8000 |
 | **Test Suite** | **1,145 tests passing** | Regulatory excellence + hardening + institutional |
-| **Universal Scanner** | Operational | 7 market cap buckets, 8 scan modes |
-| **ApexLab** | Operational | V1 + V2 offline training environment |
-| **ApexCore Models** | Operational | V1 + V2 neural models (scikit-learn) |
-| **ApexLab V2** | Operational | 40+ field schema, runner/monster/safety labels |
-| **ApexCore V2** | Operational | Big/Mini models, 5 heads, manifest verification |
-| **PredictiveAdvisor** | Operational | Fail-closed engine integration |
-| **Hardening** | Operational | Protocol manifest, mode enforcement, kill switch |
+| **Universal Scanner** | Operational | 7 market cap buckets, 4 scan modes |
+| **Alpaca Paper Trading** | **Connected** | All position types enabled |
+| **Data Layer** | Operational | Alpaca (200/min) + Polygon (5/min) |
+| **ApexCore Models** | Operational | V2 neural models (scikit-learn) |
 | **Broker Layer** | Operational | Paper trading with 9-check risk engine |
-| **EEO Engine** | Operational | Entry/exit optimization, 3 policy profiles |
+| **EEO Engine** | Operational | Entry/exit optimization, 6 strategies |
+
+### Trading Capabilities (All Enabled)
+
+| Type | Status | Description |
+|------|--------|-------------|
+| Long | Enabled | Standard long positions |
+| Short | Enabled | Short selling enabled |
+| Margin | Enabled | Up to 4x leverage |
+| Intraday | Enabled | Same-day trades |
+| Swing | Enabled | Multi-day holds |
+| Scalping | Enabled | Sub-5 minute trades |
+
+### Codebase Statistics
+
+| Metric | Value |
+|--------|-------|
+| **Total Files** | 516 source files |
+| **Total Lines** | 121,207 lines of code |
+| **Python** | 459 files / 88,921 lines |
+| **TypeScript/React** | 18 files / 3,123 lines |
+| **API Endpoints** | 123 REST endpoints |
 
 ---
 
@@ -74,7 +95,7 @@ QuantraCore Apex is a **research and backtesting platform** that:
 
 | Exclusion | Reason |
 |-----------|--------|
-| **Live Trading** | No brokerage connections or order execution |
+| **Live Trading** | Paper trading only (LIVE mode disabled) |
 | **Financial Advice** | All outputs are structural probabilities only |
 | **Mobile/Android** | Desktop-only architecture (strictly prohibited) |
 | **Cloud Dependencies** | Runs entirely locally |
@@ -192,19 +213,33 @@ http://localhost:5000
 
 ---
 
-## API Endpoints
+## API Endpoints (123 Total)
 
+### Core Analysis
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/health` | GET | Health check |
-| `/api/stats` | GET | System statistics |
+| `/trading_capabilities` | GET | Trading config and limits |
+| `/data_providers` | GET | Data source status |
 | `/scan_symbol` | POST | Single symbol analysis |
-| `/scan_universe` | POST | Multi-symbol batch scan |
+| `/scan_universe_mode` | POST | Universe scan with mode |
 | `/trace/{hash}` | GET | Full protocol trace |
-| `/monster_runner/{symbol}` | POST | Extreme move check |
-| `/risk/assess/{symbol}` | POST | Risk assessment |
-| `/signal/generate/{symbol}` | POST | Signal generation |
-| `/portfolio/status` | GET | Portfolio snapshot |
+
+### Trading & Execution
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/broker/status` | GET | Broker connection status |
+| `/broker/execute` | POST | Execute trade |
+| `/broker/positions` | GET | Current positions |
+| `/oms/orders` | GET | Order history |
+| `/eeo/plan` | POST | Entry/exit optimization |
+
+### Predictions & Analysis
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/predictive/advise` | POST | Get prediction advisory |
+| `/monster_runner/{symbol}` | POST | Monster runner detection |
+| `/estimated_move/{symbol}` | GET | Expected move calculation |
 
 ### Example API Call
 
@@ -274,13 +309,12 @@ dashboard/          # React 18 + Vite 5 + Tailwind CSS 4 frontend
 
 ## Data Providers
 
-| Provider | Usage |
-|----------|-------|
-| **Polygon.io** | Real market data (requires API key) |
-| **Alpha Vantage** | Alternative data source |
-| **Yahoo Finance** | Backup provider |
-| **CSV Bundle** | Historical data import |
-| **Synthetic** | Testing without API keys |
+| Provider | Rate Limit | Usage |
+|----------|------------|-------|
+| **Alpaca** | 200/min | Primary OHLCV data (FREE) |
+| **Polygon.io** | 5/min | Backup data, options |
+| **Binance** | 1200/min | Crypto data (FREE) |
+| **Synthetic** | Unlimited | Testing without API keys |
 
 ---
 

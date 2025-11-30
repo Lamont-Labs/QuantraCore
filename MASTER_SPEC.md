@@ -1,9 +1,10 @@
 # QuantraCore Apex v9.0-A — Master Specification
 
-**Version:** 9.0-A (Alpha)  
+**Version:** 9.0-A (Production-Ready Paper Trading)  
 **Last Updated:** 2025-11-30  
 **Classification:** Technical Build Specification  
-**Purpose:** Complete technical reference for development teams
+**Purpose:** Complete technical reference for development teams  
+**Status:** Beta / Production-Ready (Paper Mode)
 
 ---
 
@@ -54,28 +55,60 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 | **Determinism** | Same inputs always produce identical outputs |
 | **Fail-Closed** | System blocks operations on uncertainty |
 | **Local-Only Learning** | No cloud dependencies; all ML runs on-device |
-| **Research-Only** | No live trading; Ω4 Compliance Override always active |
+| **Paper Trading Active** | Full paper trading via Alpaca (LIVE mode disabled) |
 | **Rule Override** | Hardcoded rules always override ML predictions |
 
-### 1.3 Capability Summary
+### 1.3 Current System Status
+
+| Metric | Value |
+|--------|-------|
+| **Total Files** | 516 source files |
+| **Total Lines of Code** | 121,207 lines |
+| **API Endpoints** | 123 REST endpoints |
+| **Development Stage** | Beta / Production-Ready (Paper Mode) |
+| **Execution Mode** | PAPER (Alpaca connected) |
+
+### 1.4 Capability Summary
 
 - **145+ Protocols**: 80 Tier + 25 Learning + 20 MonsterRunner + 20 Omega
 - **QuantraScore**: 0-100 probability-weighted composite score
-- **Universal Scanner**: 7 market cap buckets × 8 scan modes
+- **Universal Scanner**: 7 market cap buckets × 4 scan modes
 - **Offline ML**: On-device ApexCore v2 neural models
-- **Paper Trading**: Alpaca integration (LIVE mode disabled)
+- **Full Paper Trading**: Alpaca integration with all position types
 - **Self-Learning**: Feedback loop → ApexLab → periodic retraining
+- **All Trading Types**: Long, short, margin, intraday, swing, scalping
 
-### 1.4 Technology Stack
+### 1.5 Trading Capabilities
+
+| Type | Status | Description |
+|------|--------|-------------|
+| **Long** | Enabled | Buy to open, sell to close |
+| **Short** | Enabled | Sell to open, buy to close |
+| **Margin** | Enabled | Up to 4x leverage |
+| **Intraday** | Enabled | Same-day entry/exit |
+| **Swing** | Enabled | 2-10+ day holds |
+| **Scalping** | Enabled | Sub-5 minute trades |
+
+### 1.6 Risk Configuration
+
+| Parameter | Value |
+|-----------|-------|
+| Max Exposure | $100,000 |
+| Max Per Symbol | $10,000 |
+| Max Positions | 50 |
+| Max Leverage | 4x |
+| Risk Per Trade | 2% |
+
+### 1.7 Technology Stack
 
 | Layer | Technology |
 |-------|------------|
 | Backend | Python 3.11, FastAPI, Uvicorn |
-| Frontend | React 18.2, Vite 5, Tailwind CSS 3.4, TypeScript |
+| Frontend | React 18.2, Vite 5, Tailwind CSS 4.0, TypeScript |
 | Machine Learning | scikit-learn (GradientBoosting), joblib |
 | Numerical | NumPy, Pandas |
 | Testing | pytest (1,145+ tests), vitest |
-| Data | Polygon.io, Alpha Vantage, Synthetic |
+| Data | Alpaca (200/min), Polygon (5/min), Binance (crypto)
 
 ---
 
