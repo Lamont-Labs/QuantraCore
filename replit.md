@@ -13,11 +13,25 @@ QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading inte
 - **Self-Learning:** Alpha Factory feedback loop with automatic retraining
 - **Google Docs Export:** Automated investor/acquirer reporting pipeline
 
+## Recent Changes (November 2025)
+
+### Security Hardening (v9.0-A)
+- **API Authentication:** Added `X-API-Key` header verification for protected endpoints
+- **CORS Restriction:** Changed from wildcard (`*`) to regex pattern allowing only localhost and Replit domains
+- **Non-blocking Rate Limiting:** Updated Polygon and Binance adapters to use async-compatible delays
+- **Timeframe Validation:** Added case-insensitive matching with warning logs for unknown timeframes
+- **Cache Limits:** Implemented TTL cache with 1000 entry limit and 5-minute expiration
+
+### Frontend Updates
+- **Tailwind CSS v4:** Migrated to `@theme` blocks for custom color definitions
+- **Custom Design System:** Institutional trading terminal aesthetic with apex/lamont color palette
+
 ## User Preferences
 
 - **Communication:** Simple language with detailed explanations
 - **Workflow:** Iterative development with confirmation before major changes
 - **Coding Style:** Functional programming paradigms preferred
+- **Data Policy:** Absolutely no placeholders - everything must use real data
 - **Restrictions:** Do not modify folder `Z` or file `Y`
 
 ## System Architecture
@@ -26,10 +40,35 @@ QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading inte
 | Layer | Technology |
 |-------|------------|
 | Backend | Python 3.11, FastAPI, Uvicorn |
-| Frontend | React 18.2, Vite 5, Tailwind CSS 3.4, TypeScript |
+| Frontend | React 18.2, Vite 5, Tailwind CSS 4.0, TypeScript |
 | Machine Learning | scikit-learn (GradientBoosting), joblib |
 | Numerical | NumPy, Pandas |
 | Testing | pytest (backend), vitest (frontend) |
+
+### Running Services
+| Service | Port | Description |
+|---------|------|-------------|
+| ApexDesk Frontend | 5000 | React dashboard (main UI) |
+| FastAPI Backend | 8000 | REST API server |
+| Alpha Factory Dashboard | 8080 | Static HTML dashboard |
+
+### Security Configuration
+
+#### API Authentication
+Protected endpoints require an `X-API-Key` header. Configure via environment variables:
+- `APEX_API_KEY` - Primary API key
+- `APEX_API_KEY_2` - Secondary API key (optional)
+- `APEX_AUTH_DISABLED=true` - Bypass authentication (development only)
+
+#### CORS Policy
+Allowed origins (regex pattern):
+- `http://localhost:*` and `http://127.0.0.1:*`
+- `https://*.replit.dev` and `https://*.repl.co`
+
+#### Cache Configuration
+- **Max Entries:** 1000
+- **TTL:** 300 seconds (5 minutes)
+- **Eviction:** LRU with expired entry cleanup
 
 ### Core Systems
 
@@ -92,6 +131,21 @@ Supports a NullAdapter (research mode), PaperSimAdapter (offline simulation), an
 
 **Current Active:** Polygon, Alternative Data (Stocktwits), Crypto (Binance), Synthetic
 
+### Environment Variables
+
+#### Required Secrets
+| Secret | Description |
+|--------|-------------|
+| `POLYGON_API_KEY` | Polygon.io API access |
+| `ALPACA_PAPER_API_KEY` | Alpaca paper trading key |
+| `ALPACA_PAPER_API_SECRET` | Alpaca paper trading secret |
+
+#### Optional Configuration
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APEX_AUTH_DISABLED` | `false` | Disable API authentication |
+| `APEX_API_KEY` | - | Primary API key for authentication |
+
 ### Broker Integration
 - **Alpaca Paper:** For paper trading.
 
@@ -102,3 +156,25 @@ Connected via Replit OAuth2 for an automated export pipeline supporting:
 - Trade log exports
 - Trade journals with research notes
 - Monthly investor updates
+
+## File Structure
+
+```
+quantracore-apex/
+├── src/quantracore_apex/     # Backend Python source
+│   ├── core/                 # Engine, schemas, types
+│   ├── data_layer/           # Data adapters and normalization
+│   ├── server/               # FastAPI application
+│   ├── protocols/            # Tier, Learning, Omega protocols
+│   ├── prediction/           # MonsterRunner, ApexCore models
+│   ├── risk/                 # Risk engine
+│   ├── broker/               # OMS, broker adapters
+│   └── portfolio/            # Portfolio management
+├── dashboard/                # React frontend
+│   ├── src/
+│   │   ├── components/       # React components
+│   │   └── index.css         # Tailwind v4 theme
+│   └── vite.config.ts        # Vite configuration
+├── static/                   # Alpha Factory static dashboard
+└── tests/                    # Test suites
+```

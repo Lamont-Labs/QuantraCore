@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [9.0.0-A] - 2025-11-29
+## [9.0.0-A] - 2025-11-30
 
 ### Added
+
+#### Security Hardening
+- **API Authentication:** Added `X-API-Key` header verification for protected endpoints
+- **CORS Restriction:** Changed from wildcard to regex pattern (localhost + Replit domains only)
+- **Non-blocking Rate Limiting:** Updated Polygon and Binance adapters with async-compatible delays
+- **Timeframe Validation:** Added case-insensitive matching with warning logs for unknown values
+- **TTL Cache:** Implemented 1000-entry limit with 5-minute expiration and LRU eviction
+
+#### Frontend Updates
+- **Tailwind CSS v4:** Migrated to `@theme` blocks for custom color definitions
+- **Custom Design System:** Institutional trading terminal aesthetic with apex/lamont color palette
 
 #### Core System
 - Complete deterministic analysis engine with 115 protocols
