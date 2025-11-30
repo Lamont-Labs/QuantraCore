@@ -20,8 +20,9 @@
    - [4.4 MonsterRunner Protocols (MR01-MR20) — Complete Reference](#44-monsterrunner-protocols-mr01-mr20--complete-reference)
    - [4.5 Omega Directives (Ω1-Ω20) — Complete Reference](#45-omega-directives-ω1-ω20--complete-reference)
 5. [ApexCore Neural Models](#5-apexcore-neural-models)
-6. [ApexLab Training Pipeline](#6-apexlab-training-pipeline)
-7. [Broker Layer](#7-broker-layer)
+6. [Accuracy Optimization System](#6-accuracy-optimization-system)
+7. [ApexLab Training Pipeline](#7-apexlab-training-pipeline)
+8. [Broker Layer](#8-broker-layer)
 8. [EEO Engine (Entry/Exit Optimization)](#8-eeo-engine)
 9. [Alpha Factory](#9-alpha-factory)
 10. [MarketSimulator](#10-marketsimulator)
@@ -607,7 +608,327 @@ data/training/models/
 
 ---
 
-## 6. ApexLab Training Pipeline
+## 6. Accuracy Optimization System
+
+**Location:** `src/quantracore_apex/accuracy/`
+
+The Accuracy Optimization System provides institutional-grade enhancements to maximize prediction accuracy. It implements 8 core modules that work together to ensure predictions are calibrated, regime-aware, and uncertainty-quantified.
+
+### 6.1 System Overview
+
+| Module | Purpose | Key Benefit |
+|--------|---------|-------------|
+| **Protocol Telemetry** | Track which protocols contribute to profitable trades | Data-driven protocol weighting |
+| **Feature Store** | Centralized feature management with quality audits | Consistent, high-quality inputs |
+| **Calibration Layer** | Platt/isotonic calibration for probability accuracy | Reliable confidence scores |
+| **Regime-Gated Ensemble** | Different models for different market conditions | Regime-optimal predictions |
+| **Uncertainty Head** | Conformal prediction for valid confidence bounds | Know when to abstain |
+| **Auto-Retraining** | Drift detection and automatic retraining triggers | Stay calibrated over time |
+| **Multi-Horizon Prediction** | 1d, 3d, 5d, 10d separate forecasts | Time-aware predictions |
+| **Cross-Asset Features** | VIX, sector rotation, market breadth | Market context awareness |
+
+### 6.2 Protocol Telemetry
+
+**Location:** `src/quantracore_apex/accuracy/protocol_telemetry.py`
+
+Measures which of the 145+ protocols actually contribute to profitable trades vs noise.
+
+```python
+from src.quantracore_apex.accuracy import get_protocol_telemetry
+
+telemetry = get_protocol_telemetry()
+
+# Record trade outcome with protocols that fired
+telemetry.record_trade(
+    protocols_fired=["T03", "T17", "MR05"],
+    pnl_percent=2.5,
+    is_win=True
+)
+
+# Get protocol effectiveness metrics
+metrics = telemetry.get_protocol_metrics("T03")
+print(f"T03 lift: {metrics.lift:.2f}, win_rate: {metrics.win_rate:.1%}")
+
+# Compute optimal protocol weights based on historical performance
+weights = telemetry.compute_protocol_weights()
+```
+
+#### 6.2.1 Metrics Tracked
+
+| Metric | Description |
+|--------|-------------|
+| `total_fires` | How often the protocol triggered |
+| `win_rate` | Win rate when protocol fired |
+| `lift` | Performance improvement when protocol fires vs doesn't |
+| `confidence` | Statistical confidence based on sample size |
+| `redundancy` | Co-occurrence with other protocols |
+
+### 6.3 Feature Store
+
+**Location:** `src/quantracore_apex/accuracy/feature_store.py`
+
+Centralized feature management with data quality audits.
+
+```python
+from src.quantracore_apex.accuracy import get_feature_store
+
+store = get_feature_store()
+
+# Store features for a symbol
+store.put_features("AAPL", {
+    "quantra_score": 75.5,
+    "regime_encoded": 0,
+    "volatility_band": 1,
+    "vix_level": 18.5,
+})
+
+# Get features with quality check
+features = store.get_features("AAPL")
+
+# Run quality audit
+report = store.audit_feature("quantra_score")
+print(f"Completeness: {report.completeness:.1%}, Drift: {report.drift_score:.3f}")
+```
+
+#### 6.3.1 Quality Metrics
+
+| Metric | Threshold | Description |
+|--------|-----------|-------------|
+| Completeness | >= 95% | Percent of symbols with this feature |
+| Freshness | < 24 hours | Age of most recent data |
+| Drift Score | < 2.0 | Z-score of recent vs historical mean |
+| Null Rate | < 5% | Percent of null values |
+
+### 6.4 Calibration Layer
+
+**Location:** `src/quantracore_apex/accuracy/calibration.py`
+
+Ensures predictions are well-calibrated: when the model says "70% confident", it should be correct 70% of the time.
+
+```python
+from src.quantracore_apex.accuracy import get_calibration_layer
+
+calibrator = get_calibration_layer()
+
+# Fit on validation data
+calibrator.fit(val_probabilities, val_labels)
+
+# Calibrate new predictions
+calibrated_probs = calibrator.calibrate(raw_probs)
+
+# Get calibration quality metrics
+metrics = calibrator.compute_calibration_metrics(raw_probs, labels)
+print(f"ECE: {metrics.expected_calibration_error:.4f}")
+```
+
+#### 6.4.1 Calibration Methods
+
+| Method | Description | Best For |
+|--------|-------------|----------|
+| **Platt Scaling** | Logistic regression on logits | Small datasets |
+| **Isotonic Regression** | Non-parametric, preserves ordering | Large datasets |
+| **Temperature Scaling** | Single parameter scaling | Neural networks |
+| **Ensemble** | Average of all three | Maximum robustness |
+
+### 6.5 Regime-Gated Ensemble
+
+**Location:** `src/quantracore_apex/accuracy/regime_ensemble.py`
+
+Routes predictions through regime-specific specialist models.
+
+```python
+from src.quantracore_apex.accuracy import get_regime_ensemble, MarketRegime
+
+ensemble = get_regime_ensemble()
+
+# Train with regime labels
+ensemble.fit(X_train, y_scores, y_directions, regimes)
+
+# Predict with automatic regime routing
+prediction = ensemble.predict(features, regime_features)
+print(f"Regime: {prediction.regime.value}")
+print(f"Prediction: {prediction.primary_prediction:.2f}")
+print(f"Uncertainty: {prediction.uncertainty:.3f}")
+```
+
+#### 6.5.1 Supported Regimes
+
+| Regime | Description | Model Focus |
+|--------|-------------|-------------|
+| `TREND_UP` | Uptrending market | Momentum continuation |
+| `TREND_DOWN` | Downtrending market | Reversal detection |
+| `CHOP` | Range-bound, choppy | Mean reversion |
+| `SQUEEZE` | Low volatility compression | Breakout anticipation |
+| `VOLATILE` | High volatility | Reduced position sizing |
+| `CRASH` | Extreme volatility | Capital preservation |
+
+### 6.6 Uncertainty Head
+
+**Location:** `src/quantracore_apex/accuracy/uncertainty.py`
+
+Provides confidence bounds with coverage guarantees via conformal prediction.
+
+```python
+from src.quantracore_apex.accuracy import get_uncertainty_head
+
+uncertainty = get_uncertainty_head()
+
+# Calibrate on validation data
+uncertainty.fit(val_predictions, val_actuals)
+
+# Get uncertainty estimate
+estimate = uncertainty.estimate(prediction, ensemble_preds)
+print(f"Point: {estimate.point_estimate:.2f}")
+print(f"Interval: [{estimate.lower_bound:.2f}, {estimate.upper_bound:.2f}]")
+print(f"Confidence: {estimate.confidence_level}")
+
+# Check if should abstain
+should_abstain, reason = uncertainty.should_abstain(estimate)
+```
+
+#### 6.6.1 Uncertainty Decomposition
+
+| Type | Source | Interpretation |
+|------|--------|----------------|
+| **Epistemic** | Model uncertainty | Reducible with more data |
+| **Aleatoric** | Data uncertainty | Irreducible noise |
+| **Total** | Combined | Overall prediction confidence |
+
+### 6.7 Auto-Retraining System
+
+**Location:** `src/quantracore_apex/accuracy/auto_retrain.py`
+
+Detects distribution drift and triggers retraining automatically.
+
+```python
+from src.quantracore_apex.accuracy import get_auto_retrainer
+
+retrainer = get_auto_retrainer()
+
+# Set reference from training
+retrainer.set_training_reference(X_train, y_train, accuracy)
+
+# Monitor new predictions
+retrainer.add_observation(features, label, prediction, actual)
+
+# Check if retraining needed
+decision = retrainer.check_retrain()
+if decision.should_retrain:
+    print(f"Retraining needed: {decision.reasons}")
+    weights = retrainer.get_sample_weights(timestamps)
+```
+
+#### 6.7.1 Drift Detection Methods
+
+| Method | Metric | Threshold |
+|--------|--------|-----------|
+| **Feature Drift** | PSI (Population Stability Index) | > 0.2 |
+| **Label Drift** | KL-like divergence | > 0.3 |
+| **Performance Drift** | Accuracy degradation | > 10% |
+
+### 6.8 Multi-Horizon Prediction
+
+**Location:** `src/quantracore_apex/accuracy/multi_horizon.py`
+
+Separate prediction heads for different time horizons.
+
+```python
+from src.quantracore_apex.accuracy import get_multi_horizon_predictor
+
+predictor = get_multi_horizon_predictor()
+
+# Train with multi-horizon targets
+predictor.fit(X, y_returns, y_directions)
+
+# Predict all horizons
+prediction = predictor.predict(features, current_price=150.0)
+print(f"1D: {prediction.predictions['1d'].return_prediction:.2f}%")
+print(f"5D: {prediction.predictions['5d'].return_prediction:.2f}%")
+print(f"Consensus: {prediction.consensus_direction}")
+```
+
+#### 6.8.1 Prediction Horizons
+
+| Horizon | Primary Features | Use Case |
+|---------|------------------|----------|
+| **1D** | Momentum, gap, intraday | Day trading |
+| **3D** | Swing strength, support | Swing trading |
+| **5D** | Trend, earnings | Position trading |
+| **10D** | Sector rotation, macro | Investment |
+
+### 6.9 Cross-Asset Features
+
+**Location:** `src/quantracore_apex/accuracy/cross_asset.py`
+
+Market-wide context for improved predictions.
+
+```python
+from src.quantracore_apex.accuracy import get_cross_asset_analyzer
+
+analyzer = get_cross_asset_analyzer()
+
+# Update market data
+analyzer.update_vix(18.5, level_1d_ago=19.2)
+analyzer.update_sectors({"XLK": 2.5, "XLF": 1.0, "XLU": -0.5})
+analyzer.update_breadth(advances=350, declines=150)
+
+# Get combined features
+features = analyzer.get_features()
+print(f"VIX Regime: {features.vix.regime.value}")
+print(f"Market Regime: {features.market_regime.value}")
+print(f"Risk Appetite: {features.risk_appetite_score:.2f}")
+```
+
+#### 6.9.1 Cross-Asset Feature Categories
+
+| Category | Features | Source |
+|----------|----------|--------|
+| **VIX** | Level, percentile, term structure, spike | VIX index |
+| **Sectors** | Rotation signal, dispersion, defensive/cyclical momentum | Sector ETFs |
+| **Breadth** | Advance/decline, highs/lows, McClellan | Market internals |
+| **Correlation** | SPY correlation, beta | Index relationship |
+
+### 6.10 ApexCore V3 Integration
+
+**Location:** `src/quantracore_apex/prediction/apexcore_v3.py`
+
+ApexCore V3 integrates all accuracy optimizations into a unified prediction engine.
+
+```python
+from src.quantracore_apex.prediction.apexcore_v3 import ApexCoreV3Model
+
+model = ApexCoreV3Model(
+    model_size="big",
+    enable_calibration=True,
+    enable_uncertainty=True,
+    enable_multi_horizon=True,
+)
+
+# Train with full accuracy optimization
+metrics = model.fit(training_rows)
+
+# Generate enhanced predictions
+prediction = model.predict(row, current_price=150.0)
+print(f"Score: {prediction.quantrascore_calibrated:.1f}")
+print(f"Confidence: {prediction.confidence:.2f}")
+print(f"Uncertainty: [{prediction.uncertainty_lower:.1f}, {prediction.uncertainty_upper:.1f}]")
+print(f"Should trade: {prediction.should_trade}")
+```
+
+#### 6.10.1 V3 Enhancements Over V2
+
+| Feature | V2 | V3 |
+|---------|-----|-----|
+| Calibration | No | Platt/Isotonic/Temperature |
+| Uncertainty | No | Conformal prediction bounds |
+| Regime routing | No | 6 specialist models |
+| Protocol weighting | Equal | Data-driven from telemetry |
+| Cross-asset context | No | VIX, sectors, breadth |
+| Multi-horizon | No | 1d/3d/5d/10d forecasts |
+
+---
+
+## 7. ApexLab Training Pipeline
 
 ### 6.1 Overview
 

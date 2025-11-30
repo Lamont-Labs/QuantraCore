@@ -8,9 +8,10 @@ QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading inte
 - **145+ Protocols:** 80 Tier + 25 Learning + 20 MonsterRunner + 20 Omega
 - **QuantraScore:** 0-100 probability-weighted composite score
 - **Deterministic Core:** Same inputs always produce identical outputs
-- **Offline ML:** On-device ApexCore v2 neural models (scikit-learn)
+- **Offline ML:** On-device ApexCore v3 neural models with accuracy optimization
 - **Full Paper Trading:** Alpaca integration with all position types enabled
 - **Self-Learning:** Alpha Factory feedback loop with automatic retraining
+- **Accuracy Optimization:** 8-module suite for calibration, regime-gating, uncertainty
 - **Google Docs Export:** Automated investor/acquirer reporting pipeline
 - **Dual Data Sources:** Alpaca (200 req/min) + Polygon (5 req/min) for reliability
 
@@ -44,6 +45,17 @@ QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading inte
 ### Frontend Updates
 - **Tailwind CSS v4:** Migrated to `@theme` blocks for custom color definitions
 - **Custom Design System:** Institutional trading terminal aesthetic
+
+### Accuracy Optimization System (v9.0-A)
+- **Protocol Telemetry:** Tracks which protocols contribute to winning trades vs noise
+- **Feature Store:** Centralized feature management with data quality audits
+- **Calibration Layer:** Platt/isotonic calibration for reliable confidence scores
+- **Regime-Gated Ensemble:** Different models for trending, choppy, volatile conditions
+- **Uncertainty Head:** Conformal prediction for valid confidence bounds
+- **Auto-Retraining:** Drift detection and automatic retraining triggers
+- **Multi-Horizon Prediction:** Separate models for 1d, 3d, 5d, 10d forecasts
+- **Cross-Asset Features:** VIX regime, sector rotation, market breadth context
+- **ApexCore V3:** Unified model integrating all accuracy optimizations
 
 ## User Preferences
 
@@ -144,8 +156,8 @@ Allowed origins (regex pattern):
 #### ApexEngine
 The primary analysis engine processes 100-bar OHLCV windows to compute microtraits, entropy, suppression, drift, and continuation metrics. It classifies regimes, generates a QuantraScore (0-100), builds a verdict with a risk tier, runs 80 Tier protocols, and applies 20 Omega directives.
 
-#### ApexCore v2
-Multi-head neural models with 5 prediction heads for QuantraScore regression, runner probability classification, quality tier, avoid-trade probability, and regime classification.
+#### ApexCore v3
+Enhanced multi-head neural models with 5 prediction heads plus accuracy optimization. Includes calibrated probabilities, regime-gated ensemble routing, uncertainty quantification, protocol telemetry weighting, and cross-asset context integration. V3 provides calibrated confidence scores, valid prediction intervals, and knows when to abstain from trading.
 
 #### ApexLab v2
 A training pipeline featuring walk-forward validation, bootstrap ensembles, and a 40+ field schema.
@@ -236,6 +248,7 @@ quantracore-apex/
 │   ├── server/               # FastAPI application
 │   ├── protocols/            # Tier, Learning, Omega protocols
 │   ├── prediction/           # MonsterRunner, ApexCore models
+│   ├── accuracy/             # Accuracy optimization modules
 │   ├── eeo_engine/           # Entry/Exit Optimization
 │   ├── risk/                 # Risk engine
 │   ├── broker/               # OMS, broker adapters, execution
