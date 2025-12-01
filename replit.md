@@ -77,15 +77,40 @@ The institutional trading dashboard provides real-time monitoring and control vi
 ### Symbol Universe (251 Total)
 Categorized by market cap (Penny, Nano, Micro, Small, Mid, Large, Mega). 110 low-float symbols (penny + nano + micro) are used for runner scanning.
 
+### Hybrid Data Architecture
+The system uses a hybrid approach for optimal performance:
+- **Trading Execution:** Alpaca paper trading (orders, positions, portfolio management)
+- **Market Data:** Polygon.io Developer tier (tick data, OHLCV, quotes, NBBO)
+- **Fallback:** Alpaca IEX data if Polygon unavailable
+
+**Polygon Tier Configuration:**
+- Environment variable: `POLYGON_TIER` (free, starter, developer, advanced)
+- Current setting: `developer` ($249/mo) for real-time tick data
+- Features: Tick-by-tick data, NBBO pricing, 15+ years history, extended hours
+
+**Configuration Files:**
+- `config/data_sources.yaml` - Data source priority configuration
+- `config/broker.yaml` - Trading and execution settings
+
 ### System Design Choices
 - **Broker Layer:** Supports `NullAdapter`, `PaperSimAdapter`, and `AlpacaPaperAdapter`.
-- **Configuration:** Trading and risk parameters via `config/broker.yaml`; universe scanning modes via `config/scan_modes.yaml`.
+- **Data Layer:** Polygon for market data, Alpaca for execution (hybrid setup).
+- **Configuration:** Trading and risk parameters via `config/broker.yaml`; universe scanning modes via `config/scan_modes.yaml`; data sources via `config/data_sources.yaml`.
 - **Google Docs Integration:** Uses Replit OAuth2 for automated report exports.
 
 ## External Dependencies
 
-- **Alpaca Markets API:** Primary broker for paper trading and IEX data feed.
-- **Polygon.io:** Primary data source for ML training.
+- **Alpaca Markets API:** Primary broker for paper trading and order execution.
+- **Polygon.io (Developer tier):** Primary data source for market data (OHLCV, ticks, quotes), ML training, and extended hours coverage. Requires `POLYGON_API_KEY` secret.
 - **Binance:** Primary source for crypto data in Alpha Factory.
 - **Twilio:** Used for SMS alerts via Replit integration.
 - **Google Docs:** Integrated via Replit OAuth2 for automated reporting.
+
+### Required Secrets
+| Secret | Purpose |
+|--------|---------|
+| `ALPACA_PAPER_API_KEY` | Alpaca paper trading authentication |
+| `ALPACA_PAPER_API_SECRET` | Alpaca paper trading authentication |
+| `POLYGON_API_KEY` | Polygon.io market data access |
+| `POLYGON_TIER` | Polygon subscription tier (developer recommended) |
+| `TWILIO_*` | SMS alert configuration (managed by Replit integration) |

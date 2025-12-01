@@ -331,30 +331,64 @@ def create_app() -> FastAPI:
     
     @app.get("/data_providers")
     async def get_data_providers():
-        """Get status of all data providers."""
+        """Get status of all data providers including hybrid architecture info."""
         providers = []
         
         available = data_manager.get_available_providers()
         
+        polygon_tier = os.getenv("POLYGON_TIER", "free")
+        polygon_available = "polygon" in available
+        
+        tier_rate_limits = {
+            "free": 5,
+            "starter": 100,
+            "developer": 1000,
+            "advanced": 10000,
+        }
+        
         provider_info = {
-            "alpaca": {"name": "Alpaca", "rate_limit": 200},
-            "polygon": {"name": "Polygon", "rate_limit": 5},
-            "alpha_vantage": {"name": "AlphaVantage", "rate_limit": 75},
-            "synthetic": {"name": "Synthetic", "rate_limit": None},
-            "crypto": {"name": "Crypto", "rate_limit": 1200},
-            "eodhd": {"name": "EODHD", "rate_limit": 100},
+            "polygon": {
+                "name": "Polygon",
+                "rate_limit": tier_rate_limits.get(polygon_tier, 5),
+                "tier": polygon_tier,
+                "purpose": "market_data",
+                "features": ["tick_data", "ohlcv", "quotes", "extended_hours"] if polygon_tier in ["developer", "advanced"] else ["ohlcv"]
+            },
+            "alpaca": {
+                "name": "Alpaca",
+                "rate_limit": 200,
+                "purpose": "trading_execution",
+                "features": ["orders", "positions", "portfolio", "iex_fallback"]
+            },
+            "alpha_vantage": {"name": "AlphaVantage", "rate_limit": 75, "purpose": "secondary"},
+            "synthetic": {"name": "Synthetic", "rate_limit": None, "purpose": "demo"},
+            "crypto": {"name": "Crypto", "rate_limit": 1200, "purpose": "crypto_data"},
+            "eodhd": {"name": "EODHD", "rate_limit": 100, "purpose": "international"},
         }
         
         for key, info in provider_info.items():
             providers.append({
                 "name": info["name"],
                 "available": key in available,
-                "rate_limit": info.get("rate_limit")
+                "rate_limit": info.get("rate_limit"),
+                "purpose": info.get("purpose", "secondary"),
+                "tier": info.get("tier"),
+                "features": info.get("features", [])
             })
+        
+        hybrid_config = {
+            "market_data_primary": "Polygon" if polygon_available else "Alpaca",
+            "trading_execution": "Alpaca",
+            "streaming_primary": "Polygon" if polygon_available else "Alpaca",
+            "fallback": "Alpaca",
+            "polygon_tier": polygon_tier,
+            "polygon_configured": polygon_available,
+        }
         
         return {
             "providers": providers,
             "active_count": len(available),
+            "hybrid_config": hybrid_config,
             "timestamp": datetime.utcnow().isoformat()
         }
     

@@ -1,7 +1,12 @@
 # QuantraCore Apex Broker Configuration
 # SAFETY: Live trading is DISABLED by default. Paper trading only.
-# Version: 2.0 - Full Trading Capabilities
-# Date: November 2025
+# Version: 2.1 - Hybrid Data Architecture
+# Date: December 2025
+#
+# HYBRID SETUP:
+#   - Trading Execution: Alpaca (paper trading, order management)
+#   - Market Data: Polygon.io (tick data, OHLCV, quotes)
+#   - This separation provides institutional-grade data quality
 
 execution:
   mode: "PAPER"  # RESEARCH | PAPER | LIVE
@@ -14,8 +19,16 @@ accounts:
     mode: "PAPER"
     risk_profile: "active_trader"
 
+# Data Source Configuration
+data_sources:
+  market_data: "POLYGON"    # Primary source for OHLCV, ticks, quotes
+  trading: "ALPACA"         # Primary source for execution
+  streaming: "POLYGON"      # Real-time WebSocket data
+  fallback: "ALPACA"        # Fallback if Polygon unavailable
+
 brokers:
   alpaca:
+    purpose: "TRADING_EXECUTION"  # Used for orders and portfolio management
     paper:
       base_url: "https://paper-api.alpaca.markets"
       api_key_env: "ALPACA_PAPER_API_KEY"
@@ -27,6 +40,18 @@ brokers:
       api_key_env: "ALPACA_LIVE_API_KEY"
       api_secret_env: "ALPACA_LIVE_API_SECRET"
       enabled: false  # Must remain false until institution flips
+
+  polygon:
+    purpose: "MARKET_DATA"  # Used for OHLCV, ticks, quotes, historical data
+    api_key_env: "POLYGON_API_KEY"
+    tier_env: "POLYGON_TIER"
+    enabled: true
+    features:
+      - tick_data
+      - real_time_quotes
+      - nbbo_pricing
+      - extended_hours
+      - 15_year_history
 
 risk:
   # Position limits
