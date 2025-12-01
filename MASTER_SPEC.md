@@ -115,7 +115,7 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 | Machine Learning | scikit-learn (GradientBoosting), joblib |
 | Numerical | NumPy, Pandas |
 | Testing | pytest (1,145+ tests), vitest |
-| Data | Alpaca (200/min), Polygon (5/min), Binance (crypto)
+| Data | Hybrid: Polygon (market data) + Alpaca (trading) + Binance (crypto)
 
 ### 1.8 Performance Optimizations
 
@@ -1423,7 +1423,62 @@ print(f"Bars generated: {len(result.bars)}")
 
 The data layer provides a unified interface for ingesting market data from 15+ providers across multiple asset classes and data types.
 
-### 11.2 Unified Data Manager
+### 11.2 Hybrid Data Architecture
+
+**Configuration Files:**
+- `config/data_sources.yaml` - Data source priority configuration
+- `config/broker.yaml` - Trading and execution settings
+
+The system uses a **hybrid approach** separating trading execution from market data:
+
+| Function | Provider | Purpose | Rate Limit |
+|----------|----------|---------|------------|
+| **Trading Execution** | Alpaca | Orders, positions, portfolio management | 200/min |
+| **Market Data (Primary)** | Polygon.io | OHLCV, tick data, quotes, NBBO | Tier-dependent |
+| **Market Data (Fallback)** | Alpaca IEX | Basic OHLCV if Polygon unavailable | 200/min |
+| **Streaming** | Polygon WebSocket | Real-time tick data | Unlimited |
+| **Crypto Data** | Binance | Alpha Factory crypto signals | 1200/min |
+
+**Why Hybrid?**
+1. **Data Quality**: Polygon provides institutional-grade tick data and NBBO pricing
+2. **Extended Hours**: Better pre-market (4 AM) and after-hours (8 PM) coverage
+3. **Historical Depth**: 15+ years of data for ML training
+4. **Runner Detection**: Tick-level data essential for catching low-float runners
+
+**Polygon Subscription Tiers:**
+
+| Tier | Cost | Rate Limit | Real-Time | Tick Data | Best For |
+|------|------|------------|-----------|-----------|----------|
+| Free | $0 | 5/min | No | No | Testing only |
+| Starter | $99/mo | 100/min | 15-min delay | No | Basic research |
+| **Developer** | **$249/mo** | 1000/min | **Yes** | **Yes** | **Recommended** |
+| Advanced | $500/mo | 10000/min | Yes | Yes | High-frequency |
+
+**Environment Variables:**
+```bash
+POLYGON_API_KEY=           # Polygon.io API key
+POLYGON_TIER=developer     # Subscription tier (free|starter|developer|advanced)
+```
+
+**Fallback Behavior:**
+```
+Market Data Request
+       │
+       ▼
+┌──────────────────┐
+│ Polygon Available?│
+└────────┬─────────┘
+         │
+    Yes ─┼─ No
+         │    │
+         ▼    ▼
+   ┌─────────┐  ┌─────────┐
+   │ Polygon │  │ Alpaca  │
+   │  (tick) │  │  (IEX)  │
+   └─────────┘  └─────────┘
+```
+
+### 11.3 Unified Data Manager
 
 ```python
 from src.quantracore_apex.data_layer.adapters import UnifiedDataManager
@@ -2937,6 +2992,9 @@ The Investor Due Diligence Suite is a comprehensive platform for institutional-g
 | 9.0-A | 2025-12-01 | Added Section 26: Investor Due Diligence Suite specification |
 | 9.0-A | 2025-12-01 | Added AutoTrader (21.11) - automatic swing trade execution on Alpaca paper trading |
 | 9.0-A | 2025-12-01 | Added 3 new trading endpoints: `/trading/account`, `/trading/setups`, `/trading/execute` |
+| 9.0-A | 2025-12-01 | Added Hybrid Data Architecture: Polygon (market data) + Alpaca (trading execution) |
+| 9.0-A | 2025-12-01 | Added Section 11.2: Hybrid Data Architecture with tier-aware Polygon adapter |
+| 9.0-A | 2025-12-01 | Added `config/data_sources.yaml` for data source priority configuration |
 
 ---
 
