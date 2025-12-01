@@ -1653,38 +1653,50 @@ def create_app() -> FastAPI:
     
     @app.get("/predictive/status")
     async def predictive_status():
-        """Get status of the Predictive Layer V2 (ApexCore V2)."""
+        """Get status of the Predictive Layer V3 (ApexCore V3)."""
         try:
             from pathlib import Path
             import json
             
-            model_dir = Path("models/apexcore_v2/big")
-            manifest_path = model_dir / "manifest.json"
-            
-            if manifest_path.exists():
-                with open(manifest_path) as f:
-                    manifest = json.load(f)
+            # Check V3 first, then fall back to V2
+            for version in ["apexcore_v3", "apexcore_v2"]:
+                model_dir = Path(f"models/{version}/big")
+                manifest_path = model_dir / "manifest.json"
                 
-                required_heads = ["quantrascore_head.joblib", "runner_head.joblib", 
-                                  "quality_head.joblib", "avoid_head.joblib", "regime_head.joblib"]
-                all_heads_present = all((model_dir / h).exists() for h in required_heads)
-                
-                if all_heads_present:
-                    return {
-                        "version": manifest.get("version", "2.0.0"),
-                        "status": "MODEL_LOADED",
-                        "enabled": True,
-                        "model_variant": manifest.get("model_size", "big"),
-                        "model_dir": str(model_dir),
-                        "training_samples": manifest.get("training_samples", 0),
-                        "trained_at": manifest.get("trained_at"),
-                        "metrics": manifest.get("metrics", {}),
-                        "runner_threshold": 0.7,
-                        "avoid_threshold": 0.3,
-                        "max_disagreement": 0.2,
-                        "compliance_note": "Predictive layer is ADVISORY ONLY - engine has final authority",
-                        "timestamp": datetime.utcnow().isoformat()
-                    }
+                if manifest_path.exists():
+                    with open(manifest_path) as f:
+                        manifest = json.load(f)
+                    
+                    # V3 has 7 heads including timing and runup
+                    required_heads = ["quantrascore_head.joblib", "runner_head.joblib", 
+                                      "quality_head.joblib", "avoid_head.joblib", "regime_head.joblib"]
+                    optional_heads = ["timing_head.joblib", "runup_head.joblib"]
+                    
+                    all_heads_present = all((model_dir / h).exists() for h in required_heads)
+                    optional_present = sum(1 for h in optional_heads if (model_dir / h).exists())
+                    
+                    if all_heads_present:
+                        return {
+                            "version": manifest.get("version", "3.0.0"),
+                            "status": "MODEL_LOADED",
+                            "model_loaded": True,
+                            "enabled": True,
+                            "model_variant": manifest.get("model_size", "big"),
+                            "model_dir": str(model_dir),
+                            "training_samples": manifest.get("training_samples", 0),
+                            "trained_at": manifest.get("trained_at"),
+                            "metrics": manifest.get("metrics", {}),
+                            "heads": {
+                                "core": 5,
+                                "optional": optional_present,
+                                "total": 5 + optional_present
+                            },
+                            "runner_threshold": 0.7,
+                            "avoid_threshold": 0.3,
+                            "max_disagreement": 0.2,
+                            "compliance_note": "Predictive layer is ADVISORY ONLY - engine has final authority",
+                            "timestamp": datetime.utcnow().isoformat()
+                        }
             
             from src.quantracore_apex.core.integration_predictive import (
                 PredictiveAdvisor,

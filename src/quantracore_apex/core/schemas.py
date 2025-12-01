@@ -161,6 +161,8 @@ class ProtocolResult(BaseModel):
     confidence: float = Field(ge=0, le=1)
     signal_type: Optional[str] = None
     details: Dict[str, Any] = Field(default_factory=dict)
+    
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ApexContext(BaseModel):
