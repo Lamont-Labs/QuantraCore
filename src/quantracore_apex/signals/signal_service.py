@@ -66,6 +66,10 @@ class ApexSignalRecord:
     bars_to_move_estimate: int = 11
     move_direction: int = 0
     
+    expected_runup_pct: float = 0.0
+    runup_confidence: float = 0.0
+    predicted_top_price: float = 0.0
+    
     current_price: float = 0.0
     suggested_entry: float = 0.0
     stop_loss: float = 0.0
@@ -103,6 +107,9 @@ class ApexSignalRecord:
             "timing_confidence": round(self.timing_confidence, 4),
             "bars_to_move_estimate": self.bars_to_move_estimate,
             "move_direction": self.move_direction,
+            "expected_runup_pct": round(self.expected_runup_pct, 4),
+            "runup_confidence": round(self.runup_confidence, 4),
+            "predicted_top_price": round(self.predicted_top_price, 2),
             "current_price": round(self.current_price, 2),
             "suggested_entry": round(self.suggested_entry, 2),
             "stop_loss": round(self.stop_loss, 2),
@@ -423,6 +430,10 @@ class ApexSignalService:
             bars_to_move = prediction.bars_to_move_estimate
             move_dir = prediction.move_direction
             
+            expected_runup_pct = getattr(prediction, 'expected_runup_pct', 0.0)
+            runup_confidence = getattr(prediction, 'runup_confidence', 0.0)
+            predicted_top = data["current_price"] * (1 + expected_runup_pct) if expected_runup_pct > 0 else data["current_price"]
+            
             if qs >= 0.5 and move_dir >= 0:
                 direction = Direction.LONG
             elif qs < 0.5 and move_dir <= 0:
@@ -459,6 +470,9 @@ class ApexSignalService:
                 timing_confidence=timing_conf,
                 bars_to_move_estimate=bars_to_move,
                 move_direction=move_dir,
+                expected_runup_pct=expected_runup_pct,
+                runup_confidence=runup_confidence,
+                predicted_top_price=predicted_top,
                 current_price=data["current_price"],
                 suggested_entry=entry,
                 stop_loss=stop,
