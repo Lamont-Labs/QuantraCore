@@ -4756,6 +4756,86 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    class UnifiedTrainRequest(BaseModel):
+        symbols: Optional[List[str]] = None
+        lookback_days: int = 365
+        model_size: str = "big"
+    
+    @app.post("/apexlab/train-unified")
+    async def start_unified_training(request: UnifiedTrainRequest, background_tasks: BackgroundTasks):
+        """
+        Start multi-source training using both Alpaca and Polygon data.
+        
+        Distributes symbols across available providers for faster training.
+        Uses real market data with actual outcome labels.
+        """
+        if _training_status["is_training"]:
+            raise HTTPException(status_code=409, detail="Training already in progress")
+        
+        async def run_unified():
+            from src.quantracore_apex.apexlab.unified_trainer import UnifiedTrainer, UnifiedTrainingConfig
+            
+            _training_status["is_training"] = True
+            _training_status["progress"] = 0
+            _training_status["logs"] = []
+            _training_status["current_step"] = "Initializing unified trainer"
+            
+            def log(msg: str):
+                _training_status["logs"].append(f"[{datetime.utcnow().strftime('%H:%M:%S')}] {msg}")
+            
+            try:
+                config = UnifiedTrainingConfig(lookback_days=request.lookback_days)
+                if request.symbols:
+                    config.symbols = request.symbols
+                
+                trainer = UnifiedTrainer(config)
+                
+                log(f"[INFO] Starting unified training with {len(config.symbols)} symbols")
+                log(f"[INFO] Lookback: {request.lookback_days} days")
+                
+                sources = trainer._get_available_sources()
+                log(f"[INFO] Available data sources: {sources}")
+                
+                _training_status["current_step"] = "Fetching market data"
+                _training_status["progress"] = 10
+                
+                stats = trainer.fetch_and_process_all()
+                
+                log(f"[INFO] Polygon: {stats['polygon_symbols']} symbols, {stats['polygon_bars']} bars")
+                log(f"[INFO] Alpaca: {stats['alpaca_symbols']} symbols, {stats['alpaca_bars']} bars")
+                log(f"[INFO] Total training samples: {stats['total_samples']}")
+                
+                _training_status["current_step"] = "Training model"
+                _training_status["progress"] = 70
+                
+                manifest = trainer.train_model(request.model_size)
+                
+                log(f"[SUCCESS] Training complete!")
+                log(f"[INFO] Samples: {manifest['training_samples']}")
+                log(f"[INFO] Model saved to models/apexcore_v3/{request.model_size}")
+                
+                _training_status["progress"] = 100
+                _training_status["current_step"] = "Complete"
+                _training_status["last_training"] = datetime.utcnow().isoformat()
+                _training_status["last_result"] = manifest
+                
+            except Exception as e:
+                log(f"[ERROR] Training failed: {e}")
+                import traceback
+                log(f"[DEBUG] {traceback.format_exc()}")
+                _training_status["current_step"] = f"Failed: {e}"
+            finally:
+                _training_status["is_training"] = False
+        
+        background_tasks.add_task(run_unified)
+        
+        return {
+            "status": "started",
+            "message": "Unified multi-source training started in background",
+            "data_sources": ["polygon", "alpaca"],
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
     # =========================================================================
     # PREDICTION ENDPOINTS - Real model inference
     # =========================================================================
