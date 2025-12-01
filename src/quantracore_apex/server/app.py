@@ -5912,7 +5912,7 @@ def create_app() -> FastAPI:
             sms_service.config.min_quantrascore = 0.0
             
             try:
-                record = sms_service.send_signal_alert_sync(test_signal)
+                record = await sms_service.send_signal_alert(test_signal)
                 
                 if record and record.success:
                     return {
@@ -5959,7 +5959,7 @@ def create_app() -> FastAPI:
                     "timestamp": datetime.utcnow().isoformat()
                 }
             
-            record = sms_svc.send_signal_alert_sync(signal.to_dict())
+            record = await sms_svc.send_signal_alert(signal.to_dict())
             
             if record and record.success:
                 return {
