@@ -74,6 +74,9 @@ class ApexCoreV3Prediction:
     move_direction: int
     bars_to_move_estimate: int
     
+    expected_runup_pct: float
+    runup_confidence: float
+    
     confidence: float
     uncertainty_lower: float
     uncertainty_upper: float
@@ -133,6 +136,26 @@ class ApexCoreV3Prediction:
         elif self.timing_bucket == "late":
             return f"Move {direction} may occur in 7-10 bars"
         return "Timing unclear"
+    
+    def calculate_top_price(self, entry_price: float) -> float:
+        """Calculate predicted top price from entry and expected runup."""
+        if self.expected_runup_pct <= 0:
+            return entry_price
+        return entry_price * (1 + self.expected_runup_pct)
+    
+    @property
+    def runup_signal(self) -> str:
+        """Human-readable runup expectation."""
+        if self.expected_runup_pct <= 0:
+            return "No upside expected"
+        elif self.expected_runup_pct < 0.02:
+            return f"Small move: +{self.expected_runup_pct*100:.1f}%"
+        elif self.expected_runup_pct < 0.05:
+            return f"Moderate move: +{self.expected_runup_pct*100:.1f}%"
+        elif self.expected_runup_pct < 0.10:
+            return f"Strong move: +{self.expected_runup_pct*100:.1f}%"
+        else:
+            return f"Explosive move: +{self.expected_runup_pct*100:.1f}%"
 
 
 class ApexCoreV3Model:
@@ -231,6 +254,14 @@ class ApexCoreV3Model:
             random_state=42,
         )
         
+        self.runup_head = GradientBoostingRegressor(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            learning_rate=0.08,
+            subsample=0.8,
+            random_state=42,
+        )
+        
         self.scaler = StandardScaler()
         self.quality_encoder = LabelEncoder()
         self.regime_encoder = LabelEncoder()
@@ -245,6 +276,7 @@ class ApexCoreV3Model:
         
         self._is_fitted = False
         self._timing_head_available = False
+        self._runup_head_available = False
         self._manifest: Optional[ApexCoreV3Manifest] = None
         self._prediction_counter = 0
     
@@ -396,12 +428,20 @@ class ApexCoreV3Model:
         else:
             timing_acc = 0.5
         
+        logger.info("Training Runup head...")
+        y_runup = np.array([max(0.0, float(r.get("max_runup_5d", 0))) for r in rows])
+        self.runup_head.fit(X_train_scaled, y_runup[train_idx], sample_weight=train_weights)
+        runup_pred = self.runup_head.predict(X_val_scaled)
+        runup_rmse = float(np.sqrt(np.mean((runup_pred - y_runup[val_idx]) ** 2)))
+        runup_mae = float(np.mean(np.abs(runup_pred - y_runup[val_idx])))
+        
         if self._enable_uncertainty:
             logger.info("Calibrating uncertainty head...")
             self._uncertainty.fit(qs_pred, y_quantrascore[val_idx])
         
         self._is_fitted = True
         self._timing_head_available = True
+        self._runup_head_available = True
         
         metrics = {
             "quantrascore_rmse": qs_rmse,
@@ -410,6 +450,8 @@ class ApexCoreV3Model:
             "avoid_accuracy": float(avoid_acc),
             "regime_accuracy": float(regime_acc),
             "timing_accuracy": float(timing_acc),
+            "runup_rmse": runup_rmse,
+            "runup_mae": runup_mae,
             "training_samples": len(rows),
             "validation_samples": len(val_idx),
         }
@@ -421,7 +463,7 @@ class ApexCoreV3Model:
             accuracy_modules.append("uncertainty")
         if self._enable_multi_horizon:
             accuracy_modules.append("multi_horizon")
-        accuracy_modules.extend(["protocol_telemetry", "cross_asset", "timing_prediction"])
+        accuracy_modules.extend(["protocol_telemetry", "cross_asset", "timing_prediction", "runup_prediction"])
         
         self._manifest = ApexCoreV3Manifest(
             version=self.version,
@@ -429,7 +471,7 @@ class ApexCoreV3Model:
             trained_at=datetime.utcnow().isoformat(),
             training_samples=len(rows),
             feature_count=X.shape[1],
-            heads=["quantrascore", "runner", "quality", "avoid", "regime", "timing"],
+            heads=["quantrascore", "runner", "quality", "avoid", "regime", "timing", "runup"],
             accuracy_modules=accuracy_modules,
             metrics=metrics,
             feature_names=self.FEATURE_NAMES,
@@ -515,6 +557,19 @@ class ApexCoreV3Model:
             bars_to_move_estimate = 11
             move_direction = 0
         
+        if self._runup_head_available:
+            try:
+                expected_runup_pct = float(self.runup_head.predict(X_scaled)[0])
+                expected_runup_pct = max(0.0, expected_runup_pct)
+                runup_confidence = 0.7 if expected_runup_pct > 0.02 else 0.5
+            except Exception as e:
+                logger.debug(f"Runup prediction failed: {e}")
+                expected_runup_pct = 0.0
+                runup_confidence = 0.0
+        else:
+            expected_runup_pct = 0.0
+            runup_confidence = 0.0
+        
         if self._enable_uncertainty and self._uncertainty.is_fitted:
             uncertainty_est = self._uncertainty.estimate(qs_raw)
             uncertainty_lower = uncertainty_est.lower_bound
@@ -565,6 +620,8 @@ class ApexCoreV3Model:
             timing_confidence=timing_confidence,
             move_direction=move_direction,
             bars_to_move_estimate=bars_to_move_estimate,
+            expected_runup_pct=expected_runup_pct,
+            runup_confidence=runup_confidence,
             confidence=confidence,
             uncertainty_lower=uncertainty_lower,
             uncertainty_upper=uncertainty_upper,
@@ -594,6 +651,7 @@ class ApexCoreV3Model:
         joblib.dump(self.avoid_head, os.path.join(save_dir, "avoid_head.joblib"))
         joblib.dump(self.regime_head, os.path.join(save_dir, "regime_head.joblib"))
         joblib.dump(self.timing_head, os.path.join(save_dir, "timing_head.joblib"))
+        joblib.dump(self.runup_head, os.path.join(save_dir, "runup_head.joblib"))
         joblib.dump(self.scaler, os.path.join(save_dir, "scaler.joblib"))
         joblib.dump(self.quality_encoder, os.path.join(save_dir, "quality_encoder.joblib"))
         joblib.dump(self.regime_encoder, os.path.join(save_dir, "regime_encoder.joblib"))
@@ -645,6 +703,18 @@ class ApexCoreV3Model:
             logger.info("Timing head not found - loading legacy model without timing predictions")
             model.timing_encoder.fit(["immediate", "very_soon", "soon", "late", "none"])
             model._timing_head_available = False
+        
+        runup_head_path = os.path.join(load_dir, "runup_head.joblib")
+        if os.path.exists(runup_head_path):
+            try:
+                model.runup_head = joblib.load(runup_head_path)
+                model._runup_head_available = True
+            except Exception as e:
+                logger.warning(f"Could not load runup head: {e}")
+                model._runup_head_available = False
+        else:
+            logger.info("Runup head not found - loading legacy model without runup predictions")
+            model._runup_head_available = False
         
         try:
             model._calibration.load("apexcore_v3")
