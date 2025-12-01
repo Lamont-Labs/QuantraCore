@@ -43,7 +43,7 @@ class UnifiedTrainingConfig:
         "ENPH", "SEDG", "FSLR", "RUN", "NOVA",
         "RIVN", "LCID", "NIO", "XPEV", "LI",
     ])
-    lookback_days: int = 365
+    lookback_days: int = 730
     window_size: int = 100
     step_size: int = 2
     future_bars: int = 10
@@ -616,7 +616,7 @@ class UnifiedTrainer:
 
 def run_unified_training(
     symbols: Optional[List[str]] = None,
-    lookback_days: int = 365,
+    lookback_days: int = 730,
     model_size: str = "big",
 ) -> Dict[str, Any]:
     """
