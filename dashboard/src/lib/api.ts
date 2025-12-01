@@ -35,6 +35,8 @@ export interface ScanResult {
   protocol_fired_count: number
   window_hash: string
   timestamp: string
+  monster_score?: number
+  monster_runner_fired?: string[]
 }
 
 export interface UniverseResult {
@@ -86,6 +88,8 @@ export interface PortfolioSnapshot {
     avg_price: number
     current_price: number
     unrealized_pnl: number
+    market_value?: number
+    side?: string
   }>
   open_orders: number
   cash: number
@@ -151,9 +155,26 @@ export interface SignalResult {
 export interface PredictiveStatusResponse {
   version: string
   status: string
+  model_loaded: boolean
   enabled: boolean
   model_variant: string
   model_dir: string
+  training_samples?: number
+  trained_at?: string
+  metrics?: {
+    quantrascore_rmse: number
+    runner_accuracy: number
+    quality_accuracy: number
+    avoid_accuracy: number
+    regime_accuracy: number
+    timing_accuracy: number
+    runup_rmse: number
+  }
+  heads?: {
+    core: number
+    optional: number
+    total: number
+  }
   runner_threshold: number
   avoid_threshold: number
   max_disagreement: number
@@ -218,12 +239,191 @@ export interface BatchAdvisoryResponse {
   timestamp: string
 }
 
+export interface BrokerStatusResponse {
+  mode: string
+  adapter: string
+  is_paper: boolean
+  equity: number
+  position_count: number
+  open_order_count: number
+  daily_turnover: number
+  config: {
+    execution_mode: string
+    default_account: string
+    alpaca_paper_configured: boolean
+    alpaca_live_enabled: boolean
+    risk: {
+      max_notional_exposure_usd: number
+      max_positions: number
+      block_short_selling: boolean
+    }
+  }
+  safety_note: string
+  timestamp: string
+}
+
+export interface ComplianceScoreResponse {
+  overall_score: number
+  excellence_level: string
+  timestamp: string
+  metrics: {
+    determinism_iterations: number
+    stress_test_multiplier: number
+    latency_margin_ms: number
+    audit_completeness: number
+    proof_integrity: number
+    omega_directive_adherence: number
+  }
+  standards_met: string[]
+  standards_exceeded: string[]
+  areas_of_excellence: string[]
+  compliance_mode: string
+}
+
+export interface DataProviderStatus {
+  name: string
+  available: boolean
+  rate_limit: number | null
+}
+
+export interface DataProvidersResponse {
+  providers: DataProviderStatus[]
+  active_count: number
+  timestamp: string
+}
+
+export interface TradingSetup {
+  symbol: string
+  quantrascore: number
+  current_price: number
+  entry: number
+  stop: number
+  target: number
+  shares: number
+  position_value: number
+  risk_amount: number
+  reward_amount: number
+  risk_reward: number
+  conviction: string
+  regime: string
+  timing: string
+}
+
+export interface TradingSetupsResponse {
+  setups: TradingSetup[]
+  count: number
+  timestamp: string
+}
+
+export interface RunnerScreenerResponse {
+  detected_runners: Array<{
+    symbol: string
+    runner_probability: number
+    quantrascore: number
+    volume_surge: number
+    price_change_pct: number
+    runner_state: string
+    current_price: number
+    detected_at: string
+  }>
+  scan_count: number
+  detection_count: number
+  last_scan: string
+  timestamp: string
+}
+
+export interface AutoTraderStatusResponse {
+  enabled: boolean
+  mode: string
+  last_scan: string | null
+  last_trade: string | null
+  today_trades: number
+  today_pnl: number
+  active_positions: number
+  pending_orders: number
+  daily_limit_reached: boolean
+  config: {
+    max_daily_trades: number
+    min_quantrascore: number
+    max_position_size: number
+    risk_per_trade: number
+  }
+  recent_trades: Array<{
+    symbol: string
+    side: string
+    quantity: number
+    price: number
+    timestamp: string
+    pnl?: number
+  }>
+  timestamp: string
+}
+
+export interface SignalsListResponse {
+  signals: Array<{
+    symbol: string
+    direction: string
+    strength: string
+    entry_price: number
+    stop_loss: number
+    target: number
+    quantrascore: number
+    conviction: string
+    timing: string
+    predicted_top: number | null
+    generated_at: string
+  }>
+  count: number
+  high_conviction_count: number
+  timestamp: string
+}
+
+export interface ContinuousLearningStatusResponse {
+  state: string
+  running: boolean
+  total_cycles: number
+  total_samples_processed: number
+  cycles_without_improvement: number
+  last_training: string
+  cache_size: number
+  current_cycle: string | null
+  config: {
+    learning_interval_minutes: number
+    min_new_samples_for_training: number
+    max_samples_cache: number
+    feature_drift_threshold: number
+    label_drift_threshold: number
+    performance_drop_threshold: number
+    validation_holdout_ratio: number
+    min_accuracy_improvement: number
+    max_cycles_without_improvement: number
+    warm_start_enabled: boolean
+    multi_pass_epochs: number
+    sliding_window_overlap: number
+    symbols: string[]
+    lookback_days: number
+  }
+}
+
+export interface IncrementalLearningStatusResponse {
+  last_incremental_training: string | null
+  total_incremental_updates: number
+  anchor_buffer_size: number
+  recency_buffer_size: number
+  last_drift_score: number | null
+  warm_start_enabled: boolean
+  model_version: string
+  status: string
+  timestamp: string
+}
+
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${endpoint}`
   const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      'X-API-Key': 'apex-dev-key',
       ...options?.headers,
     },
   })
@@ -297,7 +497,46 @@ export const api = {
     })
   },
 
-  // Backtest endpoints
+  getBrokerStatus(): Promise<BrokerStatusResponse> {
+    return request('/broker/status')
+  },
+
+  getComplianceScore(): Promise<ComplianceScoreResponse> {
+    return request('/compliance/score')
+  },
+
+  getDataProviders(): Promise<DataProvidersResponse> {
+    return request('/data_providers')
+  },
+
+  getTradingSetups(topN: number = 10, minScore: number = 50): Promise<TradingSetupsResponse> {
+    return request(`/trading/setups?top_n=${topN}&min_score=${minScore}`)
+  },
+
+  getRunnerScreener(): Promise<RunnerScreenerResponse> {
+    return request('/screener/runners')
+  },
+
+  getAutoTraderStatus(): Promise<AutoTraderStatusResponse> {
+    return request('/autotrader/status')
+  },
+
+  getSignalsList(): Promise<SignalsListResponse> {
+    return request('/signals/list')
+  },
+
+  getContinuousLearningStatus(): Promise<ContinuousLearningStatusResponse> {
+    return request('/apexlab/continuous/status')
+  },
+
+  getIncrementalLearningStatus(): Promise<IncrementalLearningStatusResponse> {
+    return request('/apexlab/incremental/status')
+  },
+
+  reloadModels(): Promise<{ status: string; message: string; timestamp: string }> {
+    return request('/model/reload', { method: 'POST' })
+  },
+
   runBacktest(params: BacktestRequest): Promise<BacktestResult> {
     return request('/backtest', {
       method: 'POST',
@@ -305,7 +544,6 @@ export const api = {
     })
   },
 
-  // ApexLab endpoints
   getApexLabStatus(): Promise<ApexLabStatusResponse> {
     return request('/apexlab/status')
   },
@@ -317,7 +555,6 @@ export const api = {
     })
   },
 
-  // Logs endpoints
   getSystemLogs(params?: LogsQueryParams): Promise<LogsResponse> {
     const queryParams = new URLSearchParams()
     if (params?.level) queryParams.append('level', params.level)
@@ -333,7 +570,6 @@ export const api = {
   },
 }
 
-// Backtest types
 export interface BacktestRequest {
   symbol: string
   start_date?: string
@@ -360,7 +596,6 @@ export interface BacktestResult {
   timestamp: string
 }
 
-// ApexLab types
 export interface ApexLabStatusResponse {
   version: string
   schema_fields: number
@@ -379,7 +614,6 @@ export interface ApexLabTrainRequest {
   timeframe?: string
 }
 
-// Logs types
 export interface LogEntry {
   timestamp: string
   level: string

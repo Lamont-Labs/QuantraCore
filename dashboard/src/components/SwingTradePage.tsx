@@ -1,19 +1,5 @@
 import { useState, useEffect } from 'react'
-import { api, type ScanResult } from '../lib/api'
-
-interface SwingSetup {
-  symbol: string
-  quantrascore: number
-  regime: string
-  risk_tier: string
-  verdict_action: string
-  monster_score: number
-  runner_prob?: number
-  entry_zone?: string
-  stop_loss?: string
-  target?: string
-  holding_period?: string
-}
+import { type ScanResult } from '../lib/api'
 
 interface DataProviderStatus {
   name: string
@@ -287,9 +273,9 @@ export function SwingTradePage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        {result.monster_score > 0 ? (
+                        {(result.monster_score ?? 0) > 0 ? (
                           <span className="text-amber-400 font-bold">
-                            {(result.monster_score * 100).toFixed(0)}%
+                            {((result.monster_score ?? 0) * 100).toFixed(0)}%
                           </span>
                         ) : (
                           <span className="text-slate-600">-</span>
@@ -349,11 +335,11 @@ export function SwingTradePage() {
                 <div className="text-slate-300">{selectedSetup.suppression_state}</div>
               </div>
 
-              {selectedSetup.monster_score > 0 && (
+              {(selectedSetup.monster_score ?? 0) > 0 && (
                 <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
                   <div className="text-xs text-amber-400 mb-1">MonsterRunner Fuse</div>
                   <div className="text-amber-400 font-bold">
-                    {(selectedSetup.monster_score * 100).toFixed(0)}% probability
+                    {((selectedSetup.monster_score ?? 0) * 100).toFixed(0)}% probability
                   </div>
                   <div className="text-xs text-amber-400/70 mt-1">
                     {selectedSetup.monster_runner_fired?.join(', ') || 'No protocols fired'}

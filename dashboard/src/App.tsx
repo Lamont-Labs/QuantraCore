@@ -9,6 +9,10 @@ import { ApexLabPage } from './components/ApexLabPage'
 import { ModelsPage } from './components/ModelsPage'
 import { LogsPage } from './components/LogsPage'
 import { SwingTradePage } from './components/SwingTradePage'
+import { SystemStatusPanel } from './components/SystemStatusPanel'
+import { PortfolioPanel } from './components/PortfolioPanel'
+import { TradingSetupsPanel } from './components/TradingSetupsPanel'
+import { ModelMetricsPanel } from './components/ModelMetricsPanel'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
 export type NavItem = 'dashboard' | 'swing' | 'research' | 'apexlab' | 'models' | 'logs'
@@ -113,11 +117,32 @@ export default function App() {
           availableModes={Object.keys(MODE_UNIVERSES)}
         />
 
-        <main className="flex-1 overflow-hidden p-6">
+        <main className="flex-1 overflow-auto p-6 bg-gradient-to-b from-[#030508] to-[#050810]">
           {activeNav === 'dashboard' && (
-            <>
+            <div className="space-y-6">
+              <SystemStatusPanel />
+
+              <div className="grid grid-cols-12 gap-6">
+                <div className="col-span-3">
+                  <PortfolioPanel />
+                </div>
+
+                <div className="col-span-6">
+                  <TradingSetupsPanel
+                    onSymbolSelect={(symbol) => {
+                      const result = universeData?.results.find(r => r.symbol === symbol)
+                      if (result) handleSymbolClick(result)
+                    }}
+                  />
+                </div>
+
+                <div className="col-span-3">
+                  <ModelMetricsPanel />
+                </div>
+              </div>
+
               {(isSmallCapMode || isExtremeRiskMode) && (
-                <div className={`mb-4 p-4 rounded-lg border ${
+                <div className={`p-4 rounded-lg border ${
                   isExtremeRiskMode 
                     ? 'bg-red-900/20 border-red-500/50 text-red-200' 
                     : 'bg-amber-900/20 border-amber-500/50 text-amber-200'
@@ -139,8 +164,8 @@ export default function App() {
                 </div>
               )}
 
-              <div className="h-full flex gap-6">
-                <div className="flex-1 flex flex-col min-w-0">
+              <div className="grid grid-cols-12 gap-6">
+                <div className="col-span-8">
                   {error && (
                     <div className="mb-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200">
                       {error}
@@ -156,7 +181,7 @@ export default function App() {
                   />
                 </div>
 
-                <div className="w-80 flex flex-col gap-4">
+                <div className="col-span-4 space-y-4">
                   <DetailPanel
                     symbol={selectedSymbol}
                     isLoading={isScanningSymbol}
@@ -166,7 +191,7 @@ export default function App() {
                   />
                 </div>
               </div>
-            </>
+            </div>
           )}
 
           {activeNav === 'swing' && <SwingTradePage />}
@@ -178,14 +203,17 @@ export default function App() {
 
         <footer className="h-8 bg-[#030508] border-t border-[#0096ff]/20 px-6 flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-4">
-            <span>QUANTRACORE APEX v9.0-A</span>
+            <span className="text-cyan-400 font-semibold">QUANTRACORE APEX v9.0-A</span>
             <span className="text-[#0096ff]/50">|</span>
             <span>LAMONT LABS</span>
           </div>
           <div className="flex items-center gap-4">
-            <span>Research Mode Only</span>
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              All Systems Operational
+            </span>
             <span className="text-[#0096ff]/50">|</span>
-            <span>Desktop Only</span>
+            <span>Research Mode Only</span>
             <span className="text-[#0096ff]/50">|</span>
             <span>Not Financial Advice</span>
           </div>
