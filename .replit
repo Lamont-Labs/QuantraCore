@@ -1,7 +1,7 @@
 modules = ["bash", "python-3.11", "nodejs-20"]
 [agent]
 expertMode = true
-integrations = ["google-docs:1.0.0"]
+integrations = ["google-docs:1.0.0", "twilio:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
@@ -82,6 +82,10 @@ externalPort = 3002
 [[ports]]
 localPort = 36639
 externalPort = 4200
+
+[[ports]]
+localPort = 37349
+externalPort = 5173
 
 [[ports]]
 localPort = 41191

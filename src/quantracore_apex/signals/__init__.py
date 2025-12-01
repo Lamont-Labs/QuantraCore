@@ -10,6 +10,12 @@ from .signal_service import (
     TimingUrgency,
 )
 
+from .sms_service import (
+    SMSAlertService,
+    SMSConfig,
+    get_sms_service,
+)
+
 __all__ = [
     "ApexSignalService",
     "ApexSignalRecord", 
@@ -18,4 +24,7 @@ __all__ = [
     "Direction",
     "ConvictionTier",
     "TimingUrgency",
+    "SMSAlertService",
+    "SMSConfig",
+    "get_sms_service",
 ]

@@ -5778,6 +5778,9 @@ def create_app() -> FastAPI:
                     "GET /signals/live": "Get cached live signals with filters",
                     "POST /signals/scan": "Scan universe for fresh signals",
                     "GET /signals/symbol/{symbol}": "Get signal for specific symbol",
+                    "GET /sms/status": "Get SMS alert service status",
+                    "POST /sms/config": "Update SMS alert configuration",
+                    "POST /sms/test": "Send test SMS alert",
                 },
                 "timestamp": datetime.utcnow().isoformat()
             }
@@ -5785,6 +5788,206 @@ def create_app() -> FastAPI:
             logger.error(f"Error fetching signal service status: {e}")
             return {
                 "status": None,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/sms/status")
+    async def get_sms_status():
+        """
+        Get SMS alert service status.
+        
+        Returns current configuration and alert statistics.
+        """
+        try:
+            from src.quantracore_apex.signals.sms_service import get_sms_service
+            sms_service = get_sms_service()
+            
+            return {
+                "status": sms_service.get_status(),
+                "recent_alerts": sms_service.get_recent_alerts(limit=10),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting SMS status: {e}")
+            return {
+                "status": None,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/sms/config")
+    async def update_sms_config(
+        recipient_phone: Optional[str] = None,
+        enabled: Optional[bool] = None,
+        min_quantrascore: Optional[float] = None,
+        min_runner_probability: Optional[float] = None,
+        max_avoid_probability: Optional[float] = None,
+        min_timing_confidence: Optional[float] = None,
+        only_immediate_timing: Optional[bool] = None,
+        max_alerts_per_hour: Optional[int] = None,
+    ):
+        """
+        Update SMS alert configuration.
+        
+        Configure thresholds for when to receive SMS alerts.
+        """
+        try:
+            from src.quantracore_apex.signals.sms_service import get_sms_service
+            sms_service = get_sms_service()
+            
+            updates = {}
+            if recipient_phone is not None:
+                updates["recipient_phone"] = recipient_phone
+            if enabled is not None:
+                updates["enabled"] = enabled
+            if min_quantrascore is not None:
+                updates["min_quantrascore"] = min_quantrascore
+            if min_runner_probability is not None:
+                updates["min_runner_probability"] = min_runner_probability
+            if max_avoid_probability is not None:
+                updates["max_avoid_probability"] = max_avoid_probability
+            if min_timing_confidence is not None:
+                updates["min_timing_confidence"] = min_timing_confidence
+            if only_immediate_timing is not None:
+                updates["only_immediate_timing"] = only_immediate_timing
+            if max_alerts_per_hour is not None:
+                updates["max_alerts_per_hour"] = max_alerts_per_hour
+            
+            if updates:
+                new_config = sms_service.update_config(**updates)
+                return {
+                    "success": True,
+                    "config": new_config,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "No configuration updates provided",
+                    "current_config": sms_service.config.to_dict(),
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+        except Exception as e:
+            logger.error(f"Error updating SMS config: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/sms/test")
+    async def send_test_sms():
+        """
+        Send a test SMS alert.
+        
+        Verifies Twilio integration is working correctly.
+        """
+        try:
+            from src.quantracore_apex.signals.sms_service import get_sms_service
+            sms_service = get_sms_service()
+            
+            if not sms_service.config.recipient_phone:
+                return {
+                    "success": False,
+                    "error": "No recipient phone configured. Set it via POST /sms/config",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            test_signal = {
+                "symbol": "TEST",
+                "quantrascore_calibrated": 0.85,
+                "runner_probability": 0.75,
+                "avoid_probability": 0.1,
+                "timing_confidence": 0.8,
+                "timing_bucket": "immediate",
+                "conviction_tier": "high",
+                "direction": "long",
+                "current_price": 100.00,
+                "predicted_top_price": 108.00,
+                "expected_runup_pct": 0.08,
+                "stop_loss": 95.00,
+                "target_level_1": 110.00,
+                "target_level_2": 115.00,
+                "target_level_3": 125.00,
+            }
+            
+            old_min_qs = sms_service.config.min_quantrascore
+            sms_service.config.min_quantrascore = 0.0
+            
+            try:
+                record = sms_service.send_signal_alert_sync(test_signal)
+                
+                if record and record.success:
+                    return {
+                        "success": True,
+                        "message": "Test SMS sent successfully",
+                        "twilio_sid": record.twilio_sid,
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": record.error if record else "Unknown error",
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+            finally:
+                sms_service.config.min_quantrascore = old_min_qs
+                
+        except Exception as e:
+            logger.error(f"Error sending test SMS: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/sms/alert")
+    async def trigger_sms_for_signal(symbol: str):
+        """
+        Manually trigger SMS alert for a specific symbol.
+        
+        Generates signal and sends SMS if it passes thresholds.
+        """
+        try:
+            from src.quantracore_apex.signals.sms_service import get_sms_service
+            signal_svc = get_signal_service()
+            sms_svc = get_sms_service()
+            
+            signal = signal_svc.generate_signal(symbol)
+            
+            if not signal:
+                return {
+                    "success": False,
+                    "error": f"Could not generate signal for {symbol}",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            record = sms_svc.send_signal_alert_sync(signal.to_dict())
+            
+            if record and record.success:
+                return {
+                    "success": True,
+                    "symbol": symbol,
+                    "signal_sent": True,
+                    "twilio_sid": record.twilio_sid,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            elif record:
+                return {
+                    "success": False,
+                    "symbol": symbol,
+                    "error": record.error or "Signal didn't pass thresholds",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                return {
+                    "success": False,
+                    "symbol": symbol,
+                    "message": "Signal didn't pass SMS alert thresholds",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+                
+        except Exception as e:
+            logger.error(f"Error triggering SMS for {symbol}: {e}")
+            return {
+                "success": False,
                 "error": str(e),
                 "timestamp": datetime.utcnow().isoformat()
             }

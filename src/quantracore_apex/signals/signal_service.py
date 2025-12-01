@@ -430,8 +430,10 @@ class ApexSignalService:
             bars_to_move = prediction.bars_to_move_estimate
             move_dir = prediction.move_direction
             
-            expected_runup_pct = getattr(prediction, 'expected_runup_pct', 0.0)
-            runup_confidence = getattr(prediction, 'runup_confidence', 0.0)
+            expected_runup_pct = getattr(prediction, 'expected_runup_pct', 0.0) or 0.0
+            runup_confidence = getattr(prediction, 'runup_confidence', 0.0) or 0.0
+            expected_runup_pct = float(expected_runup_pct) if expected_runup_pct else 0.0
+            runup_confidence = float(runup_confidence) if runup_confidence else 0.0
             predicted_top = data["current_price"] * (1 + expected_runup_pct) if expected_runup_pct > 0 else data["current_price"]
             
             if qs >= 0.5 and move_dir >= 0:
