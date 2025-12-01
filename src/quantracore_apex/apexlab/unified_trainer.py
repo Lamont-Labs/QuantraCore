@@ -489,30 +489,32 @@ class UnifiedTrainer:
         logger.info(f"Available sources: {sources}")
         
         end_date = datetime.now() - timedelta(minutes=20)
-        start_date = end_date - timedelta(days=self.config.lookback_days)
+        
+        polygon_start = end_date - timedelta(days=730)
+        alpaca_start = end_date - timedelta(days=1825)
         
         symbols = self.config.symbols
         
         if len(sources) == 2:
             mid = len(symbols) // 2
             assignments = [
-                (s, "polygon") for s in symbols[:mid]
+                (s, "polygon", polygon_start) for s in symbols[:mid]
             ] + [
-                (s, "alpaca") for s in symbols[mid:]
+                (s, "alpaca", alpaca_start) for s in symbols[mid:]
             ]
         elif "polygon" in sources:
-            assignments = [(s, "polygon") for s in symbols]
+            assignments = [(s, "polygon", polygon_start) for s in symbols]
         else:
-            assignments = [(s, "alpaca") for s in symbols]
+            assignments = [(s, "alpaca", alpaca_start) for s in symbols]
         
-        logger.info(f"Fetching {len(symbols)} symbols using {len(sources)} source(s)...")
+        logger.info(f"Fetching {len(symbols)} symbols: Polygon=2yr, Alpaca=5yr...")
         
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             futures = {
                 executor.submit(
-                    self._fetch_symbol, sym, src, start_date, end_date
+                    self._fetch_symbol, sym, src, start, end_date
                 ): (sym, src)
-                for sym, src in assignments
+                for sym, src, start in assignments
             }
             
             for i, future in enumerate(as_completed(futures)):
