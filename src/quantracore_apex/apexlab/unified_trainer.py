@@ -287,8 +287,34 @@ class WindowGenerator:
 class OutcomeLabelGenerator:
     """Generates labels from actual price outcomes."""
     
-    def __init__(self, runner_threshold: float = 0.05):
+    TIMING_BUCKETS = {
+        "immediate": (1, 1),
+        "very_soon": (2, 3),
+        "soon": (4, 6),
+        "late": (7, 10),
+        "none": (11, 999),
+    }
+    
+    def __init__(self, runner_threshold: float = 0.05, move_threshold: float = 0.03):
         self.runner_threshold = runner_threshold
+        self.move_threshold = move_threshold
+    
+    def _compute_bars_to_move(self, returns: np.ndarray) -> tuple:
+        """Find first bar where price breaches move threshold."""
+        for i, ret in enumerate(returns):
+            if ret >= self.move_threshold:
+                bars = i + 1
+                return bars, 1, self._bars_to_bucket(bars)
+            elif ret <= -self.move_threshold:
+                bars = i + 1
+                return bars, -1, self._bars_to_bucket(bars)
+        return len(returns) + 1, 0, "none"
+    
+    def _bars_to_bucket(self, bars: int) -> str:
+        for bucket, (low, high) in self.TIMING_BUCKETS.items():
+            if low <= bars <= high:
+                return bucket
+        return "none"
     
     def generate(
         self,
@@ -305,6 +331,8 @@ class OutcomeLabelGenerator:
         max_return = np.max(returns)
         min_return = np.min(returns)
         max_drawdown = -min_return if min_return < 0 else 0
+        
+        bars_to_move, move_direction, timing_bucket = self._compute_bars_to_move(returns)
         
         if final_return > 0.02:
             regime_label = "trending_up"
@@ -345,6 +373,9 @@ class OutcomeLabelGenerator:
             "ret_5d": float(returns[4]) if len(returns) > 4 else 0.0,
             "max_runup_5d": float(np.max(returns[:5])) if len(returns) >= 5 else float(max_return),
             "max_drawdown_5d": float(np.min(returns[:5])) if len(returns) >= 5 else float(min_return),
+            "bars_to_move": bars_to_move,
+            "move_direction": move_direction,
+            "timing_bucket": timing_bucket,
         }
     
     def _default(self) -> Dict[str, Any]:
@@ -356,6 +387,9 @@ class OutcomeLabelGenerator:
             "regime_label": "range_bound",
             "ret_1d": 0.0, "ret_3d": 0.0, "ret_5d": 0.0,
             "max_runup_5d": 0.0, "max_drawdown_5d": 0.0,
+            "bars_to_move": 11,
+            "move_direction": 0,
+            "timing_bucket": "none",
         }
 
 
@@ -461,6 +495,9 @@ class UnifiedTrainer:
                     "ret_5d": labels["ret_5d"],
                     "max_runup_5d": labels["max_runup_5d"],
                     "max_drawdown_5d": labels["max_drawdown_5d"],
+                    "bars_to_move": labels.get("bars_to_move", 11),
+                    "move_direction": labels.get("move_direction", 0),
+                    "timing_bucket": labels.get("timing_bucket", "none"),
                     "engine_score": apex_result.quantrascore,
                     "engine_regime": apex_result.regime.value,
                     "vix_level": 20.0,

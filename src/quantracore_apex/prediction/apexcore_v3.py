@@ -69,6 +69,11 @@ class ApexCoreV3Prediction:
     avoid_trade_probability: float
     regime_pred: str
     
+    timing_bucket: str
+    timing_confidence: float
+    move_direction: int
+    bars_to_move_estimate: int
+    
     confidence: float
     uncertainty_lower: float
     uncertainty_upper: float
@@ -112,6 +117,22 @@ class ApexCoreV3Prediction:
             return "weak"
         else:
             return "neutral"
+    
+    @property
+    def timing_signal(self) -> str:
+        """Human-readable timing signal."""
+        if self.timing_bucket == "none":
+            return "No significant move expected"
+        direction = "up" if self.move_direction == 1 else "down"
+        if self.timing_bucket == "immediate":
+            return f"Move {direction} starting NOW (1 bar)"
+        elif self.timing_bucket == "very_soon":
+            return f"Move {direction} expected in 2-3 bars"
+        elif self.timing_bucket == "soon":
+            return f"Move {direction} expected in 4-6 bars"
+        elif self.timing_bucket == "late":
+            return f"Move {direction} may occur in 7-10 bars"
+        return "Timing unclear"
 
 
 class ApexCoreV3Model:
@@ -203,9 +224,17 @@ class ApexCoreV3Model:
             random_state=42,
         )
         
+        self.timing_head = GradientBoostingClassifier(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            learning_rate=0.08,
+            random_state=42,
+        )
+        
         self.scaler = StandardScaler()
         self.quality_encoder = LabelEncoder()
         self.regime_encoder = LabelEncoder()
+        self.timing_encoder = LabelEncoder()
         
         self._telemetry = get_protocol_telemetry()
         self._calibration = get_calibration_layer()
@@ -215,6 +244,7 @@ class ApexCoreV3Model:
         self._feature_store = get_feature_store()
         
         self._is_fitted = False
+        self._timing_head_available = False
         self._manifest: Optional[ApexCoreV3Manifest] = None
         self._prediction_counter = 0
     
@@ -297,12 +327,16 @@ class ApexCoreV3Model:
         y_quality = np.array([r.get("future_quality_tier", "C") for r in rows])
         y_avoid = np.array([r.get("avoid_trade", 0) for r in rows])
         y_regime = np.array([r.get("regime_label", "chop") for r in rows])
+        y_timing = np.array([r.get("timing_bucket", "none") for r in rows])
+        self._move_directions = np.array([r.get("move_direction", 0) for r in rows])
         
         self.quality_encoder.fit(y_quality)
         self.regime_encoder.fit(y_regime)
+        self.timing_encoder.fit(["immediate", "very_soon", "soon", "late", "none"])
         
         y_quality_encoded = self.quality_encoder.transform(y_quality)
         y_regime_encoded = self.regime_encoder.transform(y_regime)
+        y_timing_encoded = self.timing_encoder.transform(y_timing)
         
         n_val = int(len(rows) * validation_split)
         indices = np.random.RandomState(42).permutation(len(rows))
@@ -355,11 +389,19 @@ class ApexCoreV3Model:
         else:
             regime_acc = 0.5
         
+        logger.info("Training Timing head...")
+        if len(np.unique(y_timing_encoded[train_idx])) > 1:
+            self.timing_head.fit(X_train_scaled, y_timing_encoded[train_idx], sample_weight=train_weights)
+            timing_acc = self.timing_head.score(X_val_scaled, y_timing_encoded[val_idx])
+        else:
+            timing_acc = 0.5
+        
         if self._enable_uncertainty:
             logger.info("Calibrating uncertainty head...")
             self._uncertainty.fit(qs_pred, y_quantrascore[val_idx])
         
         self._is_fitted = True
+        self._timing_head_available = True
         
         metrics = {
             "quantrascore_rmse": qs_rmse,
@@ -367,6 +409,7 @@ class ApexCoreV3Model:
             "quality_accuracy": float(quality_acc),
             "avoid_accuracy": float(avoid_acc),
             "regime_accuracy": float(regime_acc),
+            "timing_accuracy": float(timing_acc),
             "training_samples": len(rows),
             "validation_samples": len(val_idx),
         }
@@ -378,7 +421,7 @@ class ApexCoreV3Model:
             accuracy_modules.append("uncertainty")
         if self._enable_multi_horizon:
             accuracy_modules.append("multi_horizon")
-        accuracy_modules.extend(["protocol_telemetry", "cross_asset"])
+        accuracy_modules.extend(["protocol_telemetry", "cross_asset", "timing_prediction"])
         
         self._manifest = ApexCoreV3Manifest(
             version=self.version,
@@ -386,7 +429,7 @@ class ApexCoreV3Model:
             trained_at=datetime.utcnow().isoformat(),
             training_samples=len(rows),
             feature_count=X.shape[1],
-            heads=["quantrascore", "runner", "quality", "avoid", "regime"],
+            heads=["quantrascore", "runner", "quality", "avoid", "regime", "timing"],
             accuracy_modules=accuracy_modules,
             metrics=metrics,
             feature_names=self.FEATURE_NAMES,
@@ -443,6 +486,35 @@ class ApexCoreV3Model:
         except:
             regime_pred = "chop"
         
+        if self._timing_head_available:
+            try:
+                timing_pred_encoded = self.timing_head.predict(X_scaled)[0]
+                timing_bucket = self.timing_encoder.inverse_transform([timing_pred_encoded])[0]
+                timing_proba = self.timing_head.predict_proba(X_scaled)[0]
+                timing_confidence = float(np.max(timing_proba))
+                
+                bucket_to_bars = {"immediate": 1, "very_soon": 2, "soon": 5, "late": 8, "none": 11}
+                bars_to_move_estimate = bucket_to_bars.get(timing_bucket, 11)
+                
+                move_direction = 0
+                if timing_bucket != "none":
+                    move_direction = 1 if runner_calibrated > 0.5 else -1
+                
+                if timing_confidence < 0.35:
+                    timing_bucket = "none"
+                    move_direction = 0
+            except Exception as e:
+                logger.debug(f"Timing prediction failed: {e}")
+                timing_bucket = "none"
+                timing_confidence = 0.5
+                bars_to_move_estimate = 11
+                move_direction = 0
+        else:
+            timing_bucket = "none"
+            timing_confidence = 0.0
+            bars_to_move_estimate = 11
+            move_direction = 0
+        
         if self._enable_uncertainty and self._uncertainty.is_fitted:
             uncertainty_est = self._uncertainty.estimate(qs_raw)
             uncertainty_lower = uncertainty_est.lower_bound
@@ -489,6 +561,10 @@ class ApexCoreV3Model:
             quality_tier_pred=quality_pred,
             avoid_trade_probability=avoid_proba,
             regime_pred=regime_pred,
+            timing_bucket=timing_bucket,
+            timing_confidence=timing_confidence,
+            move_direction=move_direction,
+            bars_to_move_estimate=bars_to_move_estimate,
             confidence=confidence,
             uncertainty_lower=uncertainty_lower,
             uncertainty_upper=uncertainty_upper,
@@ -517,9 +593,11 @@ class ApexCoreV3Model:
         joblib.dump(self.quality_head, os.path.join(save_dir, "quality_head.joblib"))
         joblib.dump(self.avoid_head, os.path.join(save_dir, "avoid_head.joblib"))
         joblib.dump(self.regime_head, os.path.join(save_dir, "regime_head.joblib"))
+        joblib.dump(self.timing_head, os.path.join(save_dir, "timing_head.joblib"))
         joblib.dump(self.scaler, os.path.join(save_dir, "scaler.joblib"))
         joblib.dump(self.quality_encoder, os.path.join(save_dir, "quality_encoder.joblib"))
         joblib.dump(self.regime_encoder, os.path.join(save_dir, "regime_encoder.joblib"))
+        joblib.dump(self.timing_encoder, os.path.join(save_dir, "timing_encoder.joblib"))
         
         if self._calibration.is_fitted:
             self._calibration.save("apexcore_v3")
@@ -551,6 +629,22 @@ class ApexCoreV3Model:
         model.scaler = joblib.load(os.path.join(load_dir, "scaler.joblib"))
         model.quality_encoder = joblib.load(os.path.join(load_dir, "quality_encoder.joblib"))
         model.regime_encoder = joblib.load(os.path.join(load_dir, "regime_encoder.joblib"))
+        
+        timing_head_path = os.path.join(load_dir, "timing_head.joblib")
+        timing_encoder_path = os.path.join(load_dir, "timing_encoder.joblib")
+        if os.path.exists(timing_head_path) and os.path.exists(timing_encoder_path):
+            try:
+                model.timing_head = joblib.load(timing_head_path)
+                model.timing_encoder = joblib.load(timing_encoder_path)
+                model._timing_head_available = True
+            except Exception as e:
+                logger.warning(f"Could not load timing head: {e}")
+                model.timing_encoder.fit(["immediate", "very_soon", "soon", "late", "none"])
+                model._timing_head_available = False
+        else:
+            logger.info("Timing head not found - loading legacy model without timing predictions")
+            model.timing_encoder.fit(["immediate", "very_soon", "soon", "late", "none"])
+            model._timing_head_available = False
         
         try:
             model._calibration.load("apexcore_v3")

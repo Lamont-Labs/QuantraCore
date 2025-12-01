@@ -85,8 +85,48 @@ class WindowGenerator:
 class OutcomeLabelGenerator:
     """Generates training labels from actual future price movements."""
     
-    def __init__(self, runner_threshold: float = 0.05):
+    TIMING_BUCKETS = {
+        "immediate": (1, 1),
+        "very_soon": (2, 3),
+        "soon": (4, 6),
+        "late": (7, 10),
+        "none": (11, 999),
+    }
+    
+    def __init__(self, runner_threshold: float = 0.05, move_threshold: float = 0.03):
         self.runner_threshold = runner_threshold
+        self.move_threshold = move_threshold
+    
+    def _compute_bars_to_move(self, returns: np.ndarray) -> tuple:
+        """
+        Find the first bar where price breaches the move threshold.
+        
+        Returns:
+            (bars_to_move, move_direction, timing_bucket)
+            - bars_to_move: int, bars until move (len+1 if no move)
+            - move_direction: 1=up, -1=down, 0=none
+            - timing_bucket: str category
+        """
+        for i, ret in enumerate(returns):
+            if ret >= self.move_threshold:
+                bars = i + 1
+                direction = 1
+                bucket = self._bars_to_bucket(bars)
+                return bars, direction, bucket
+            elif ret <= -self.move_threshold:
+                bars = i + 1
+                direction = -1
+                bucket = self._bars_to_bucket(bars)
+                return bars, direction, bucket
+        
+        return len(returns) + 1, 0, "none"
+    
+    def _bars_to_bucket(self, bars: int) -> str:
+        """Convert bars count to timing bucket."""
+        for bucket, (low, high) in self.TIMING_BUCKETS.items():
+            if low <= bars <= high:
+                return bucket
+        return "none"
     
     def generate_labels(
         self,
@@ -98,6 +138,11 @@ class OutcomeLabelGenerator:
         
         This creates REAL labels based on actual price movements,
         not synthetic or engine-predicted values.
+        
+        Includes timing prediction labels:
+        - bars_to_move: How many bars until significant move starts
+        - move_direction: Direction of the move (1=up, -1=down, 0=none)
+        - timing_bucket: Category (immediate/very_soon/soon/late/none)
         """
         if len(future_closes) == 0:
             return self._default_labels()
@@ -108,6 +153,8 @@ class OutcomeLabelGenerator:
         max_return = np.max(returns)
         min_return = np.min(returns)
         max_drawdown = -min_return if min_return < 0 else 0
+        
+        bars_to_move, move_direction, timing_bucket = self._compute_bars_to_move(returns)
         
         if final_return > 0.02:
             regime_label = "trending_up"
@@ -156,6 +203,9 @@ class OutcomeLabelGenerator:
             "ret_5d": float(returns[4]) if len(returns) > 4 else 0.0,
             "max_runup_5d": float(np.max(returns[:5])) if len(returns) >= 5 else float(max_return),
             "max_drawdown_5d": float(np.min(returns[:5])) if len(returns) >= 5 else float(min_return),
+            "bars_to_move": bars_to_move,
+            "move_direction": move_direction,
+            "timing_bucket": timing_bucket,
         }
     
     def _default_labels(self) -> Dict[str, Any]:
@@ -173,6 +223,9 @@ class OutcomeLabelGenerator:
             "ret_5d": 0.0,
             "max_runup_5d": 0.0,
             "max_drawdown_5d": 0.0,
+            "bars_to_move": 11,
+            "move_direction": 0,
+            "timing_bucket": "none",
         }
 
 
@@ -280,6 +333,9 @@ class AlpacaLiveTrainer:
                         "ret_5d": outcome_labels["ret_5d"],
                         "max_runup_5d": outcome_labels["max_runup_5d"],
                         "max_drawdown_5d": outcome_labels["max_drawdown_5d"],
+                        "bars_to_move": outcome_labels.get("bars_to_move", 11),
+                        "move_direction": outcome_labels.get("move_direction", 0),
+                        "timing_bucket": outcome_labels.get("timing_bucket", "none"),
                         "engine_score": apex_result.quantrascore,
                         "engine_regime": apex_result.regime.value,
                         "vix_level": 20.0,
