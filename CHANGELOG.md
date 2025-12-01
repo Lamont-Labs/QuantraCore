@@ -7,9 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [9.0.0-A] - 2025-11-30
+## [9.0.0-A] - 2025-12-01
 
 ### Added
+
+#### ApexDesk Dashboard (December 2025)
+- **9 Real-Time Panels:** Complete institutional trading dashboard
+  - SystemStatusPanel: Real-time system health monitoring
+  - PortfolioPanel: Live Alpaca paper trading portfolio
+  - TradingSetupsPanel: Top trading opportunities by QuantraScore
+  - ModelMetricsPanel: ApexCore V3 model performance (7 prediction heads)
+  - AutoTraderPanel: Autonomous swing trade execution
+  - SignalsAlertsPanel: Live signals and SMS alert status
+  - RunnerScreenerPanel: Low-float penny stock scanner (110 symbols)
+  - ContinuousLearningPanel: ML training orchestrator status
+  - LogsProvenancePanel: System logs and audit trail
+- **Velocity Mode System:** Standard (30s), High Velocity (5s), Turbo (2s) refresh rates
+- **Technology Upgrade:** React 18.2, Vite 7.2, Tailwind CSS 4.0, TypeScript
+- **Extended Market Hours:** Pre-market (4 AM-9:30 AM), Regular (9:30 AM-4 PM), After-hours (4 PM-8 PM ET)
 
 #### Full Trading Capabilities (November 2025)
 - **All Position Types Enabled:** Long, short, margin, intraday, swing, scalping
@@ -45,7 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### System Statistics
 - **Total Files:** 516 source files
 - **Total Lines:** 121,207 lines of code
-- **API Endpoints:** 123 REST endpoints
+- **API Endpoints:** 148 REST endpoints
+- **Dashboard Panels:** 9 real-time panels
 - **Development Stage:** Beta / Production-Ready (Paper Mode)
 
 #### Core System
@@ -59,10 +75,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Teacher labeling via deterministic engine
   - Future outcome calculation with leakage prevention
   - Quality tier assignment (A+/A/B/C/D)
-- ApexCore v2 neural model family
-  - Big variant (5-model ensemble, AUC 0.782)
-  - Mini variant (3-model ensemble, AUC 0.754)
-  - 5 prediction heads (quantra_score, runner_prob, quality_tier, avoid_trade, regime)
+- ApexCore V3 neural model family
+  - 7 prediction heads (quantrascore, runner, quality, avoid, regime, timing, runup)
+  - Training samples: 6,085+ | 29 diverse symbols | 32,397 intraday bars
+  - Accuracy: runner 94.99%, quality 81.68%, avoid 99.34%, regime 85.95%, timing 88.33%
   - Manifest verification with SHA256 hashes
 - PredictiveAdvisor fail-closed ranker
   - Ensemble disagreement detection

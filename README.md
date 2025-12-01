@@ -75,7 +75,7 @@ QuantraCore Apex is a **research and backtesting platform** that:
 - Identifies potential extreme moves via **20 MonsterRunner protocols** (MR01-MR20)
 - Trains local neural models via **ApexLab** offline learning environment (V1 + V2)
 - **ApexLab V2**: 40+ field labeling with runner/monster/safety labels
-- **ApexCore V2**: Multi-head models with 5 output heads (quantra_score, runner_prob, quality_tier, avoid_trade, regime)
+- **ApexCore V3**: Multi-head models with 7 output heads (quantrascore, runner, quality, avoid, regime, timing, runup)
 - **PredictiveAdvisor**: Fail-closed integration with manifest verification
 - Provides deterministic, reproducible analysis with cryptographic hashing
 
@@ -215,7 +215,7 @@ http://localhost:5000
 
 ---
 
-## API Endpoints (123 Total)
+## API Endpoints (148 Total)
 
 ### Core Analysis
 | Endpoint | Method | Description |
@@ -292,7 +292,7 @@ src/quantracore_apex/
 
 tests/              # 1,099 institutional-grade tests
 
-dashboard/          # React 18 + Vite 5 + Tailwind CSS 4 frontend
+dashboard/          # React 18.2 + Vite 7.2 + Tailwind CSS 4.0 frontend (9 panels)
 ```
 
 ---
