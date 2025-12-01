@@ -13,6 +13,11 @@ import { SystemStatusPanel } from './components/SystemStatusPanel'
 import { PortfolioPanel } from './components/PortfolioPanel'
 import { TradingSetupsPanel } from './components/TradingSetupsPanel'
 import { ModelMetricsPanel } from './components/ModelMetricsPanel'
+import { AutoTraderPanel } from './components/AutoTraderPanel'
+import { SignalsAlertsPanel } from './components/SignalsAlertsPanel'
+import { RunnerScreenerPanel } from './components/RunnerScreenerPanel'
+import { ContinuousLearningPanel } from './components/ContinuousLearningPanel'
+import { LogsProvenancePanel } from './components/LogsProvenancePanel'
 import { VelocityProvider, useVelocityMode } from './hooks/useVelocityMode'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
@@ -137,15 +142,15 @@ function AppContent() {
 
         <main className="flex-1 overflow-auto p-6 bg-gradient-to-b from-[#030508] to-[#050810]">
           {activeNav === 'dashboard' && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <SystemStatusPanel />
 
-              <div className="grid grid-cols-12 gap-6">
+              <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-3">
                   <PortfolioPanel />
                 </div>
 
-                <div className="col-span-6">
+                <div className="col-span-5">
                   <TradingSetupsPanel
                     onSymbolSelect={(symbol) => {
                       const result = universeData?.results.find(r => r.symbol === symbol)
@@ -154,8 +159,29 @@ function AppContent() {
                   />
                 </div>
 
-                <div className="col-span-3">
+                <div className="col-span-4">
                   <ModelMetricsPanel />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-4">
+                  <AutoTraderPanel />
+                </div>
+                <div className="col-span-4">
+                  <SignalsAlertsPanel />
+                </div>
+                <div className="col-span-4">
+                  <RunnerScreenerPanel />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-6">
+                  <ContinuousLearningPanel />
+                </div>
+                <div className="col-span-6">
+                  <LogsProvenancePanel />
                 </div>
               </div>
 
@@ -182,7 +208,7 @@ function AppContent() {
                 </div>
               )}
 
-              <div className="grid grid-cols-12 gap-6">
+              <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-8">
                   {error && (
                     <div className="mb-4 p-4 bg-red-900/30 border border-red-500/50 rounded-lg text-red-200">

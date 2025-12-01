@@ -406,14 +406,32 @@ export interface ContinuousLearningStatusResponse {
 }
 
 export interface IncrementalLearningStatusResponse {
-  last_incremental_training: string | null
-  total_incremental_updates: number
-  anchor_buffer_size: number
-  recency_buffer_size: number
-  last_drift_score: number | null
-  warm_start_enabled: boolean
-  model_version: string
   status: string
+  learning_mode: string
+  features: string[]
+  model: {
+    version: string
+    model_size: string
+    is_fitted: boolean
+    decay_halflife_days: number
+    buffer: {
+      anchor_samples: number
+      recency_samples: number
+      total_samples: number
+      rare_patterns: number
+      runner_ratio: number
+    }
+    heads: {
+      quantrascore_trees: number
+      runner_trees: number
+      quality_trees: number
+      avoid_trees: number
+      regime_trees: number
+      timing_trees: number
+      runup_trees: number
+    }
+    manifest: Record<string, unknown> | null
+  }
   timestamp: string
 }
 
@@ -538,7 +556,7 @@ export const api = {
   },
 
   getRunnerScreener(): Promise<RunnerScreenerResponse> {
-    return request('/screener/runners')
+    return request('/screener/alerts')
   },
 
   getAutoTraderStatus(): Promise<AutoTraderStatusResponse> {
@@ -546,7 +564,15 @@ export const api = {
   },
 
   getSignalsList(): Promise<SignalsListResponse> {
-    return request('/signals/list')
+    return request('/signals/live')
+  },
+
+  getSmsStatus(): Promise<{ enabled: boolean; phone_configured: boolean; alerts_sent_today: number; config: { min_quantrascore: number; min_conviction: string; alert_cooldown_minutes: number }; timestamp: string }> {
+    return request('/sms/status')
+  },
+
+  getScreenerStatus(): Promise<{ enabled: boolean; scanning: boolean; symbols_monitored: number; alerts_today: number; config: { min_volume_surge: number; min_price_change: number; max_float_shares: number; scan_interval_seconds: number }; timestamp: string }> {
+    return request('/screener/status')
   },
 
   getContinuousLearningStatus(): Promise<ContinuousLearningStatusResponse> {

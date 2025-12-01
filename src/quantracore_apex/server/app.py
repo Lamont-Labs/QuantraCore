@@ -6396,6 +6396,96 @@ def create_app() -> FastAPI:
     
     from src.quantracore_apex.signals import get_signal_service
     
+    # =========================================================================
+    # AUTOTRADER ENDPOINTS
+    # Autonomous swing trade execution status
+    # =========================================================================
+    
+    @app.get("/autotrader/status")
+    async def get_autotrader_status():
+        """
+        Get AutoTrader status and recent trades.
+        
+        Returns autonomous trading system status including:
+        - Enabled/disabled state
+        - Today's trades and P&L
+        - Active positions and pending orders
+        - Configuration parameters
+        - Recent trade history
+        """
+        try:
+            from src.quantracore_apex.trading.auto_trader import AutoTrader
+            import json
+            from pathlib import Path
+            
+            trader = AutoTrader()
+            account_status = trader.get_account_status()
+            
+            log_dir = Path("investor_logs/auto_trades/")
+            recent_trades = []
+            today = datetime.utcnow().strftime("%Y-%m-%d")
+            
+            if log_dir.exists():
+                today_log = log_dir / f"auto_trades_{today}.json"
+                if today_log.exists():
+                    try:
+                        with open(today_log) as f:
+                            trades_data = json.load(f)
+                            for trade in trades_data.get("trades", [])[-10:]:
+                                recent_trades.append({
+                                    "symbol": trade.get("symbol"),
+                                    "side": trade.get("side", "buy"),
+                                    "quantity": trade.get("shares", 0),
+                                    "price": trade.get("fill_price", 0),
+                                    "timestamp": trade.get("timestamp"),
+                                    "pnl": trade.get("pnl"),
+                                })
+                    except Exception:
+                        pass
+            
+            today_pnl = sum(t.get("pnl", 0) or 0 for t in recent_trades)
+            
+            return {
+                "enabled": True,
+                "mode": "paper",
+                "last_scan": None,
+                "last_trade": recent_trades[-1]["timestamp"] if recent_trades else None,
+                "today_trades": len(recent_trades),
+                "today_pnl": today_pnl,
+                "active_positions": account_status.get("positions_count", 0) if "error" not in account_status else 0,
+                "pending_orders": 0,
+                "daily_limit_reached": len(recent_trades) >= trader.max_positions * 2,
+                "config": {
+                    "max_daily_trades": trader.max_positions * 2,
+                    "min_quantrascore": trader.min_quantrascore,
+                    "max_position_size": 10000,
+                    "risk_per_trade": trader.max_position_pct,
+                },
+                "recent_trades": recent_trades,
+                "account": account_status if "error" not in account_status else None,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting autotrader status: {e}")
+            return {
+                "enabled": False,
+                "mode": "disabled",
+                "error": str(e),
+                "today_trades": 0,
+                "today_pnl": 0,
+                "active_positions": 0,
+                "pending_orders": 0,
+                "daily_limit_reached": False,
+                "config": {
+                    "max_daily_trades": 6,
+                    "min_quantrascore": 60,
+                    "max_position_size": 10000,
+                    "risk_per_trade": 0.10,
+                },
+                "recent_trades": [],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
     @app.get("/signals/live")
     async def get_live_signals(
         top_n: int = 20,
