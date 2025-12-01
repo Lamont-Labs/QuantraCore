@@ -489,13 +489,13 @@ class UnifiedTrainer:
         logger.info(f"Available sources: {sources}")
         
         end_date = datetime.now() - timedelta(minutes=20)
-        alpaca_start = end_date - timedelta(days=90)
+        alpaca_start = end_date - timedelta(days=self.config.lookback_days)
         
         symbols = self.config.symbols
         
         assignments = [(s, "alpaca", alpaca_start) for s in symbols]
         
-        logger.info(f"Fetching {len(symbols)} symbols from Alpaca (15-min bars, 90 days)...")
+        logger.info(f"Fetching {len(symbols)} symbols from Alpaca (15-min bars, {self.config.lookback_days} days)...")
         
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             futures = {
