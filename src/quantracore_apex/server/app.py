@@ -5993,6 +5993,166 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    # =========================================================================
+    # LOW FLOAT RUNNER SCREENER ENDPOINTS
+    # Real-time scanner for penny stock runners
+    # =========================================================================
+    
+    @app.get("/screener/status")
+    async def get_screener_status():
+        """Get low-float screener status."""
+        try:
+            from src.quantracore_apex.signals.low_float_screener import get_screener
+            screener = get_screener()
+            return {
+                "status": screener.get_status(),
+                "available_endpoints": {
+                    "GET /screener/status": "Get screener status",
+                    "POST /screener/scan": "Scan for low-float runners",
+                    "GET /screener/alerts": "Get current alerts",
+                    "POST /screener/config": "Update screener configuration",
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting screener status: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/screener/scan")
+    async def scan_low_float_runners(
+        symbols: Optional[List[str]] = None,
+        include_prediction: bool = True
+    ):
+        """
+        Scan for low-float penny stock runners.
+        
+        Scans the low-float universe (penny, nano, micro caps) for:
+        - Volume surges (3x+ normal volume)
+        - Price momentum (5%+ moves)
+        - Breakout patterns
+        
+        Returns prioritized list of runner candidates.
+        """
+        try:
+            from src.quantracore_apex.signals.low_float_screener import get_screener
+            screener = get_screener()
+            
+            alerts = await screener.scan_universe(symbols, include_prediction)
+            
+            return {
+                "alerts": [a.to_dict() for a in alerts],
+                "count": len(alerts),
+                "scan_info": screener.get_status(),
+                "compliance_note": "Structural analysis only - high risk assets, not trading advice",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error scanning for runners: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/screener/alerts")
+    async def get_screener_alerts(limit: int = 20):
+        """Get current low-float runner alerts."""
+        try:
+            from src.quantracore_apex.signals.low_float_screener import get_screener
+            screener = get_screener()
+            
+            return {
+                "alerts": screener.get_alerts(limit),
+                "count": len(screener.get_alerts(limit)),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting alerts: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/screener/config")
+    async def update_screener_config(
+        min_relative_volume: Optional[float] = None,
+        min_change_percent: Optional[float] = None,
+        max_float_millions: Optional[float] = None,
+        min_price: Optional[float] = None,
+        max_price: Optional[float] = None,
+        alert_cooldown_minutes: Optional[int] = None
+    ):
+        """Update screener configuration."""
+        try:
+            from src.quantracore_apex.signals.low_float_screener import get_screener
+            screener = get_screener()
+            
+            if min_relative_volume is not None:
+                screener.config.min_relative_volume = min_relative_volume
+            if min_change_percent is not None:
+                screener.config.min_change_percent = min_change_percent
+            if max_float_millions is not None:
+                screener.config.max_float_millions = max_float_millions
+            if min_price is not None:
+                screener.config.min_price = min_price
+            if max_price is not None:
+                screener.config.max_price = max_price
+            if alert_cooldown_minutes is not None:
+                screener.config.alert_cooldown_minutes = alert_cooldown_minutes
+            
+            return {
+                "success": True,
+                "config": screener.get_status()["config"],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error updating screener config: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/screener/alert-runner")
+    async def send_runner_alert(symbol: str):
+        """
+        Send SMS alert for a specific low-float runner.
+        
+        Generates signal and sends SMS with runner-specific formatting.
+        """
+        try:
+            from src.quantracore_apex.signals.low_float_screener import get_screener
+            from src.quantracore_apex.signals.sms_service import get_sms_service
+            
+            screener = get_screener()
+            signal_svc = get_signal_service()
+            sms_svc = get_sms_service()
+            
+            signal = signal_svc.generate_signal(symbol)
+            
+            if not signal:
+                return {
+                    "success": False,
+                    "error": f"Could not generate signal for {symbol}",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            old_min_qs = sms_svc.config.min_quantrascore
+            sms_svc.config.min_quantrascore = 0.0
+            
+            try:
+                record = await sms_svc.send_signal_alert(signal.to_dict())
+                
+                if record and record.success:
+                    return {
+                        "success": True,
+                        "symbol": symbol,
+                        "alert_sent": True,
+                        "twilio_sid": record.twilio_sid,
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": record.error if record else "Failed to send alert",
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+            finally:
+                sms_svc.config.min_quantrascore = old_min_qs
+                
+        except Exception as e:
+            logger.error(f"Error sending runner alert for {symbol}: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
     return app
 
 
