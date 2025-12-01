@@ -413,12 +413,45 @@ class ApexSignalService:
         try:
             model = self._get_model()
             
+            from ..core.engine import ApexEngine
+            from ..core.schemas import ApexContext
+            from ..apexlab.features import FeatureExtractor
+            
+            engine = ApexEngine()
+            context = ApexContext(seed=42, compliance_mode=True)
+            apex_result = engine.run(data["window"], context)
+            
+            feature_extractor = FeatureExtractor()
+            features = feature_extractor.extract(data["window"])
+            
+            entropy_state = apex_result.entropy_state.value if hasattr(apex_result.entropy_state, 'value') else str(apex_result.entropy_state)
+            suppression_state = apex_result.suppression_state.value if hasattr(apex_result.suppression_state, 'value') else str(apex_result.suppression_state)
+            regime_type = apex_result.regime.value if hasattr(apex_result.regime, 'value') else str(apex_result.regime)
+            risk_tier = apex_result.risk_tier.value if hasattr(apex_result.risk_tier, 'value') else str(apex_result.risk_tier)
+            
+            protocol_ids = []
+            if hasattr(apex_result, 'protocol_results') and apex_result.protocol_results:
+                protocol_ids = [p.protocol_id for p in apex_result.protocol_results if hasattr(p, 'protocol_id')]
+            
             input_data = {
-                "bars": data["window"].bars,
                 "symbol": symbol,
+                "quantra_score": apex_result.quantrascore,
+                "entropy_band": entropy_state,
+                "suppression_state": suppression_state,
+                "regime_type": regime_type,
+                "volatility_band": "mid",
+                "liquidity_band": "mid",
+                "risk_tier": risk_tier,
+                "protocol_ids": protocol_ids,
+                "ret_1d": 0.0,
+                "ret_3d": 0.0,
+                "ret_5d": 0.0,
+                "max_runup_5d": 0.0,
+                "max_drawdown_5d": 0.0,
+                "features": features.tolist() if hasattr(features, 'tolist') else list(features),
             }
             
-            prediction = model.predict(input_data)
+            prediction = model.predict(input_data, current_price=data["current_price"])
             
             qs = prediction.quantrascore_calibrated
             runner_prob = prediction.runner_probability
