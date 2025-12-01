@@ -6492,6 +6492,201 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    # =========================================================================
+    # TRADE HOLD MANAGER ENDPOINTS
+    # Continuation probability-based hold decisions
+    # =========================================================================
+    
+    @app.get("/positions/continuation")
+    async def get_position_continuation_analysis():
+        """
+        Get continuation probability analysis for all active positions.
+        
+        Returns continuation metrics, hold decisions, and adjusted stops/targets
+        based on real-time momentum and exhaustion analysis.
+        
+        PAPER TRADING ONLY - Research analysis, not trading advice.
+        """
+        try:
+            from src.quantracore_apex.trading.trade_hold_manager import get_hold_manager
+            from src.quantracore_apex.trading.auto_trader import AutoTrader
+            
+            trader = AutoTrader()
+            account = trader.get_account_status()
+            
+            if "error" in account:
+                return {
+                    "error": account["error"],
+                    "positions": [],
+                    "summary": {},
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            positions = account.get("positions", [])
+            if not positions:
+                return {
+                    "positions": [],
+                    "summary": {
+                        "total_positions": 0,
+                        "avg_continuation": 0,
+                        "positions_at_risk": 0,
+                    },
+                    "compliance_note": "Research analysis only - not trading advice",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            hold_manager = get_hold_manager()
+            
+            position_data = []
+            for pos in positions:
+                qty = float(pos.get("qty", 0))
+                market_value = float(pos.get("market_value", 0))
+                current_price = market_value / qty if qty > 0 else 0
+                
+                cost_basis = float(pos.get("cost_basis", market_value))
+                entry_price = cost_basis / qty if qty > 0 else current_price
+                
+                position_data.append({
+                    "symbol": pos.get("symbol"),
+                    "entry_price": entry_price,
+                    "current_price": current_price,
+                    "qty": qty,
+                })
+            
+            results = hold_manager.analyze_all_positions(position_data)
+            
+            position_results = []
+            for symbol, status in results.items():
+                position_results.append(status.to_dict())
+            
+            summary = hold_manager.get_summary()
+            
+            return {
+                "positions": position_results,
+                "summary": summary,
+                "config": {
+                    "strong_hold_threshold": hold_manager.config.strong_hold_threshold,
+                    "normal_hold_threshold": hold_manager.config.normal_hold_threshold,
+                    "reduce_threshold": hold_manager.config.reduce_threshold,
+                    "exit_threshold": hold_manager.config.exit_threshold,
+                },
+                "compliance_note": "PAPER TRADING ONLY - Research analysis, not trading advice",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error analyzing position continuation: {e}")
+            return {
+                "error": str(e),
+                "positions": [],
+                "summary": {},
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/positions/continuation/{symbol}")
+    async def get_symbol_continuation(symbol: str):
+        """
+        Get continuation probability analysis for a specific symbol.
+        
+        Returns detailed continuation metrics and hold decision.
+        """
+        try:
+            from src.quantracore_apex.trading.trade_hold_manager import get_hold_manager
+            from src.quantracore_apex.trading.auto_trader import AutoTrader
+            
+            trader = AutoTrader()
+            account = trader.get_account_status()
+            
+            if "error" in account:
+                return {"error": account["error"]}
+            
+            positions = account.get("positions", [])
+            target_pos = None
+            for pos in positions:
+                if pos.get("symbol") == symbol.upper():
+                    target_pos = pos
+                    break
+            
+            if not target_pos:
+                return {
+                    "error": f"Position {symbol} not found",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            qty = float(target_pos.get("qty", 0))
+            market_value = float(target_pos.get("market_value", 0))
+            current_price = market_value / qty if qty > 0 else 0
+            cost_basis = float(target_pos.get("cost_basis", market_value))
+            entry_price = cost_basis / qty if qty > 0 else current_price
+            
+            hold_manager = get_hold_manager()
+            status = hold_manager.analyze_position(
+                symbol=symbol.upper(),
+                entry_price=entry_price,
+                current_price=current_price,
+                quantity=qty,
+            )
+            
+            return {
+                "analysis": status.to_dict(),
+                "compliance_note": "Research analysis only - not trading advice",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error analyzing {symbol} continuation: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/positions/hold-config")
+    async def update_hold_config(
+        strong_hold_threshold: Optional[float] = None,
+        normal_hold_threshold: Optional[float] = None,
+        reduce_threshold: Optional[float] = None,
+        exit_threshold: Optional[float] = None,
+        trail_atr_multiplier: Optional[float] = None,
+        target_extension_pct: Optional[float] = None,
+    ):
+        """
+        Update trade hold manager configuration.
+        
+        Adjusts thresholds for hold/exit decisions based on continuation probability.
+        """
+        try:
+            from src.quantracore_apex.trading.trade_hold_manager import get_hold_manager
+            
+            hold_manager = get_hold_manager()
+            
+            if strong_hold_threshold is not None:
+                hold_manager.config.strong_hold_threshold = strong_hold_threshold
+            if normal_hold_threshold is not None:
+                hold_manager.config.normal_hold_threshold = normal_hold_threshold
+            if reduce_threshold is not None:
+                hold_manager.config.reduce_threshold = reduce_threshold
+            if exit_threshold is not None:
+                hold_manager.config.exit_threshold = exit_threshold
+            if trail_atr_multiplier is not None:
+                hold_manager.config.trail_atr_multiplier = trail_atr_multiplier
+            if target_extension_pct is not None:
+                hold_manager.config.target_extension_pct = target_extension_pct
+            
+            return {
+                "success": True,
+                "config": {
+                    "strong_hold_threshold": hold_manager.config.strong_hold_threshold,
+                    "normal_hold_threshold": hold_manager.config.normal_hold_threshold,
+                    "reduce_threshold": hold_manager.config.reduce_threshold,
+                    "exit_threshold": hold_manager.config.exit_threshold,
+                    "trail_atr_multiplier": hold_manager.config.trail_atr_multiplier,
+                    "target_extension_pct": hold_manager.config.target_extension_pct,
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error updating hold config: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    # =========================================================================
+    # SIGNALS ENDPOINTS
+    # =========================================================================
+    
     @app.get("/signals/live")
     async def get_live_signals(
         top_n: int = 20,

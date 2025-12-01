@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { api, AutoTraderStatusResponse } from '../lib/api'
+import { api, AutoTraderStatusResponse, ContinuationAnalysisResponse } from '../lib/api'
 import { useVelocityMode } from '../hooks/useVelocityMode'
 
 interface AutoTraderPanelProps {
@@ -8,18 +8,26 @@ interface AutoTraderPanelProps {
 
 export function AutoTraderPanel({ compact = false }: AutoTraderPanelProps) {
   const [status, setStatus] = useState<AutoTraderStatusResponse | null>(null)
+  const [continuation, setContinuation] = useState<ContinuationAnalysisResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const { config } = useVelocityMode()
 
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const data = await api.getAutoTraderStatus()
-        setStatus(data)
+        const statusData = await api.getAutoTraderStatus()
+        setStatus(statusData)
         setError(null)
       } catch (err) {
         console.error('Failed to load autotrader status:', err)
         setError('Failed to load')
+      }
+      
+      try {
+        const contData = await api.getContinuationAnalysis()
+        setContinuation(contData)
+      } catch (err) {
+        console.error('Failed to load continuation data:', err)
       }
     }
 
@@ -175,6 +183,86 @@ export function AutoTraderPanel({ compact = false }: AutoTraderPanelProps) {
               </div>
             )}
           </div>
+
+          {continuation && continuation.positions.length > 0 && (
+            <div className="border-t border-slate-700/50 pt-3 mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs text-slate-400">Position Hold Analysis</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500">Avg Continuation:</span>
+                  <span className={`text-xs font-bold ${
+                    continuation.summary.avg_continuation >= 0.6 ? 'text-green-400' : 
+                    continuation.summary.avg_continuation >= 0.4 ? 'text-yellow-400' : 'text-red-400'
+                  }`}>
+                    {(continuation.summary.avg_continuation * 100).toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {continuation.positions.map((pos) => {
+                  const contProb = pos.continuation.probability
+                  const decision = pos.decision.hold_decision
+                  const pnlColor = pos.unrealized_pnl >= 0 ? 'text-green-400' : 'text-red-400'
+                  const contColor = contProb >= 0.6 ? 'text-green-400' : contProb >= 0.4 ? 'text-yellow-400' : 'text-red-400'
+                  const decisionColor = decision.includes('hold_strong') ? 'bg-green-500/20 text-green-400 border-green-500/50' :
+                                        decision.includes('hold_normal') ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' :
+                                        decision.includes('trail') ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' :
+                                        decision.includes('reduce') ? 'bg-orange-500/20 text-orange-400 border-orange-500/50' :
+                                        'bg-red-500/20 text-red-400 border-red-500/50'
+                  
+                  return (
+                    <div key={pos.symbol} className="bg-slate-800/30 rounded-lg p-2 border border-slate-700/30">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-white">{pos.symbol}</span>
+                          <span className={`text-xs ${pnlColor}`}>
+                            {pos.unrealized_pnl >= 0 ? '+' : ''}{formatCurrency(pos.unrealized_pnl)}
+                          </span>
+                        </div>
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded border ${decisionColor}`}>
+                          {decision.replace('_', ' ').toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 text-xs">
+                        <div>
+                          <span className="text-slate-500">Cont:</span>
+                          <span className={`ml-1 font-medium ${contColor}`}>{(contProb * 100).toFixed(0)}%</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Mom:</span>
+                          <span className={`ml-1 font-medium ${
+                            pos.continuation.momentum_status === 'healthy' ? 'text-green-400' :
+                            pos.continuation.momentum_status === 'weakening' ? 'text-yellow-400' :
+                            pos.continuation.momentum_status === 'diverging' ? 'text-red-400' : 'text-slate-400'
+                          }`}>{pos.continuation.momentum_status}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Exh:</span>
+                          <span className={`ml-1 font-medium ${pos.continuation.exhaustion_level > 0.5 ? 'text-red-400' : 'text-slate-300'}`}>
+                            {(pos.continuation.exhaustion_level * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500">Rev:</span>
+                          <span className={`ml-1 font-medium ${pos.continuation.reversal_probability > 0.5 ? 'text-red-400' : 'text-slate-300'}`}>
+                            {(pos.continuation.reversal_probability * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-1 text-[10px] text-slate-500 truncate">
+                        {pos.decision.suggested_action}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              {continuation.summary.positions_at_risk > 0 && (
+                <div className="mt-2 p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400">
+                  {continuation.summary.positions_at_risk} position(s) showing reversal risk
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="mt-3 pt-3 border-t border-slate-700/50">
             <div className="text-xs text-amber-400/70 text-center">

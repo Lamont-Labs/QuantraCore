@@ -359,6 +359,51 @@ export interface AutoTraderStatusResponse {
   timestamp: string
 }
 
+export interface PositionContinuationData {
+  symbol: string
+  entry_price: number
+  current_price: number
+  unrealized_pnl: number
+  unrealized_pnl_pct: number
+  continuation: {
+    probability: number
+    reversal_probability: number
+    trend_strength: number
+    momentum_status: string
+    exhaustion_level: number
+    confidence: number
+  }
+  decision: {
+    hold_decision: string
+    hold_reason: string
+    suggested_action: string
+    adjusted_stop: number | null
+    adjusted_target: number | null
+    hold_extension_bars: number
+  }
+  last_update: string
+  compliance_note: string
+}
+
+export interface ContinuationAnalysisResponse {
+  positions: PositionContinuationData[]
+  summary: {
+    total_positions: number
+    decisions?: Record<string, number>
+    avg_continuation: number
+    positions_at_risk: number
+  }
+  config?: {
+    strong_hold_threshold: number
+    normal_hold_threshold: number
+    reduce_threshold: number
+    exit_threshold: number
+  }
+  compliance_note: string
+  timestamp: string
+  error?: string
+}
+
 export interface SignalsListResponse {
   signals: Array<{
     symbol: string
@@ -561,6 +606,10 @@ export const api = {
 
   getAutoTraderStatus(): Promise<AutoTraderStatusResponse> {
     return request('/autotrader/status')
+  },
+
+  getContinuationAnalysis(): Promise<ContinuationAnalysisResponse> {
+    return request('/positions/continuation')
   },
 
   getSignalsList(): Promise<SignalsListResponse> {
