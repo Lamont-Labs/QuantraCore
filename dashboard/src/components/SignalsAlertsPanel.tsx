@@ -175,6 +175,12 @@ export function SignalsAlertsPanel({ compact = false }: SignalsAlertsPanelProps)
           </div>
         )}
       </div>
+
+      <div className="mt-3 pt-3 border-t border-slate-700/50">
+        <div className="text-xs text-amber-400/70 text-center">
+          Signals are structural probability analyses for research only - not trading advice
+        </div>
+      </div>
     </div>
   )
 }

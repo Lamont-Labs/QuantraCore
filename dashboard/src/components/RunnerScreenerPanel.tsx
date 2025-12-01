@@ -181,6 +181,12 @@ export function RunnerScreenerPanel({ compact = false }: RunnerScreenerPanelProp
           </div>
         )}
       </div>
+
+      <div className="mt-3 pt-3 border-t border-slate-700/50">
+        <div className="text-xs text-red-400/70 text-center">
+          EXTREME RISK: Low-float penny stocks carry substantial loss potential - Research only, not trading advice
+        </div>
+      </div>
     </div>
   )
 }

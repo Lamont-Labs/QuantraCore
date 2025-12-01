@@ -245,7 +245,7 @@ function AppContent() {
           {activeNav === 'logs' && <LogsPage />}
         </main>
 
-        <footer className="h-8 bg-[#030508] border-t border-[#0096ff]/20 px-6 flex items-center justify-between text-xs text-slate-500">
+        <footer className="h-10 bg-[#030508] border-t border-[#0096ff]/20 px-6 flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-4">
             <span className="text-cyan-400 font-semibold">QUANTRACORE APEX v9.0-A</span>
             <span className="text-[#0096ff]/50">|</span>
@@ -269,9 +269,13 @@ function AppContent() {
               All Systems Operational
             </span>
             <span className="text-[#0096ff]/50">|</span>
-            <span>Research Mode Only</span>
+            <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded text-amber-400 font-semibold">
+              RESEARCH MODE ONLY
+            </span>
             <span className="text-[#0096ff]/50">|</span>
-            <span>Not Financial Advice</span>
+            <span className="text-slate-400">
+              Not Financial Advice - Past Performance Does Not Guarantee Future Results
+            </span>
           </div>
         </footer>
       </div>
