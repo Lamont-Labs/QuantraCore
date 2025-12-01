@@ -23,9 +23,11 @@ export function PortfolioPanel({ compact = false }: PortfolioPanelProps) {
     async function loadData() {
       try {
         const [portfolioData, brokerData] = await Promise.all([
-          api.getPortfolioSnapshot().catch(() => null),
-          api.getBrokerStatus().catch(() => null),
+          api.getPortfolioSnapshot().catch((e) => { console.error('Portfolio fetch error:', e); return null }),
+          api.getBrokerStatus().catch((e) => { console.error('Broker fetch error:', e); return null }),
         ])
+        
+        console.log('PortfolioPanel data:', { portfolioData, brokerData })
         
         if (!mounted) return
         
@@ -101,7 +103,11 @@ export function PortfolioPanel({ compact = false }: PortfolioPanelProps) {
               equityFlash === 'down' ? 'text-red-400' :
               'text-white'
             }`}>
-              ${equity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {isLoading ? (
+                <span className="text-slate-500 animate-pulse">Loading...</span>
+              ) : (
+                `$${equity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              )}
             </div>
             {isHighVelocity && equityChange !== 0 && (
               <div className={`text-xs mt-1 ${equityChange > 0 ? 'text-emerald-400' : 'text-red-400'}`}>

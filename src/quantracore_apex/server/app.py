@@ -620,19 +620,73 @@ def create_app() -> FastAPI:
     
     @app.get("/portfolio/status")
     async def get_portfolio_status():
-        """Get current portfolio status and positions."""
-        snapshot = portfolio.take_snapshot()
-        positions = [p.model_dump() for p in portfolio.get_all_positions()]
-        
-        return {
-            "snapshot": snapshot.model_dump(),
-            "positions": positions,
-            "open_orders": len(oms.get_open_orders()),
-            "cash": portfolio.cash,
-            "total_equity": snapshot.total_equity,
-            "total_pnl": snapshot.total_pnl,
-            "timestamp": datetime.utcnow().isoformat()
-        }
+        """Get current portfolio status and positions from Alpaca."""
+        try:
+            engine = get_broker_engine()
+            broker_status = engine.get_status()
+            broker_positions = engine.router.get_positions()
+            
+            equity = broker_status.get("equity", 0)
+            position_count = len(broker_positions)
+            
+            positions_list = []
+            total_unrealized_pnl = 0.0
+            positions_value = 0.0
+            
+            for pos in broker_positions:
+                pos_dict = pos.to_dict() if hasattr(pos, 'to_dict') else pos
+                positions_list.append({
+                    "symbol": pos_dict.get("symbol", ""),
+                    "quantity": float(pos_dict.get("qty", 0)),
+                    "avg_price": float(pos_dict.get("avg_entry_price", 0)),
+                    "current_price": float(pos_dict.get("current_price", 0)),
+                    "unrealized_pnl": float(pos_dict.get("unrealized_pl", 0)),
+                    "market_value": float(pos_dict.get("market_value", 0)),
+                    "side": pos_dict.get("side", "long"),
+                })
+                total_unrealized_pnl += float(pos_dict.get("unrealized_pl", 0))
+                positions_value += float(pos_dict.get("market_value", 0))
+            
+            cash = equity - positions_value
+            
+            snapshot_data = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "cash": cash,
+                "positions_value": positions_value,
+                "total_equity": equity,
+                "total_pnl": total_unrealized_pnl,
+                "total_pnl_pct": (total_unrealized_pnl / equity * 100) if equity > 0 else 0,
+                "num_positions": position_count,
+                "long_exposure": positions_value,
+                "short_exposure": 0.0,
+                "net_exposure": positions_value,
+                "sector_exposure": {},
+                "compliance_note": "Portfolio snapshot from Alpaca paper trading"
+            }
+            
+            return {
+                "snapshot": snapshot_data,
+                "positions": positions_list,
+                "open_orders": broker_status.get("open_order_count", 0),
+                "cash": cash,
+                "total_equity": equity,
+                "total_pnl": total_unrealized_pnl,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.warning(f"Error fetching Alpaca portfolio, falling back to simulation: {e}")
+            snapshot = portfolio.take_snapshot()
+            positions = [p.model_dump() for p in portfolio.get_all_positions()]
+            
+            return {
+                "snapshot": snapshot.model_dump(),
+                "positions": positions,
+                "open_orders": len(oms.get_open_orders()),
+                "cash": portfolio.cash,
+                "total_equity": snapshot.total_equity,
+                "total_pnl": snapshot.total_pnl,
+                "timestamp": datetime.utcnow().isoformat()
+            }
     
     @app.get("/portfolio/heat_map")
     async def get_heat_map():
