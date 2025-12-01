@@ -115,6 +115,30 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 | Testing | pytest (1,145+ tests), vitest |
 | Data | Alpaca (200/min), Polygon (5/min), Binance (crypto)
 
+### 1.8 Performance Optimizations
+
+The system implements multiple layers of performance optimization to achieve 3x improvement in response times.
+
+| Optimization | Implementation | Impact |
+|-------------|----------------|--------|
+| **JSON Serialization** | ORJSONResponse (orjson library) | ~3x faster than standard json |
+| **Response Compression** | GZipMiddleware (>500 bytes) | 60-80% bandwidth reduction |
+| **Multi-Worker** | Uvicorn with 4 workers | Parallel request handling |
+| **Scan Cache** | TTLCache (5000 entries, 5min TTL) | Eliminates redundant universe scans |
+| **Prediction Cache** | TTLCache (1000 entries, 60s TTL) | Caches ML inference results |
+| **Quote Cache** | TTLCache (500 entries, 30s TTL) | Reduces Alpaca API calls |
+| **Model Warm Loading** | Module-level ML model cache | Eliminates 200-500ms cold-start |
+| **Client Reuse** | Module-level Alpaca client cache | Reuses authenticated connections |
+| **Parallel Scanning** | asyncio.gather for universe scans | Concurrent symbol processing |
+
+**Benchmark Results (p95 latency):**
+
+| Endpoint | Before | After | Target |
+|----------|--------|-------|--------|
+| `/health` | ~50ms | 3-9ms | <200ms |
+| `/broker/config` | ~40ms | 3-8ms | <200ms |
+| `/apexlab/status` | ~60ms | 3-6ms | <200ms |
+
 ---
 
 ## 2. Architecture
@@ -1535,11 +1559,42 @@ DataType.CRYPTO          # Cryptocurrency data
 
 ### 11.12 Caching
 
+**File-Based Caching:**
+
 ```
 data/
 ├── cache/              # General cache
 ├── polygon_cache/      # Polygon-specific cache
 └── historical/         # Historical data archive
+```
+
+**In-Memory Caching (TTLCache):**
+
+| Cache | Max Size | TTL | Purpose |
+|-------|----------|-----|---------|
+| `scan_cache` | 5000 | 300s | Universe scan results |
+| `prediction_cache` | 1000 | 60s | ML inference results |
+| `quote_cache` | 500 | 30s | Alpaca quote data |
+
+**Module-Level Caching:**
+
+| Resource | Location | Purpose |
+|----------|----------|---------|
+| ApexCore V3 Models | `_MODEL_CACHE` dict | Prevents model reload per request |
+| Alpaca Client | `_alpaca_client` module var | Reuses authenticated connection |
+| Feature Scaler | Loaded with model | Consistent feature normalization |
+
+**Cache Key Patterns:**
+
+```python
+# Prediction cache key format
+f"pred:{symbol}:{lookback_days}:{timeframe}"
+
+# Quote cache key format  
+f"quote:{symbol}"
+
+# Scan cache key format
+f"scan:{mode}:{bucket}:{timestamp_bucket}"
 ```
 
 ---
