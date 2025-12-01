@@ -8,7 +8,6 @@ interface TradingSetupsPanelProps {
 
 export function TradingSetupsPanel({ onSymbolSelect }: TradingSetupsPanelProps) {
   const [setups, setSetups] = useState<TradingSetupsResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [selectedSetup, setSelectedSetup] = useState<TradingSetup | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const [newSymbols, setNewSymbols] = useState<Set<string>>(new Set())
@@ -54,8 +53,6 @@ export function TradingSetupsPanel({ onSymbolSelect }: TradingSetupsPanelProps) 
         setLastUpdate(new Date())
       } catch (err) {
         console.warn('TradingSetupsPanel load error:', err)
-      } finally {
-        if (mounted) setIsLoading(false)
       }
     }
     

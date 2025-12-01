@@ -5,7 +5,7 @@ import { useVelocityMode } from '../hooks/useVelocityMode'
 interface ScreenerStatusResponse {
   enabled: boolean
   scanning: boolean
-  last_scan: string | null
+  last_scan?: string | null
   symbols_monitored: number
   alerts_today: number
   config: {

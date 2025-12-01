@@ -5,7 +5,6 @@ import { useVelocityMode } from '../hooks/useVelocityMode'
 export function ModelMetricsPanel() {
   const [predictive, setPredictive] = useState<PredictiveStatusResponse | null>(null)
   const [learning, setLearning] = useState<ContinuousLearningStatusResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const { config } = useVelocityMode()
   const loadDataRef = useRef<(() => Promise<void>) | undefined>(undefined)
@@ -27,8 +26,6 @@ export function ModelMetricsPanel() {
         setLastUpdate(new Date())
       } catch (err) {
         console.warn('ModelMetricsPanel load error:', err)
-      } finally {
-        if (mounted) setIsLoading(false)
       }
     }
     
