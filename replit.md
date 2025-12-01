@@ -32,7 +32,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, uses an insti
 - **Order Types:** MARKET, LIMIT, STOP, STOP_LIMIT.
 - **Entry/Exit Strategies:** Auto-selected entries based on market conditions, comprehensive exits (ATR-based protective stops, trailing stops, profit targets, time-based).
 - **Deterministic Core:** Ensures identical outputs for identical inputs.
-- **Offline ML (ApexCore v3):** On-device neural models with 7 prediction heads (quantrascore, runner, quality, avoid, regime, timing, runup). The timing head predicts market moves across 5 buckets, and the runup head predicts price appreciation (0-100%+). Models are trained on real market data (107,978 samples, 59 symbols, 222,412 15-minute intraday bars) achieving high accuracy for all heads.
+- **Offline ML (ApexCore v3):** On-device neural models with 7 prediction heads (quantrascore, runner, quality, avoid, regime, timing, runup). The timing head predicts market moves across 5 buckets, and the runup head predicts price appreciation (0-100%+). Models are trained on real market data from Alpaca with swing-trade focus. Current model: 6,085 training samples, 29 diverse symbols, 32,397 15-minute intraday bars. Accuracy: runner 94.99%, quality 81.68%, avoid 99.34%, regime 85.95%, timing 88.33%.
 - **Unified Training Pipeline:** Multi-source training (Alpaca, Polygon) to generate labels from future price movements.
 - **Simulation-Based Data Augmentation:** Multiplies training samples using real data variations (entry timing shifts, walk-forward windows, Monte Carlo bootstrapping, rare event oversampling).
 - **Accuracy Optimization System:** 8-module suite for calibration, regime-gating, uncertainty quantification, auto-retraining, and multi-horizon prediction.
@@ -40,7 +40,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, uses an insti
 - **Continuous Learning System:** Autonomous orchestrator with 15-minute scheduling, incremental learning, drift detection, validation gates, multi-pass training, and an extended 251-symbol universe.
 - **Manual Trading Signal Service (ApexSignalService):** Generates actionable signals with priority scoring, timing guidance, ATR-based levels, conviction tiers, predicted top price, and persistence to disk.
 - **SMS Alert Service:** Sends Twilio SMS alerts for trading signals with configurable thresholds, displaying QuantraScore, conviction, predicted top price, entry/stop/target levels, and timing guidance.
-- **Low-Float Runner Screener:** Real-time scanner for penny stocks with volume surge, momentum detection, float limits, ApexCore V3 prediction integration, and SMS alerts. Scans 114 low-float symbols.
+- **Low-Float Runner Screener:** Real-time scanner for penny stocks with volume surge, momentum detection, float limits, ApexCore V3 prediction integration, and SMS alerts. Scans 110 low-float symbols.
 - **MarketSimulator:** Provides 8 chaos scenarios for stress testing.
 - **Protocol System:** Includes 80 Tier protocols for analysis, 25 Learning protocols, 20 MonsterRunner protocols, and 20 Omega Directives.
 - **Investor Trade Logging:** Comprehensive logging of paper trades to `investor_logs/`.
@@ -55,7 +55,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, uses an insti
 - **Dual-Phase Incremental Learning (IncrementalTrainer):** Efficient knowledge retention system with warm-start capability (builds on previous model weights), dual-buffer architecture (anchor reservoir preserves rare patterns, recency buffer tracks recent samples), time-decay sample weighting (older samples weighted less but preserved), and graceful LightGBM/scikit-learn fallback. API endpoints: POST /apexlab/train-incremental, GET /apexlab/incremental/status.
 
 ### Symbol Universe (251 Total)
-Categorized by market cap (Penny, Nano, Micro, Small, Mid, Large, Mega). 114 low-float symbols (penny + nano + micro) are used for runner scanning.
+Categorized by market cap (Penny, Nano, Micro, Small, Mid, Large, Mega). 110 low-float symbols (penny + nano + micro) are used for runner scanning.
 
 ### System Design Choices
 - **Broker Layer:** Supports `NullAdapter`, `PaperSimAdapter`, and `AlpacaPaperAdapter`.

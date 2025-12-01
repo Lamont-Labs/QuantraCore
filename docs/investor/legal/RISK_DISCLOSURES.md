@@ -50,11 +50,11 @@ The ApexCore machine learning models, while trained on real market data, have in
 
 | Model Head | Accuracy | What This Means |
 |------------|----------|-----------------|
-| Runner Probability | 98.88% | ~1% of runner predictions are incorrect |
-| Quality Score | 93.75% | ~6% of quality assessments may be wrong |
-| Avoid Probability | 99.91% | Very rare false positives for avoid signals |
-| Timing Prediction | 94.4% | ~6% of timing buckets may be incorrect |
-| Regime Detection | 95.25% | ~5% of market regime classifications may be wrong |
+| Runner Probability | 94.99% | ~5% of runner predictions are incorrect |
+| Quality Score | 81.68% | ~18% of quality assessments may be wrong |
+| Avoid Probability | 99.34% | Very rare false positives for avoid signals |
+| Timing Prediction | 88.33% | ~12% of timing buckets may be incorrect |
+| Regime Detection | 85.95% | ~14% of market regime classifications may be wrong |
 
 ### 2.2 Model Drift
 Model performance may degrade over time due to:
@@ -65,8 +65,9 @@ Model performance may degrade over time due to:
 
 ### 2.3 Training Data Limitations
 Models are trained on historical data that may not reflect future conditions:
-- Training period: 2 years of 15-minute intraday bars
-- Training symbols: 59 symbols (may not generalize to all stocks)
+- Training period: 60 days of 15-minute intraday bars (32,397 bars)
+- Training symbols: 29 symbols (may not generalize to all stocks)
+- Training samples: 6,085 labeled samples
 - Training conditions: May not include rare events (flash crashes, pandemics)
 
 ### 2.4 Overfitting Risk
