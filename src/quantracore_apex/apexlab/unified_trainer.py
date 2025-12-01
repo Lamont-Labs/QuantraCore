@@ -30,18 +30,18 @@ logger = logging.getLogger(__name__)
 class UnifiedTrainingConfig:
     """Configuration for multi-source training."""
     symbols: List[str] = field(default_factory=lambda: [
-        "AAPL", "MSFT", "GOOGL", "AMZN", "META",
-        "NVDA", "TSLA", "AMD", "NFLX", "SPY",
-        "QQQ", "IWM", "DIA", "XLF", "XLE",
-        "INTC", "CRM", "ORCL", "ADBE", "PYPL",
-        "V", "MA", "JPM", "BAC", "WFC",
-        "PFE", "JNJ", "UNH", "MRK", "ABBV",
-        "COST", "HD", "LOW", "TGT", "WMT",
-        "KO", "PEP", "MCD", "SBUX", "NKE",
-        "DIS", "CMCSA", "T", "VZ", "TMUS",
-        "CVX", "XOM", "COP", "SLB", "EOG",
-        "LLY", "BMY", "GILD", "AMGN", "REGN",
-        "GS", "MS", "BLK", "SCHW", "C",
+        "UBER", "LYFT", "ABNB", "DASH", "RBLX",
+        "SNAP", "PINS", "TWLO", "DDOG", "NET",
+        "CRWD", "ZS", "PANW", "FTNT", "OKTA",
+        "SHOP", "SQ", "COIN", "HOOD", "SOFI",
+        "PLTR", "SNOW", "MDB", "TEAM", "ZM",
+        "ROKU", "TTD", "UNITY", "U", "BILL",
+        "ARM", "SMCI", "MRVL", "AVGO", "QCOM",
+        "MU", "LRCX", "KLAC", "AMAT", "ASML",
+        "NOW", "WDAY", "HUBS", "VEEV", "CDNS",
+        "SNPS", "ANSS", "PTC", "ADSK", "TYL",
+        "ENPH", "SEDG", "FSLR", "RUN", "NOVA",
+        "RIVN", "LCID", "NIO", "XPEV", "LI",
     ])
     lookback_days: int = 365
     window_size: int = 100
