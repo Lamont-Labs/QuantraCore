@@ -13,6 +13,7 @@ import { SystemStatusPanel } from './components/SystemStatusPanel'
 import { PortfolioPanel } from './components/PortfolioPanel'
 import { TradingSetupsPanel } from './components/TradingSetupsPanel'
 import { ModelMetricsPanel } from './components/ModelMetricsPanel'
+import { VelocityProvider, useVelocityMode } from './hooks/useVelocityMode'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
 export type NavItem = 'dashboard' | 'swing' | 'research' | 'apexlab' | 'models' | 'logs'
@@ -33,7 +34,7 @@ const MODE_UNIVERSES: Record<string, string[]> = {
   ci_test: ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA'],
 }
 
-export default function App() {
+function AppContent() {
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard')
   const [health, setHealth] = useState<HealthResponse | null>(null)
   const [universeData, setUniverseData] = useState<UniverseResult | null>(null)
@@ -42,19 +43,36 @@ export default function App() {
   const [isScanningSymbol, setIsScanningSymbol] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [scanMode, setScanMode] = useState('demo')
+  const { isHighVelocity, isTurbo } = useVelocityMode()
 
   useEffect(() => {
-    loadHealth()
-  }, [])
-
-  async function loadHealth() {
-    try {
-      const data = await api.getHealth()
-      setHealth(data)
-    } catch (err) {
-      console.error('Failed to load health:', err)
+    let mounted = true
+    let retries = 0
+    const maxRetries = 5
+    
+    async function loadHealth() {
+      try {
+        const data = await api.getHealth()
+        if (mounted) setHealth(data)
+      } catch (err) {
+        console.error('Failed to load health:', err)
+        if (mounted && retries < maxRetries) {
+          retries++
+          setTimeout(loadHealth, 1000 * retries)
+        }
+      }
     }
-  }
+    
+    loadHealth()
+    const interval = setInterval(() => {
+      if (mounted) loadHealth()
+    }, 30000)
+    
+    return () => {
+      mounted = false
+      clearInterval(interval)
+    }
+  }, [])
 
   async function handleRunScan() {
     setIsScanning(true)
@@ -208,6 +226,18 @@ export default function App() {
             <span>LAMONT LABS</span>
           </div>
           <div className="flex items-center gap-4">
+            {isTurbo && (
+              <span className="flex items-center gap-1 text-red-400 animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                TURBO MODE
+              </span>
+            )}
+            {isHighVelocity && !isTurbo && (
+              <span className="flex items-center gap-1 text-amber-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                HIGH VELOCITY
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
               All Systems Operational
@@ -220,5 +250,13 @@ export default function App() {
         </footer>
       </div>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <VelocityProvider>
+      <AppContent />
+    </VelocityProvider>
   )
 }

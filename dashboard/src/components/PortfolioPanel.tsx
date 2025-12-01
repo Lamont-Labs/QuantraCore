@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api, type PortfolioSnapshot, type BrokerStatusResponse } from '../lib/api'
+import { useVelocityMode } from '../hooks/useVelocityMode'
 
 interface PortfolioPanelProps {
   compact?: boolean
@@ -8,44 +9,53 @@ interface PortfolioPanelProps {
 export function PortfolioPanel({ compact = false }: PortfolioPanelProps) {
   const [portfolio, setPortfolio] = useState<PortfolioSnapshot | null>(null)
   const [broker, setBroker] = useState<BrokerStatusResponse | null>(null)
+  const [equityFlash, setEquityFlash] = useState<'up' | 'down' | null>(null)
+  const [equityChange, setEquityChange] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
-
-  const loadData = useCallback(async () => {
-    try {
-      const [portfolioData, brokerData] = await Promise.all([
-        api.getPortfolioSnapshot().catch(() => null),
-        api.getBrokerStatus().catch(() => null),
-      ])
-      setPortfolio(portfolioData)
-      setBroker(brokerData)
-      setLastUpdate(new Date())
-    } catch (err) {
-      console.error('Failed to load portfolio:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  const { config, isHighVelocity, isTurbo } = useVelocityMode()
+  const prevEquityRef = useRef<number | null>(null)
 
   useEffect(() => {
+    let mounted = true
+    const refreshInterval = config?.refreshIntervals?.portfolio || 15000
+    
+    async function loadData() {
+      try {
+        const [portfolioData, brokerData] = await Promise.all([
+          api.getPortfolioSnapshot().catch(() => null),
+          api.getBrokerStatus().catch(() => null),
+        ])
+        
+        if (!mounted) return
+        
+        const newEquity = brokerData?.equity ?? portfolioData?.total_equity ?? 0
+        if (prevEquityRef.current !== null && newEquity !== prevEquityRef.current) {
+          const change = newEquity - prevEquityRef.current
+          setEquityChange(change)
+          setEquityFlash(change > 0 ? 'up' : 'down')
+          setTimeout(() => mounted && setEquityFlash(null), 500)
+        }
+        prevEquityRef.current = newEquity
+        
+        if (portfolioData) setPortfolio(portfolioData)
+        if (brokerData) setBroker(brokerData)
+        setLastUpdate(new Date())
+      } catch (err) {
+        console.warn('PortfolioPanel load error:', err)
+      } finally {
+        if (mounted) setIsLoading(false)
+      }
+    }
+    
     loadData()
-    const interval = setInterval(loadData, 15000)
-    return () => clearInterval(interval)
-  }, [loadData])
+    const interval = setInterval(loadData, refreshInterval)
+    return () => {
+      mounted = false
+      clearInterval(interval)
+    }
+  }, [config?.refreshIntervals?.portfolio])
 
-  if (isLoading) {
-    return (
-      <div className="apex-card animate-pulse">
-        <div className="h-6 w-32 bg-slate-700 rounded mb-4" />
-        <div className="h-24 bg-slate-700 rounded-lg mb-4" />
-        <div className="space-y-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-12 bg-slate-700 rounded" />
-          ))}
-        </div>
-      </div>
-    )
-  }
 
   const equity = broker?.equity ?? portfolio?.total_equity ?? 0
   const pnl = portfolio?.total_pnl ?? 0
@@ -53,13 +63,18 @@ export function PortfolioPanel({ compact = false }: PortfolioPanelProps) {
   const isProfitable = pnl >= 0
 
   return (
-    <div className={`apex-card ${compact ? 'p-3' : ''}`}>
+    <div className={`apex-card ${compact ? 'p-3' : ''} ${isTurbo ? 'border-red-500/30' : ''}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           Portfolio
+          {isHighVelocity && (
+            <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded ${isTurbo ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}`}>
+              {config.refreshIntervals.portfolio / 1000}s
+            </span>
+          )}
         </h3>
         <div className="flex items-center gap-2">
           <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
@@ -73,13 +88,26 @@ export function PortfolioPanel({ compact = false }: PortfolioPanelProps) {
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-slate-800/80 to-slate-900/80 rounded-xl p-4 mb-4 border border-slate-700/50">
+      <div className={`bg-gradient-to-r from-slate-800/80 to-slate-900/80 rounded-xl p-4 mb-4 border transition-all duration-300 ${
+        equityFlash === 'up' ? 'border-emerald-500/70 shadow-lg shadow-emerald-500/20' :
+        equityFlash === 'down' ? 'border-red-500/70 shadow-lg shadow-red-500/20' :
+        'border-slate-700/50'
+      }`}>
         <div className="flex items-end justify-between">
           <div>
             <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Total Equity</div>
-            <div className="text-3xl font-bold text-white font-mono">
+            <div className={`text-3xl font-bold font-mono transition-colors duration-300 ${
+              equityFlash === 'up' ? 'text-emerald-400' :
+              equityFlash === 'down' ? 'text-red-400' :
+              'text-white'
+            }`}>
               ${equity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
+            {isHighVelocity && equityChange !== 0 && (
+              <div className={`text-xs mt-1 ${equityChange > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {equityChange > 0 ? '+' : ''}{equityChange.toFixed(2)} last tick
+              </div>
+            )}
           </div>
           <div className={`text-right ${isProfitable ? 'text-emerald-400' : 'text-red-400'}`}>
             <div className="text-lg font-bold font-mono">

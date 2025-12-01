@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api, type TradingSetupsResponse, type TradingSetup } from '../lib/api'
+import { useVelocityMode } from '../hooks/useVelocityMode'
 
 interface TradingSetupsPanelProps {
   onSymbolSelect?: (symbol: string) => void
@@ -10,30 +11,61 @@ export function TradingSetupsPanel({ onSymbolSelect }: TradingSetupsPanelProps) 
   const [isLoading, setIsLoading] = useState(true)
   const [selectedSetup, setSelectedSetup] = useState<TradingSetup | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [newSymbols, setNewSymbols] = useState<Set<string>>(new Set())
+  const { config, isHighVelocity, isTurbo } = useVelocityMode()
+  const prevSetupsRef = useRef<Map<string, number>>(new Map())
+  const selectedSetupRef = useRef<TradingSetup | null>(null)
 
-  const loadData = useCallback(async () => {
-    try {
-      const data = await api.getTradingSetups(10, 50)
-      if (data && data.setups) {
-        setSetups(data)
-        if (data.setups.length > 0 && !selectedSetup) {
-          setSelectedSetup(data.setups[0])
-        }
-      }
-      setLastUpdate(new Date())
-    } catch (err) {
-      console.error('Failed to load trading setups:', err)
-      setSetups({ setups: [], count: 0, timestamp: new Date().toISOString() })
-    } finally {
-      setIsLoading(false)
-    }
+  useEffect(() => {
+    selectedSetupRef.current = selectedSetup
   }, [selectedSetup])
 
   useEffect(() => {
+    let mounted = true
+    const refreshInterval = config?.refreshIntervals?.setups || 15000
+    
+    async function loadData() {
+      try {
+        const data = await api.getTradingSetups(10, 50).catch(() => null)
+        if (!mounted) return
+        
+        if (data && data.setups) {
+          const currentScores = new Map(data.setups.map(s => [s.symbol, s.quantrascore]))
+          const changedSymbols = new Set<string>()
+          
+          data.setups.forEach(s => {
+            const prevScore = prevSetupsRef.current.get(s.symbol)
+            if (prevScore !== undefined && Math.abs(s.quantrascore - prevScore) > 2) {
+              changedSymbols.add(s.symbol)
+            }
+          })
+          
+          if (changedSymbols.size > 0) {
+            setNewSymbols(changedSymbols)
+            setTimeout(() => mounted && setNewSymbols(new Set()), 1000)
+          }
+          
+          prevSetupsRef.current = currentScores
+          setSetups(data)
+          if (data.setups.length > 0 && !selectedSetupRef.current) {
+            setSelectedSetup(data.setups[0])
+          }
+        }
+        setLastUpdate(new Date())
+      } catch (err) {
+        console.warn('TradingSetupsPanel load error:', err)
+      } finally {
+        if (mounted) setIsLoading(false)
+      }
+    }
+    
     loadData()
-    const interval = setInterval(loadData, 60000)
-    return () => clearInterval(interval)
-  }, [loadData])
+    const interval = setInterval(loadData, refreshInterval)
+    return () => {
+      mounted = false
+      clearInterval(interval)
+    }
+  }, [config?.refreshIntervals?.setups])
 
   function handleSetupClick(setup: TradingSetup) {
     setSelectedSetup(setup)
@@ -58,21 +90,9 @@ export function TradingSetupsPanel({ onSymbolSelect }: TradingSetupsPanelProps) 
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="apex-card animate-pulse">
-        <div className="h-6 w-40 bg-slate-700 rounded mb-4" />
-        <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-slate-700 rounded" />
-          ))}
-        </div>
-      </div>
-    )
-  }
 
   return (
-    <div className="apex-card">
+    <div className={`apex-card ${isTurbo ? 'border-red-500/30' : ''}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,6 +100,11 @@ export function TradingSetupsPanel({ onSymbolSelect }: TradingSetupsPanelProps) 
           </svg>
           Top Setups
           {setups && <span className="text-xs text-slate-500 ml-2">({setups.count})</span>}
+          {isHighVelocity && (
+            <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded ${isTurbo ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}`}>
+              {config.refreshIntervals.setups / 1000}s
+            </span>
+          )}
         </h3>
         <span className="text-xs text-slate-500">{lastUpdate.toLocaleTimeString()}</span>
       </div>
@@ -89,13 +114,16 @@ export function TradingSetupsPanel({ onSymbolSelect }: TradingSetupsPanelProps) 
           {setups?.setups.map((setup, index) => {
             const convictionBadge = getConvictionBadge(setup.conviction)
             const isSelected = selectedSetup?.symbol === setup.symbol
+            const hasChanged = newSymbols.has(setup.symbol)
 
             return (
               <div
                 key={setup.symbol}
                 onClick={() => handleSetupClick(setup)}
                 className={`p-3 rounded-lg cursor-pointer transition-all border ${
-                  isSelected
+                  hasChanged
+                    ? 'bg-amber-500/20 border-amber-500/50 animate-pulse'
+                    : isSelected
                     ? 'bg-cyan-500/10 border-cyan-500/50'
                     : 'bg-slate-800/50 border-slate-700/30 hover:border-cyan-500/30'
                 }`}
@@ -103,7 +131,8 @@ export function TradingSetupsPanel({ onSymbolSelect }: TradingSetupsPanelProps) 
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-slate-500 w-4">#{index + 1}</span>
-                    <span className="font-bold text-white">{setup.symbol}</span>
+                    <span className={`font-bold ${hasChanged ? 'text-amber-400' : 'text-white'}`}>{setup.symbol}</span>
+                    {hasChanged && <span className="text-xs text-amber-400">UPDATED</span>}
                     <span className={`px-1.5 py-0.5 rounded text-xs border ${convictionBadge.bg} ${convictionBadge.text}`}>
                       {setup.conviction}
                     </span>

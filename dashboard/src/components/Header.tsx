@@ -1,4 +1,5 @@
 import { type HealthResponse } from '../lib/api'
+import { useVelocityMode, type VelocityMode } from '../hooks/useVelocityMode'
 
 interface HeaderProps {
   health: HealthResponse | null
@@ -20,7 +21,15 @@ const SCAN_MODES = [
   { id: 'ci_test', label: 'CI Test (5)', risk: 'low' },
 ]
 
+const VELOCITY_MODES: { id: VelocityMode; label: string; icon: string }[] = [
+  { id: 'standard', label: 'Standard', icon: '◯' },
+  { id: 'high', label: 'High Velocity', icon: '◉' },
+  { id: 'turbo', label: 'Turbo', icon: '⚡' },
+]
+
 export function Header({ health, onRunScan, isScanning, scanMode, onModeChange }: HeaderProps) {
+  const { mode: velocityMode, setMode: setVelocityMode, isHighVelocity, isTurbo, config } = useVelocityMode()
+
   const currentTime = new Date().toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
@@ -31,18 +40,28 @@ export function Header({ health, onRunScan, isScanning, scanMode, onModeChange }
   const isHighRisk = selectedMode.risk === 'high' || selectedMode.risk === 'extreme'
 
   return (
-    <header className="h-20 bg-gradient-to-r from-[#030508] via-[#0a0f1a] to-[#030508] border-b border-[#0096ff]/30 px-6 flex items-center justify-between relative overflow-hidden">
+    <header className={`h-20 bg-gradient-to-r from-[#030508] via-[#0a0f1a] to-[#030508] border-b px-6 flex items-center justify-between relative overflow-hidden ${
+      isTurbo ? 'border-red-500/50' : isHighVelocity ? 'border-amber-500/40' : 'border-[#0096ff]/30'
+    }`}>
       <div className="circuit-line top-0 left-0 w-full"></div>
+      
+      {isTurbo && (
+        <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 via-transparent to-red-500/5 animate-pulse pointer-events-none"></div>
+      )}
       
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-4">
           <div className="relative w-12 h-12 flex items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0096ff]/20 to-[#00d4ff]/10 rounded-lg"></div>
+            <div className={`absolute inset-0 rounded-lg ${
+              isTurbo ? 'bg-gradient-to-br from-red-500/20 to-amber-500/10' :
+              isHighVelocity ? 'bg-gradient-to-br from-amber-500/20 to-[#00d4ff]/10' :
+              'bg-gradient-to-br from-[#0096ff]/20 to-[#00d4ff]/10'
+            }`}></div>
             <div className="lamont-logo text-2xl font-bold text-[#00d4ff]">
-              <svg viewBox="0 0 40 40" className="w-10 h-10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="20" cy="20" r="18" stroke="url(#logoGrad)" strokeWidth="2" fill="none"/>
-                <path d="M12 20 L20 12 L28 20 L20 28 Z" stroke="#00d4ff" strokeWidth="1.5" fill="rgba(0, 212, 255, 0.1)"/>
-                <circle cx="20" cy="20" r="4" fill="#00d4ff"/>
+              <svg viewBox="0 0 40 40" className={`w-10 h-10 ${isTurbo ? 'animate-pulse' : ''}`} fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" stroke={isTurbo ? '#ef4444' : isHighVelocity ? '#f59e0b' : 'url(#logoGrad)'} strokeWidth="2" fill="none"/>
+                <path d="M12 20 L20 12 L28 20 L20 28 Z" stroke={isTurbo ? '#ef4444' : '#00d4ff'} strokeWidth="1.5" fill={isTurbo ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0, 212, 255, 0.1)'}/>
+                <circle cx="20" cy="20" r="4" fill={isTurbo ? '#ef4444' : '#00d4ff'}/>
                 <defs>
                   <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40">
                     <stop offset="0%" stopColor="#0096ff"/>
@@ -55,11 +74,11 @@ export function Header({ health, onRunScan, isScanning, scanMode, onModeChange }
           
           <div className="flex flex-col">
             <h1 className="text-xl font-bold tracking-wider">
-              <span className="neon-text text-[#00d4ff]">LAMONT</span>
+              <span className={`neon-text ${isTurbo ? 'text-red-400' : 'text-[#00d4ff]'}`}>LAMONT</span>
               <span className="text-slate-400 ml-1">LABS</span>
             </h1>
             <div className="flex items-center gap-2">
-              <span className="text-[#00d4ff] text-xs font-semibold tracking-widest">QUANTRACORE</span>
+              <span className={`text-xs font-semibold tracking-widest ${isTurbo ? 'text-red-400' : 'text-[#00d4ff]'}`}>QUANTRACORE</span>
               <span className="text-slate-500 text-xs">APEX v9.0-A</span>
             </div>
           </div>
@@ -87,14 +106,41 @@ export function Header({ health, onRunScan, isScanning, scanMode, onModeChange }
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4">
+        <div className="flex flex-col items-end gap-1">
+          <label className="text-xs text-slate-500 uppercase tracking-wider">Velocity</label>
+          <div className="flex items-center gap-1">
+            {VELOCITY_MODES.map((vm) => (
+              <button
+                key={vm.id}
+                onClick={() => setVelocityMode(vm.id)}
+                className={`px-2 py-1 rounded text-xs font-semibold transition-all ${
+                  velocityMode === vm.id
+                    ? vm.id === 'turbo'
+                      ? 'bg-red-500/30 text-red-400 border border-red-500/50 shadow-sm shadow-red-500/20'
+                      : vm.id === 'high'
+                      ? 'bg-amber-500/30 text-amber-400 border border-amber-500/50 shadow-sm shadow-amber-500/20'
+                      : 'bg-cyan-500/30 text-cyan-400 border border-cyan-500/50'
+                    : 'bg-slate-800/50 text-slate-500 border border-slate-700/50 hover:bg-slate-700/50'
+                }`}
+                title={`${vm.label} - ${config.refreshIntervals.portfolio / 1000}s refresh`}
+              >
+                <span className="mr-1">{vm.icon}</span>
+                {vm.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="h-8 w-px bg-gradient-to-b from-transparent via-[#0096ff]/40 to-transparent"></div>
+
         <div className="flex flex-col items-end gap-1">
           <label className="text-xs text-slate-500 uppercase tracking-wider">Scan Mode</label>
           <div className="flex items-center gap-2">
             <select
               value={scanMode}
               onChange={(e) => onModeChange(e.target.value)}
-              className="apex-select min-w-[180px]"
+              className="apex-select min-w-[160px]"
               disabled={isScanning}
             >
               {SCAN_MODES.map(mode => (
@@ -113,7 +159,7 @@ export function Header({ health, onRunScan, isScanning, scanMode, onModeChange }
 
         <div className="h-8 w-px bg-gradient-to-b from-transparent via-[#0096ff]/40 to-transparent"></div>
 
-        <div className="text-sm text-slate-500 font-mono tracking-wider">
+        <div className={`text-sm font-mono tracking-wider ${isTurbo ? 'text-red-400' : isHighVelocity ? 'text-amber-400' : 'text-slate-500'}`}>
           {currentTime}
         </div>
 
@@ -121,7 +167,9 @@ export function Header({ health, onRunScan, isScanning, scanMode, onModeChange }
           <button
             onClick={onRunScan}
             disabled={isScanning}
-            className="apex-button disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`apex-button disabled:opacity-50 disabled:cursor-not-allowed ${
+              isTurbo ? 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500' : ''
+            }`}
           >
             {isScanning ? (
               <span className="flex items-center gap-2">

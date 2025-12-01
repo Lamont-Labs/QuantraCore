@@ -417,23 +417,47 @@ export interface IncrementalLearningStatusResponse {
   timestamp: string
 }
 
-async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+async function request<T>(endpoint: string, options?: RequestInit, retries = 2): Promise<T> {
   const url = `${API_BASE}${endpoint}`
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-API-Key': 'apex-dev-key',
-      ...options?.headers,
-    },
-  })
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': 'apex-dev-key',
+          ...options?.headers,
+        },
+      })
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Request failed' }))
-    throw new Error(error.detail || `HTTP ${response.status}`)
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: 'Request failed' }))
+        throw new Error(error.detail || `HTTP ${response.status}`)
+      }
+
+      return response.json()
+    } catch (err) {
+      const isLastAttempt = attempt === retries
+      
+      if (err instanceof TypeError) {
+        if (!isLastAttempt) {
+          await new Promise(r => setTimeout(r, 500 * (attempt + 1)))
+          continue
+        }
+        throw new Error(`Network error: ${err.message}`)
+      }
+      
+      if (!isLastAttempt && err instanceof Error && err.message.includes('Network')) {
+        await new Promise(r => setTimeout(r, 500 * (attempt + 1)))
+        continue
+      }
+      
+      throw err
+    }
   }
-
-  return response.json()
+  
+  throw new Error(`Failed after ${retries + 1} attempts`)
 }
 
 export const api = {

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api, type BrokerStatusResponse, type ComplianceScoreResponse, type DataProvidersResponse, type PredictiveStatusResponse } from '../lib/api'
+import { useVelocityMode } from '../hooks/useVelocityMode'
 
 interface SystemStatusPanelProps {
   compact?: boolean
@@ -12,45 +13,47 @@ export function SystemStatusPanel({ compact = false }: SystemStatusPanelProps) {
   const [predictive, setPredictive] = useState<PredictiveStatusResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
-
-  const loadData = useCallback(async () => {
-    try {
-      const [brokerData, complianceData, providersData, predictiveData] = await Promise.all([
-        api.getBrokerStatus().catch(() => null),
-        api.getComplianceScore().catch(() => null),
-        api.getDataProviders().catch(() => null),
-        api.getPredictiveStatus().catch(() => null),
-      ])
-      setBroker(brokerData)
-      setCompliance(complianceData)
-      setProviders(providersData)
-      setPredictive(predictiveData)
-      setLastUpdate(new Date())
-    } catch (err) {
-      console.error('Failed to load system status:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  const { config } = useVelocityMode()
+  const prevBrokerRef = useRef<BrokerStatusResponse | null>(null)
 
   useEffect(() => {
+    let mounted = true
+    const refreshInterval = config?.refreshIntervals?.system || 30000
+    
+    async function loadData() {
+      try {
+        const [brokerData, complianceData, providersData, predictiveData] = await Promise.all([
+          api.getBrokerStatus().catch(() => null),
+          api.getComplianceScore().catch(() => null),
+          api.getDataProviders().catch(() => null),
+          api.getPredictiveStatus().catch(() => null),
+        ])
+        
+        if (!mounted) return
+        
+        if (brokerData) {
+          prevBrokerRef.current = brokerData
+          setBroker(brokerData)
+        }
+        if (complianceData) setCompliance(complianceData)
+        if (providersData) setProviders(providersData)
+        if (predictiveData) setPredictive(predictiveData)
+        setLastUpdate(new Date())
+      } catch (err) {
+        console.warn('SystemStatusPanel load error:', err)
+      } finally {
+        if (mounted) setIsLoading(false)
+      }
+    }
+    
     loadData()
-    const interval = setInterval(loadData, 30000)
-    return () => clearInterval(interval)
-  }, [loadData])
+    const interval = setInterval(loadData, refreshInterval)
+    return () => {
+      mounted = false
+      clearInterval(interval)
+    }
+  }, [config?.refreshIntervals?.system])
 
-  if (isLoading) {
-    return (
-      <div className="apex-card animate-pulse">
-        <div className="h-6 w-32 bg-slate-700 rounded mb-4" />
-        <div className="grid grid-cols-4 gap-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-20 bg-slate-700 rounded-lg" />
-          ))}
-        </div>
-      </div>
-    )
-  }
 
   const activeProviders = providers?.providers.filter(p => p.available).length ?? 0
 

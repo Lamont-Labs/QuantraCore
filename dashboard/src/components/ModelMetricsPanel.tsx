@@ -1,55 +1,57 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { api, type PredictiveStatusResponse, type ContinuousLearningStatusResponse } from '../lib/api'
+import { useVelocityMode } from '../hooks/useVelocityMode'
 
 export function ModelMetricsPanel() {
   const [predictive, setPredictive] = useState<PredictiveStatusResponse | null>(null)
   const [learning, setLearning] = useState<ContinuousLearningStatusResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
-
-  const loadData = useCallback(async () => {
-    try {
-      const [predictiveData, learningData] = await Promise.all([
-        api.getPredictiveStatus().catch(() => null),
-        api.getContinuousLearningStatus().catch(() => null),
-      ])
-      setPredictive(predictiveData)
-      setLearning(learningData)
-      setLastUpdate(new Date())
-    } catch (err) {
-      console.error('Failed to load model metrics:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  const { config } = useVelocityMode()
+  const loadDataRef = useRef<(() => Promise<void>) | undefined>(undefined)
 
   useEffect(() => {
+    let mounted = true
+    const refreshInterval = config?.refreshIntervals?.system || 30000
+    
+    async function loadData() {
+      try {
+        const [predictiveData, learningData] = await Promise.all([
+          api.getPredictiveStatus().catch(() => null),
+          api.getContinuousLearningStatus().catch(() => null),
+        ])
+        if (!mounted) return
+        
+        if (predictiveData) setPredictive(predictiveData)
+        if (learningData) setLearning(learningData)
+        setLastUpdate(new Date())
+      } catch (err) {
+        console.warn('ModelMetricsPanel load error:', err)
+      } finally {
+        if (mounted) setIsLoading(false)
+      }
+    }
+    
+    loadDataRef.current = loadData
     loadData()
-    const interval = setInterval(loadData, 30000)
-    return () => clearInterval(interval)
-  }, [loadData])
+    const interval = setInterval(loadData, refreshInterval)
+    return () => {
+      mounted = false
+      clearInterval(interval)
+    }
+  }, [config?.refreshIntervals?.system])
 
   async function handleReloadModels() {
     try {
       await api.reloadModels()
-      loadData()
+      if (loadDataRef.current) {
+        loadDataRef.current()
+      }
     } catch (err) {
       console.error('Failed to reload models:', err)
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="apex-card animate-pulse">
-        <div className="h-6 w-32 bg-slate-700 rounded mb-4" />
-        <div className="grid grid-cols-3 gap-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-16 bg-slate-700 rounded-lg" />
-          ))}
-        </div>
-      </div>
-    )
-  }
 
   const metrics = predictive?.metrics
 
