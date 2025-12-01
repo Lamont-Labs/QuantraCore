@@ -52,6 +52,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 - **ML Model Training Logger:** Complete model lifecycle tracking: training runs with hyperparameters, validation results, deployment events, drift detection. Generates model cards for due diligence. All stored in `investor_logs/models/`. API endpoint: `GET /investor/models/history/{model_name}`.
 - **Investor Data Exporter:** Automated export of investor packages: weekly snapshots, monthly packages, and full data room with 37+ documents in 8 sections (Legal, Performance, Trading, Compliance, Risk, Models, Technical, Company). API endpoints: `POST /investor/export/weekly`, `POST /investor/export/monthly`, `POST /investor/export/data-room`.
 - **Investor Legal Documents:** Complete legal documentation stored in `docs/investor/legal/`: Terms of Service, Risk Disclosures, Privacy Policy, Fee Schedule.
+- **Automatic Swing Trade Execution (AutoTrader):** Fully autonomous swing trade executor that scans the universe, picks top setups by QuantraScore, calculates position sizing (10% of equity per trade), and executes market orders on Alpaca paper trading. Features: (1) Real-time universe scanning, (2) Top N selection by QuantraScore (min 60.0 threshold), (3) Position sizing based on account equity, (4) Risk/reward calculation with ATR-based stops, (5) Automatic order execution via Alpaca API, (6) Trade logging for audit trail. All auto-trades logged to `investor_logs/auto_trades/`. API endpoints: `GET /trading/account`, `GET /trading/setups`, `POST /trading/execute`.
 
 ### Symbol Universe (251 Total)
 | Bucket | Count | Description |
@@ -85,6 +86,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 
 ## Recent Changes
 
+- **2025-12-01:** Implemented Automatic Swing Trade Execution - system scans universe, picks top 3 by QuantraScore, executes on Alpaca paper trading
 - **2025-12-01:** Implemented Due Diligence Logging infrastructure (attestations, incidents, policies, reconciliation, consents, access logs)
 - **2025-12-01:** Scoped Investor Due Diligence Suite (8 modules, 70+ endpoints) - see `docs/INVESTOR_DUE_DILIGENCE_SUITE_SPEC.md`
 - **2025-12-01:** Phase 1 performance optimizations: ORJSONResponse, GZipMiddleware, 4-worker uvicorn, expanded caches, parallel scanning

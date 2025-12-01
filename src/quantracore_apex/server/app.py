@@ -6319,6 +6319,104 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    @app.get("/trading/account")
+    async def get_trading_account():
+        """
+        Get Alpaca paper trading account status.
+        
+        Returns account equity, positions, and buying power.
+        """
+        try:
+            from src.quantracore_apex.trading.auto_trader import get_auto_trader
+            trader = get_auto_trader()
+            account = trader.get_account_status()
+            
+            return {
+                "account": account,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting trading account: {e}")
+            return {
+                "account": None,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/trading/setups")
+    async def get_trade_setups(top_n: int = 10, min_score: float = 60.0):
+        """
+        Get top trade setups from the scanner.
+        
+        Returns ranked list of potential swing trades.
+        """
+        try:
+            from src.quantracore_apex.trading.auto_trader import get_auto_trader
+            trader = get_auto_trader()
+            trader.min_quantrascore = min_score
+            
+            setups = trader.scan_for_setups(top_n=top_n)
+            
+            return {
+                "setups": [
+                    {
+                        "symbol": s.symbol,
+                        "quantrascore": s.quantrascore,
+                        "current_price": s.current_price,
+                        "entry": s.entry_price,
+                        "stop": s.stop_loss,
+                        "target": s.target,
+                        "shares": s.shares,
+                        "position_value": s.position_value,
+                        "risk_amount": round(s.risk_amount, 2),
+                        "reward_amount": round(s.reward_amount, 2),
+                        "risk_reward": round(s.risk_reward, 2),
+                        "conviction": s.conviction,
+                        "regime": s.regime,
+                        "timing": s.timing,
+                    }
+                    for s in setups
+                ],
+                "count": len(setups),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting trade setups: {e}")
+            return {
+                "setups": [],
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/trading/execute")
+    async def execute_swing_trades(count: int = 3):
+        """
+        Execute top swing trades on Alpaca paper trading.
+        
+        Scans universe, picks top N setups by QuantraScore, and executes.
+        All trades are paper only - no real money involved.
+        
+        Args:
+            count: Number of trades to execute (default 3)
+        """
+        try:
+            from src.quantracore_apex.trading.auto_trader import get_auto_trader
+            trader = get_auto_trader()
+            
+            result = trader.execute_top_swings(count=count)
+            
+            return {
+                "execution_result": result,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error executing swing trades: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
     @app.get("/sms/status")
     async def get_sms_status():
         """
