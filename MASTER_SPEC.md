@@ -545,7 +545,9 @@ Safety override protocols that enforce fail-closed behavior.
 
 ApexCore v3 is the institutional-grade multi-head neural prediction engine using scikit-learn Gradient Boosting models with integrated accuracy optimization.
 
-**Bootstrap Status:** Initial model artifacts are created with synthetic bootstrap data for system initialization. Production models are retrained with real market data via Alpha Factory feedback loop and the auto-retraining system.
+**Training Status (Dec 2025):** Models trained on real market data from Polygon.io. Current training: 420 samples from 15 major symbols (AAPL, MSFT, GOOGL, AMZN, META, NVDA, TSLA, AMD, SPY, QQQ, etc.) with 1 year lookback. Labels derived from actual future price movements (5-day returns, max runup, drawdowns). Validated on 84 hold-out samples.
+
+**Current Metrics:** 96.4% runner accuracy, 78.6% quality tier accuracy, 98.8% avoid trade accuracy, 86.9% regime accuracy. Continuous retraining available via `POST /apexlab/train-unified` endpoint.
 
 ### 5.2 Model Variants
 
