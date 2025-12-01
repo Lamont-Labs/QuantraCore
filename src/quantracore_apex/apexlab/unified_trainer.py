@@ -36,10 +36,16 @@ class UnifiedTrainingConfig:
         "INTC", "CRM", "ORCL", "ADBE", "PYPL",
         "V", "MA", "JPM", "BAC", "WFC",
         "PFE", "JNJ", "UNH", "MRK", "ABBV",
+        "COST", "HD", "LOW", "TGT", "WMT",
+        "KO", "PEP", "MCD", "SBUX", "NKE",
+        "DIS", "CMCSA", "T", "VZ", "TMUS",
+        "CVX", "XOM", "COP", "SLB", "EOG",
+        "LLY", "BMY", "GILD", "AMGN", "REGN",
+        "GS", "MS", "BLK", "SCHW", "C",
     ])
     lookback_days: int = 365
     window_size: int = 100
-    step_size: int = 5
+    step_size: int = 2
     future_bars: int = 10
     runner_threshold: float = 0.05
     model_output_dir: str = "models/apexcore_v3"
