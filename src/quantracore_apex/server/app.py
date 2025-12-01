@@ -5596,6 +5596,199 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    from src.quantracore_apex.signals import get_signal_service
+    
+    @app.get("/signals/live")
+    async def get_live_signals(
+        top_n: int = 20,
+        direction: Optional[str] = None,
+        timing: Optional[str] = None,
+        min_confidence: float = 0.0
+    ):
+        """
+        Get live trading signals for manual trading on external platforms.
+        
+        Use these signals for manual entry on Webull, TD Ameritrade, etc.
+        
+        Args:
+            top_n: Number of top signals to return (max 50)
+            direction: Filter by direction ('long', 'short', 'neutral')
+            timing: Filter by timing urgency ('immediate', 'very_soon', 'soon', 'late')
+            min_confidence: Minimum timing confidence threshold
+        
+        Returns:
+            Ranked list of actionable signals with entry/exit levels.
+        """
+        try:
+            service = get_signal_service()
+            signals = service.get_live_signals(
+                top_n=min(top_n, 50),
+                direction_filter=direction,
+                timing_filter=timing,
+                min_confidence=min_confidence
+            )
+            
+            return {
+                "signals": signals,
+                "count": len(signals),
+                "filters_applied": {
+                    "direction": direction,
+                    "timing": timing,
+                    "min_confidence": min_confidence,
+                },
+                "usage_guidance": {
+                    "timing_buckets": {
+                        "immediate": "Enter within next 15 minutes (1 bar)",
+                        "very_soon": "Enter within next 30-45 minutes (2-3 bars)",
+                        "soon": "Enter within next 60-90 minutes (4-6 bars)",
+                        "late": "Add to watchlist, move in 2-3 hours (7-10 bars)",
+                    },
+                    "conviction_tiers": {
+                        "high": "Strong signal - consider full position",
+                        "medium": "Moderate signal - consider half position",
+                        "low": "Weak signal - paper trade only",
+                        "avoid": "Do not trade - high risk",
+                    },
+                },
+                "compliance_note": "Structural analysis for research only - not trading advice",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching live signals: {e}")
+            return {
+                "signals": [],
+                "count": 0,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/signals/scan")
+    async def scan_for_signals(
+        symbols: Optional[List[str]] = None,
+        top_n: int = 20,
+        min_conviction: str = "low"
+    ):
+        """
+        Scan the symbol universe for new trading signals.
+        
+        This performs a fresh scan of the market for actionable opportunities.
+        
+        Args:
+            symbols: Optional list of symbols to scan (defaults to extended universe)
+            top_n: Number of top signals to return
+            min_conviction: Minimum conviction tier ('high', 'medium', 'low')
+        
+        Returns:
+            Fresh batch of ranked signals with timing predictions.
+        """
+        try:
+            service = get_signal_service()
+            signals = service.scan_universe(
+                symbols=symbols,
+                top_n=top_n,
+                min_conviction=min_conviction
+            )
+            
+            return {
+                "signals": [s.to_dict() for s in signals],
+                "count": len(signals),
+                "scan_params": {
+                    "symbols_scanned": len(symbols) if symbols else "extended_universe",
+                    "top_n": top_n,
+                    "min_conviction": min_conviction,
+                },
+                "timing_guidance": {
+                    "immediate": "ENTER NOW - Move expected within 15 minutes",
+                    "very_soon": "PREPARE ENTRY - Move expected in 30-45 minutes",
+                    "soon": "MONITOR CLOSELY - Move expected in 1-1.5 hours",
+                    "late": "ADD TO WATCHLIST - Move expected in 2-3 hours",
+                },
+                "compliance_note": "Structural analysis for research only - not trading advice",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error scanning for signals: {e}")
+            return {
+                "signals": [],
+                "count": 0,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/signals/symbol/{symbol}")
+    async def get_signal_for_symbol(symbol: str):
+        """
+        Generate a trading signal for a specific symbol.
+        
+        Use this to get detailed analysis for a specific stock.
+        
+        Args:
+            symbol: Stock ticker symbol (e.g., 'AAPL', 'TSLA')
+        
+        Returns:
+            Complete signal with entry/exit levels and timing prediction.
+        """
+        try:
+            service = get_signal_service()
+            signal = service.generate_signal(symbol.upper())
+            
+            if signal:
+                return {
+                    "signal": signal.to_dict(),
+                    "manual_trading_guide": {
+                        "step_1": f"Set limit order at ${signal.suggested_entry:.2f}",
+                        "step_2": f"Set stop-loss at ${signal.stop_loss:.2f}",
+                        "step_3": f"Target 1: ${signal.target_level_1:.2f} (take 50% profit)",
+                        "step_4": f"Target 2: ${signal.target_level_2:.2f} (take 30% profit)",
+                        "step_5": f"Target 3: ${signal.target_level_3:.2f} (let runner ride)",
+                        "timing": signal.timing_guidance,
+                        "action_window": signal.action_window,
+                    },
+                    "compliance_note": "Structural analysis for research only - not trading advice",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                return {
+                    "signal": None,
+                    "message": f"Could not generate signal for {symbol}",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+        except Exception as e:
+            logger.error(f"Error generating signal for {symbol}: {e}")
+            return {
+                "signal": None,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/signals/status")
+    async def get_signal_service_status():
+        """
+        Get signal service status and statistics.
+        
+        Returns current state of the signal generation system.
+        """
+        try:
+            service = get_signal_service()
+            status = service.get_status()
+            
+            return {
+                "status": status,
+                "available_endpoints": {
+                    "GET /signals/live": "Get cached live signals with filters",
+                    "POST /signals/scan": "Scan universe for fresh signals",
+                    "GET /signals/symbol/{symbol}": "Get signal for specific symbol",
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching signal service status: {e}")
+            return {
+                "status": None,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
     return app
 
 

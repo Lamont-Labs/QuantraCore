@@ -497,7 +497,8 @@ class ContinuousLearningOrchestrator:
         new_bars = 0
         new_samples = 0
         
-        for symbol in symbols[:20]:
+        symbols_per_batch = min(len(symbols), 50)
+        for symbol in symbols[:symbols_per_batch]:
             try:
                 bars = fetcher.fetch(symbol, start_date, end_date)
                 if not bars:
@@ -523,8 +524,9 @@ class ContinuousLearningOrchestrator:
                 logger.debug(f"Error ingesting {symbol}: {e}")
                 continue
         
-        self.current_cycle.new_bars_fetched = new_bars
-        self.current_cycle.samples_ingested = new_samples
+        if self.current_cycle:
+            self.current_cycle.new_bars_fetched = new_bars
+            self.current_cycle.samples_ingested = new_samples
         self.total_samples_processed += new_samples
         
         logger.info(f"Ingested {new_bars} bars, {new_samples} samples")
@@ -580,10 +582,11 @@ class ContinuousLearningOrchestrator:
         """Check for distribution drift."""
         cache_stats = self.sample_cache.get_stats()
         
+        samples_ingested = self.current_cycle.samples_ingested if self.current_cycle else 0
         return self.drift_detector.compute_drift(
             current_feature_stats=cache_stats.get("feature_stats", {}),
             current_label_stats=cache_stats.get("label_stats", {}),
-            new_samples=self.current_cycle.samples_ingested
+            new_samples=samples_ingested
         )
     
     def _should_trigger_training(self, drift: DriftMetrics) -> bool:
@@ -613,7 +616,8 @@ class ContinuousLearningOrchestrator:
             logger.warning("No samples in cache for training")
             return
         
-        self.current_cycle.samples_trained = len(features)
+        if self.current_cycle:
+            self.current_cycle.samples_trained = len(features)
         
         config = UnifiedTrainingConfig(
             symbols=self.config.symbols or self._get_default_symbols(),
@@ -624,7 +628,7 @@ class ContinuousLearningOrchestrator:
         trainer = UnifiedTrainer(config)
         
         manifest_path = self.model_dir / "manifest.json"
-        if manifest_path.exists():
+        if manifest_path.exists() and self.current_cycle:
             with open(manifest_path) as f:
                 manifest = json.load(f)
             self.current_cycle.accuracy_before = manifest.get("metrics", {})
@@ -632,12 +636,11 @@ class ContinuousLearningOrchestrator:
         try:
             result = trainer.train_sync()
             
-            if manifest_path.exists():
+            if manifest_path.exists() and self.current_cycle:
                 with open(manifest_path) as f:
                     new_manifest = json.load(f)
                 self.current_cycle.accuracy_after = new_manifest.get("metrics", {})
-            
-            self.current_cycle.training_triggered = True
+                self.current_cycle.training_triggered = True
             self.last_training_time = datetime.now()
             
         except Exception as e:
@@ -646,6 +649,8 @@ class ContinuousLearningOrchestrator:
     
     def _validate_new_model(self) -> bool:
         """Validate new model meets accuracy requirements."""
+        if not self.current_cycle:
+            return True
         before = self.current_cycle.accuracy_before
         after = self.current_cycle.accuracy_after
         
@@ -676,10 +681,11 @@ class ContinuousLearningOrchestrator:
         """Promote validated model to production."""
         cache_stats = self.sample_cache.get_stats()
         
+        performance = self.current_cycle.accuracy_after if self.current_cycle else {}
         self.drift_detector.set_baseline(
             feature_stats=cache_stats.get("feature_stats", {}),
             label_stats=cache_stats.get("label_stats", {}),
-            performance=self.current_cycle.accuracy_after
+            performance=performance
         )
         
         self.sample_cache.clear()
@@ -725,33 +731,49 @@ class ContinuousLearningOrchestrator:
 _orchestrator: Optional[ContinuousLearningOrchestrator] = None
 
 
+EXTENDED_UNIVERSE = [
+    "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "NVDA", "META", "TSLA", "AMD", "AVGO",
+    "NFLX", "CRM", "ORCL", "ADBE", "NOW", "SNOW", "DDOG", "NET", "MDB", "PLTR",
+    "CRWD", "PANW", "ZS", "FTNT", "OKTA", "SPLK", "HUBS", "ZEN", "TWLO", "DBX",
+    "JPM", "BAC", "GS", "MS", "WFC", "C", "USB", "PNC", "SCHW", "AXP",
+    "V", "MA", "PYPL", "SQ", "COIN", "HOOD", "AFRM", "SOFI", "UPST", "LC",
+    "BRK.B", "BLK", "SPGI", "ICE", "CME", "MSCI", "MCO", "CBOE", "NDAQ", "FDS",
+    "XOM", "CVX", "COP", "SLB", "EOG", "OXY", "PXD", "DVN", "HAL", "BKR",
+    "LMT", "RTX", "NOC", "GD", "BA", "LHX", "HII", "TXT", "TDG", "HWM",
+    "JNJ", "PFE", "UNH", "ABBV", "MRK", "LLY", "TMO", "ABT", "DHR", "BMY",
+    "AMGN", "GILD", "BIIB", "REGN", "VRTX", "MRNA", "ISRG", "SYK", "BDX", "MDT",
+    "HD", "LOW", "WMT", "TGT", "COST", "AMZN", "EBAY", "ETSY", "MELI", "SHOP",
+    "NKE", "LULU", "DECK", "CROX", "VFC", "PVH", "TPR", "RL", "GPS", "ANF",
+    "DIS", "CMCSA", "T", "VZ", "TMUS", "CHTR", "PARA", "WBD", "NWSA", "FOX",
+    "MCD", "SBUX", "CMG", "DPZ", "YUM", "QSR", "DENN", "WEN", "JACK", "PLAY",
+    "ABNB", "MAR", "HLT", "H", "IHG", "MGM", "WYNN", "LVS", "PENN", "CZR",
+    "UBER", "LYFT", "DASH", "GRAB", "GM", "F", "TM", "HMC", "RIVN", "LCID",
+    "EA", "TTWO", "ATVI", "RBLX", "DKNG", "PLTK", "GLBE", "SE", "BILI", "HUYA",
+    "ENPH", "SEDG", "FSLR", "RUN", "CSIQ", "JKS", "NEE", "AES", "DUK", "SO",
+    "INTC", "QCOM", "MU", "MRVL", "LRCX", "AMAT", "KLAC", "ASML", "SNPS", "CDNS",
+    "TXN", "ADI", "ON", "NXPI", "SWKS", "QRVO", "CRUS", "WOLF", "ACLS", "FORM",
+    "CAT", "DE", "MMM", "HON", "GE", "EMR", "ROK", "PH", "ITW", "ETN",
+    "UNP", "CSX", "NSC", "FDX", "UPS", "XPO", "EXPD", "CHRW", "JBHT", "ODFL",
+    "AAL", "DAL", "UAL", "LUV", "JBLU", "ALK", "SAVE", "SKYW", "HA", "MESA",
+    "DG", "DLTR", "FIVE", "BIG", "OLLI", "ROST", "TJX", "BURL", "BWMN", "VSCO",
+    "SPY", "QQQ", "IWM", "DIA", "EEM", "VWO", "GLD", "SLV", "USO", "UNG",
+    "KO", "PEP", "PM", "MO", "BTI", "TAP", "STZ", "BUD", "SAM", "MNST",
+    "PG", "CL", "KMB", "CHD", "CLX", "EL", "COTY", "SJM", "GIS", "K",
+    "PARA", "LYV", "SPOT", "TME", "SNAP", "PINS", "TWTR", "MTCH", "BMBL", "IAC",
+    "AMD", "NVIDIA", "ARM", "TSM", "SMCI", "DELL", "HPQ", "HPE", "IBM", "CSCO",
+    "ZM", "DOCU", "BOX", "WDAY", "VEEV", "ZI", "CCMP", "MANH", "GWRE", "NICE",
+]
+
+
 def get_orchestrator() -> ContinuousLearningOrchestrator:
     """Get or create the global orchestrator instance."""
     global _orchestrator
     if _orchestrator is None:
-        default_symbols = [
-            "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AMD",
-            "JPM", "BAC", "GS", "V", "MA", "PYPL",
-            "JNJ", "PFE", "UNH", "ABBV", "MRK",
-            "XOM", "CVX", "COP", "SLB",
-            "DIS", "NFLX", "CMCSA",
-            "HD", "WMT", "COST", "TGT",
-            "CRM", "ORCL", "ADBE", "NOW",
-            "UBER", "LYFT", "DASH", "ABNB",
-            "EA", "TTWO", "RBLX",
-            "CRWD", "PANW", "ZS", "FTNT",
-            "SQ", "COIN", "HOOD",
-            "SNOW", "DDOG", "NET", "MDB",
-            "INTC", "QCOM", "AVGO", "MU", "MRVL",
-            "ENPH", "SEDG", "FSLR",
-            "RIVN", "LCID",
-        ]
-        
         config = ContinuousLearningConfig(
-            symbols=default_symbols,
-            learning_interval_minutes=30,
-            min_new_samples_for_training=500,
-            lookback_days=90,
+            symbols=EXTENDED_UNIVERSE,
+            learning_interval_minutes=15,
+            min_new_samples_for_training=200,
+            lookback_days=60,
         )
         _orchestrator = ContinuousLearningOrchestrator(config)
     
