@@ -111,6 +111,10 @@ externalPort = 80
 localPort = 45505
 externalPort = 3001
 
+[[ports]]
+localPort = 46067
+externalPort = 8008
+
 [deployment]
 deploymentTarget = "vm"
 run = ["python", "-m", "uvicorn", "src.quantracore_apex.server.app:app", "--host", "0.0.0.0", "--port", "5000"]
