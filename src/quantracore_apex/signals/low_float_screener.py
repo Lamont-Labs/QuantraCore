@@ -260,11 +260,16 @@ class LowFloatScreener:
         
         try:
             symbol_info = get_symbol_info(symbol)
-            float_millions = symbol_info.get("float_millions", 100) if symbol_info else 100
-            market_cap_bucket = symbol_info.get("market_cap_bucket", "unknown") if symbol_info else "unknown"
-        except:
-            float_millions = 50
-            market_cap_bucket = "penny"
+            if symbol_info:
+                float_millions = symbol_info.float_millions if symbol_info.float_millions > 0 else 100
+                market_cap_bucket = symbol_info.market_cap_bucket or "unknown"
+            else:
+                float_millions = 100
+                market_cap_bucket = "unknown"
+        except Exception as e:
+            logger.debug(f"[LowFloatScreener] Could not get symbol info for {symbol}: {e}")
+            float_millions = 100
+            market_cap_bucket = "unknown"
         
         if float_millions > self.config.max_float_millions:
             return None
