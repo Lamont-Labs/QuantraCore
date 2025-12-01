@@ -1,0 +1,111 @@
+{
+  "date": "2025-12-01",
+  "generated_at": "2025-12-01T18:11:55.176123+00:00",
+  "attestations": [
+    {
+      "control_id": "RISK-001",
+      "control_name": "Daily Risk Limit Verification",
+      "status": "PASSED",
+      "details": {
+        "max_exposure": 100000,
+        "max_per_symbol": 10000,
+        "max_positions": 50,
+        "source": "configuration"
+      },
+      "attestation_id": "ATT-20251201181155-0001"
+    },
+    {
+      "control_id": "MODEL-001",
+      "control_name": "ApexCore Model Health Check",
+      "status": "FAILED",
+      "details": {
+        "model_file_exists": false,
+        "model_loaded": false,
+        "prediction_heads": 7
+      },
+      "attestation_id": "ATT-20251201181155-0002"
+    },
+    {
+      "control_id": "DATA-001",
+      "control_name": "Data Source Quality Verification",
+      "status": "PASSED",
+      "details": {
+        "alpaca_api": {
+          "status": "ok",
+          "configured": true
+        },
+        "polygon_api": {
+          "status": "ok",
+          "configured": true
+        },
+        "local_cache": {
+          "status": "ok",
+          "cache_dir_exists": true
+        }
+      },
+      "attestation_id": "ATT-20251201181155-0003"
+    },
+    {
+      "control_id": "SYS-001",
+      "control_name": "System Availability Check",
+      "status": "PASSED",
+      "details": {
+        "uptime_hours": 15.26,
+        "uptime_seconds": 54924.64
+      },
+      "attestation_id": "ATT-20251201181155-0004"
+    },
+    {
+      "control_id": "TRADE-001",
+      "control_name": "Trading Control Verification",
+      "status": "PASSED",
+      "details": {
+        "omega_directives_enabled": true,
+        "position_limits_enforced": true,
+        "stop_loss_mandatory": true,
+        "leverage_limits_active": true
+      },
+      "attestation_id": "ATT-20251201181155-0005"
+    },
+    {
+      "control_id": "SEC-001",
+      "control_name": "Security Control Verification",
+      "status": "PASSED",
+      "details": {
+        "api_key_secured": true,
+        "cors_restricted": true,
+        "rate_limiting_active": true,
+        "x_api_key_required": true
+      },
+      "attestation_id": "ATT-20251201181155-0006"
+    },
+    {
+      "control_id": "RET-001",
+      "control_name": "Data Retention Policy Compliance",
+      "status": "PASSED",
+      "details": {
+        "trades_dir_exists": true,
+        "compliance_dir_exists": true,
+        "audit_dir_exists": true,
+        "legal_dir_exists": true
+      },
+      "attestation_id": "ATT-20251201181155-0007"
+    },
+    {
+      "control_id": "BAK-001",
+      "control_name": "Backup System Status",
+      "status": "PASSED",
+      "details": {
+        "replit_backups": true,
+        "git_version_control": true
+      },
+      "attestation_id": "ATT-20251201181155-0008"
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 7,
+    "failed": 1,
+    "waived": 0
+  }
+}

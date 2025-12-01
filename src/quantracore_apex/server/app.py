@@ -5979,6 +5979,150 @@ def create_app() -> FastAPI:
             logger.error(f"Error logging document access: {e}")
             raise HTTPException(status_code=500, detail=str(e))
     
+    from src.quantracore_apex.investor import (
+        get_attestation_service,
+        run_daily_attestations,
+        get_performance_logger,
+        get_model_training_logger,
+        get_investor_exporter,
+    )
+    
+    @app.post("/investor/attestations/run-daily")
+    async def trigger_daily_attestations():
+        """
+        Trigger automated daily attestation checks.
+        
+        Runs all compliance, risk, and system health attestations.
+        """
+        try:
+            results = run_daily_attestations()
+            return {
+                "status": "completed",
+                "attestations_run": results["summary"]["total"],
+                "passed": results["summary"]["passed"],
+                "failed": results["summary"]["failed"],
+                "details": results["attestations"],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error running daily attestations: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/investor/performance/status")
+    async def get_performance_status():
+        """
+        Get current performance tracking status.
+        
+        Returns risk-adjusted metrics and tracking history.
+        """
+        try:
+            perf_logger = get_performance_logger()
+            status = perf_logger.get_performance_status()
+            return {
+                "status": "operational",
+                "metrics": status["metrics"],
+                "log_location": str(status["log_files"]),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting performance status: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/investor/models/history/{model_name}")
+    async def get_model_history(model_name: str):
+        """
+        Get complete training and deployment history for a model.
+        
+        Includes training runs, validations, deployments, and drift events.
+        """
+        try:
+            model_logger = get_model_training_logger()
+            history = model_logger.get_model_history(model_name)
+            return {
+                "model_name": model_name,
+                "training_runs": len(history["training_runs"]),
+                "validations": len(history["validations"]),
+                "deployments": len(history["deployments"]),
+                "drift_events": len(history["drift_events"]),
+                "history": history,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting model history: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/investor/export/weekly")
+    async def export_weekly_snapshot():
+        """
+        Export weekly investor snapshot package.
+        
+        Contains trading activity, performance, attestations, and risk summary.
+        """
+        try:
+            exporter = get_investor_exporter()
+            export_path = exporter.export_weekly_snapshot()
+            return {
+                "status": "exported",
+                "export_path": str(export_path),
+                "message": "Weekly snapshot exported successfully",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error exporting weekly snapshot: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/investor/export/monthly")
+    async def export_monthly_package(year: int, month: int):
+        """
+        Export monthly investor package.
+        
+        Complete monthly performance report with all trading and compliance data.
+        """
+        try:
+            exporter = get_investor_exporter()
+            export_path = exporter.export_monthly_package(year, month)
+            return {
+                "status": "exported",
+                "export_path": str(export_path),
+                "period": f"{year}-{month:02d}",
+                "message": "Monthly package exported successfully",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error exporting monthly package: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/investor/export/data-room")
+    async def export_full_data_room():
+        """
+        Export complete investor data room.
+        
+        Contains ALL documents an institutional investor needs:
+        - Legal documents (terms, disclosures, privacy)
+        - Complete trading history
+        - Performance metrics
+        - Compliance records
+        - Model documentation
+        - Technical architecture
+        - Team and company info
+        """
+        try:
+            exporter = get_investor_exporter()
+            export_path = exporter.export_full_data_room()
+            return {
+                "status": "exported",
+                "export_path": str(export_path),
+                "message": "Full data room exported successfully",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error exporting data room: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     from src.quantracore_apex.signals import get_signal_service
     
     @app.get("/signals/live")
