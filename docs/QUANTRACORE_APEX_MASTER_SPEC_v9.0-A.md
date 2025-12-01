@@ -433,5 +433,42 @@ All outputs from QuantraCore Apex are framed as **structural probabilities** for
 ---
 
 **Document Version:** 9.0-A  
-**Last Updated:** 2025-11-28  
+**Last Updated:** 2025-12-01  
 **Status:** Active
+
+---
+
+## 19. Signal & Alert Services (New in v9.0-A)
+
+### 19.1 Manual Trading Signal Service
+
+Generates actionable trading signals for manual execution on external platforms.
+
+| Feature | Description |
+|---------|-------------|
+| Signal Ranking | Priority score (QuantraScore, runner probability, timing) |
+| Timing Guidance | Actionable entry timing language |
+| Entry/Exit Levels | ATR-based with 2:1 minimum R:R |
+| Conviction Tiers | high / medium / low / avoid |
+| Predicted Top | Expected runup from model |
+
+**Endpoints:** `/signals/live`, `/signals/scan`, `/signals/symbol/{symbol}`, `/signals/status`
+
+### 19.2 SMS Alert Service
+
+Twilio-powered SMS alerts for trading signals.
+
+**Endpoints:** `/sms/status`, `/sms/config`, `/sms/test`, `/sms/alert`
+
+### 19.3 Low-Float Runner Screener
+
+Real-time scanner for penny stock runners (110 symbols).
+
+| Criteria | Threshold |
+|----------|-----------|
+| Relative Volume | 3x+ |
+| Price Momentum | 5%+ |
+| Max Float | 50M shares |
+| Symbol Universe | 64 penny + 20 nano + 26 micro |
+
+**Endpoints:** `/screener/status`, `/screener/scan`, `/screener/alerts`, `/screener/config`, `/screener/alert-runner`

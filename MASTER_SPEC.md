@@ -1,7 +1,7 @@
 # QuantraCore Apex v9.0-A — Master Specification
 
 **Version:** 9.0-A (Production-Ready Paper Trading)  
-**Last Updated:** 2025-11-30  
+**Last Updated:** 2025-12-01  
 **Classification:** Technical Build Specification  
 **Purpose:** Complete technical reference for development teams  
 **Status:** Beta / Production-Ready (Paper Mode)
@@ -39,7 +39,8 @@
 21. [Autonomous Trading System](#21-autonomous-trading-system)
 22. [Battle Simulator](#22-battle-simulator)
 23. [HyperLearner](#23-hyperlearner)
-24. [Vision & Roadmap](#24-vision--roadmap)
+24. [Signal & Alert Services](#24-signal--alert-services)
+25. [Vision & Roadmap](#25-vision--roadmap)
 
 ---
 
@@ -63,21 +64,24 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 
 | Metric | Value |
 |--------|-------|
-| **Total Files** | 516 source files |
-| **Total Lines of Code** | 121,207 lines |
-| **API Endpoints** | 123 REST endpoints |
+| **Total Files** | 520+ source files |
+| **Total Lines of Code** | 125,000+ lines |
+| **API Endpoints** | 130+ REST endpoints |
 | **Development Stage** | Beta / Production-Ready (Paper Mode) |
 | **Execution Mode** | PAPER (Alpaca connected) |
+| **Symbol Universe** | 251 symbols (64 penny, 110 low-float) |
 
 ### 1.4 Capability Summary
 
 - **145+ Protocols**: 80 Tier + 25 Learning + 20 MonsterRunner + 20 Omega
 - **QuantraScore**: 0-100 probability-weighted composite score
 - **Universal Scanner**: 7 market cap buckets × 4 scan modes
-- **Offline ML**: On-device ApexCore v3 neural models with 5 prediction heads
+- **Offline ML**: On-device ApexCore v3 neural models with **7 prediction heads** (including timing & runup)
 - **Full Paper Trading**: Alpaca integration with all position types
 - **Self-Learning**: Feedback loop → ApexLab → periodic retraining
 - **All Trading Types**: Long, short, margin, intraday, swing, scalping
+- **Low-Float Screener**: Real-time penny runner detection (110 symbols)
+- **SMS Alerts**: Twilio-powered trading signal notifications
 
 ### 1.5 Trading Capabilities
 
@@ -2516,13 +2520,101 @@ src/quantracore_apex/hyperlearner/
 
 ---
 
-## 24. Vision & Roadmap
+## 24. Signal & Alert Services
 
-### 24.1 System Potential
+### 24.1 Manual Trading Signal Service (ApexSignalService)
+
+**Location:** `src/quantracore_apex/signals/signal_service.py`
+
+Generates actionable trading signals for manual execution on external platforms (Webull, TD Ameritrade, Robinhood, etc.) without requiring API integration.
+
+#### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Signal Ranking** | Priority score based on QuantraScore, runner probability, timing urgency |
+| **Timing Guidance** | Actionable language (e.g., "ENTER NOW - Move expected within 15 minutes") |
+| **Entry/Exit Levels** | ATR-based with 2:1 minimum risk/reward ratio |
+| **Conviction Tiers** | high / medium / low / avoid |
+| **Predicted Top Price** | Expected runup from runup model head |
+| **24h Rolling Store** | Signal persistence to disk |
+
+#### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/signals/live` | GET | Get current live signals |
+| `/signals/scan` | POST | Scan universe for signals |
+| `/signals/symbol/{symbol}` | GET | Get signal for specific symbol |
+| `/signals/status` | GET | Signal service status |
+
+### 24.2 SMS Alert Service
+
+**Location:** `src/quantracore_apex/signals/sms_service.py`
+
+Sends trading signals via Twilio SMS with configurable thresholds.
+
+#### Features
+
+| Feature | Description |
+|---------|-------------|
+| **QuantraScore Display** | Score and conviction tier in message |
+| **Predicted Top Price** | Expected runup percentage |
+| **Entry/Stop/Target** | Complete trade setup levels |
+| **Rate Limiting** | Max alerts per hour, per-symbol cooldown |
+| **Timing Bucket** | When move is expected |
+
+#### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/sms/status` | GET | SMS service status and config |
+| `/sms/config` | POST | Update SMS thresholds |
+| `/sms/test` | POST | Send test SMS |
+| `/sms/alert` | POST | Trigger SMS for symbol |
+
+### 25.3 Low-Float Runner Screener
+
+**Location:** `src/quantracore_apex/signals/low_float_screener.py`
+
+Real-time scanner for penny stock runners with volume surge and momentum detection.
+
+#### Detection Criteria
+
+| Criteria | Threshold | Description |
+|----------|-----------|-------------|
+| Relative Volume | 3x+ | Volume vs 20-day average |
+| Price Momentum | 5%+ | Intraday price change |
+| Max Float | 50M | Shares outstanding filter |
+| Price Range | $0.10 - $20 | Penny/small-cap focus |
+
+#### Symbol Universe (110 Low-Float)
+
+| Bucket | Count | Examples |
+|--------|-------|----------|
+| **Penny** | 64 | MARA, RIOT, SOFI, GME, AMC, PLTR, PLUG, LCID, NIO |
+| **Nano** | 20 | SNDL, TELL, MNMD, OCGN, CRBP, TNXP, CEI |
+| **Micro** | 26 | Various $50M-$300M market cap stocks |
+
+#### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/screener/status` | GET | Screener status and config |
+| `/screener/scan` | POST | Scan for low-float runners |
+| `/screener/alerts` | GET | Get current alerts |
+| `/screener/config` | POST | Update screener thresholds |
+| `/screener/alert-runner` | POST | Send SMS for detected runner |
+
+---
+
+## 25. Vision & Roadmap
+
+### 25.1 System Potential
 
 QuantraCore Apex is architected as a **self-improving institutional-grade trading intelligence system**. While currently operating in research mode with limited data connectivity, the infrastructure supports full-scale quantitative operations.
 
-### 24.2 Current State vs. Full Potential
+### 25.2 Current State vs. Full Potential
 
 | Capability | Current State | Full Connectivity |
 |------------|---------------|-------------------|
@@ -2534,7 +2626,7 @@ QuantraCore Apex is architected as a **self-improving institutional-grade tradin
 | Learning Cycle | Manual training | Continuous retraining |
 | Execution Mode | Paper only | Paper → Live ready |
 
-### 24.3 Full Connectivity Roadmap
+### 25.3 Full Connectivity Roadmap
 
 #### Phase 1: Data Ingestion (Day 1)
 When premium data subscriptions activate:
@@ -2562,7 +2654,7 @@ When premium data subscriptions activate:
 - Every trade outcome feeds back into HyperLearner
 - Models retrain weekly on fresh outcomes — **compounding intelligence**
 
-### 24.4 The Flywheel Effect
+### 25.4 The Flywheel Effect
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -2584,7 +2676,7 @@ When premium data subscriptions activate:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 24.5 Infrastructure Already Built
+### 25.5 Infrastructure Already Built
 
 | Component | Purpose | Status |
 |-----------|---------|--------|
@@ -2596,7 +2688,7 @@ When premium data subscriptions activate:
 | **Battle Simulator** | SEC EDGAR institutional intelligence | Active |
 | **Training Pipeline** | Polygon live data → ApexCore models | Tested & validated |
 
-### 24.6 Competitive Positioning
+### 25.6 Competitive Positioning
 
 #### What Top Quant Firms Have
 - Billions in capital and infrastructure
@@ -2613,7 +2705,7 @@ When premium data subscriptions activate:
 - **Institutional Intelligence**: Battle Simulator learns from public 13F filings
 - **Desktop-Scale Efficiency**: Runs on-device without cloud dependencies
 
-### 24.7 End State Vision
+### 25.7 End State Vision
 
 A fully operational QuantraCore Apex system:
 1. **Scans** the entire market continuously (10,000+ symbols)
@@ -2623,7 +2715,7 @@ A fully operational QuantraCore Apex system:
 5. **Adapts** to regime changes automatically (regime classification)
 6. **Compounds** intelligence through the flywheel effect
 
-### 24.8 Data Subscription Requirements
+### 25.8 Data Subscription Requirements
 
 | Data Type | Provider | Purpose |
 |-----------|----------|---------|
@@ -2634,7 +2726,7 @@ A fully operational QuantraCore Apex system:
 | SEC Filings | EDGAR (free) | Institutional holdings (active) |
 | Fundamentals | Polygon Fundamentals | Earnings, financials |
 
-### 24.9 Activation Sequence
+### 25.9 Activation Sequence
 
 When data subscriptions are connected:
 
