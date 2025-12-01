@@ -342,15 +342,29 @@ All 25 learning protocols fully implemented for ApexLab labels.
 
 ---
 
-## 13. ApexDesk UI Panels
+## 13. ApexDesk UI Panels (9 Panels)
 
-| Panel | Description |
-|-------|-------------|
-| Universe Scanner | Symbol scanning with score display |
-| Signal Detail + Trace | Redundant scores, drift flags, gates |
-| Risk & Exposure | Portfolio snapshot, sector exposure |
-| Drift & Health | Drift metrics, consistency, model status |
-| Replay & Research | Trigger replays, view equity curves |
+The institutional trading dashboard provides real-time monitoring and control via 9 specialized panels built with React 18.2, Vite 7.2, and Tailwind CSS 4.0:
+
+| Panel | Description | Key Features |
+|-------|-------------|--------------|
+| **SystemStatusPanel** | Real-time system health monitoring | Market hours, broker status, compliance score, data feeds, ApexCore model status |
+| **PortfolioPanel** | Live Alpaca paper trading portfolio | Total equity, cash, positions with P&L, real-time updates (15s intervals) |
+| **TradingSetupsPanel** | Top trading opportunities ranked by QuantraScore | Signal ranking, conviction tiers, entry/stop/target levels, timing guidance |
+| **ModelMetricsPanel** | ApexCore V3 model performance | 7 prediction heads, training samples, accuracy metrics, model reload |
+| **AutoTraderPanel** | Autonomous swing trade execution | Trade status, position hold decisions, continuation probability |
+| **SignalsAlertsPanel** | Live signals and SMS alert status | Active signals, Twilio SMS configuration, alert history |
+| **RunnerScreenerPanel** | Low-float penny stock scanner | 110 symbols, volume surge detection, momentum alerts |
+| **ContinuousLearningPanel** | ML training orchestrator status | Drift detection, incremental learning, training schedule |
+| **LogsProvenancePanel** | System logs and audit trail | Real-time logs, provenance tracking, compliance audit |
+
+### Velocity Mode System
+
+| Mode | Refresh Rate | Use Case |
+|------|--------------|----------|
+| Standard | 30s | Research and analysis |
+| High Velocity | 5s | Active trading sessions |
+| Turbo | 2s | Scalping and rapid execution |
 
 ---
 

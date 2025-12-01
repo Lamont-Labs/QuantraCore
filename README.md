@@ -10,13 +10,14 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)]()
 [![React](https://img.shields.io/badge/React-18.2-61DAFB)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6)]()
-[![Vite](https://img.shields.io/badge/Vite-5.0-646CFF)]()
+[![Vite](https://img.shields.io/badge/Vite-7.2-646CFF)]()
 [![Tailwind](https://img.shields.io/badge/Tailwind-4.0-06B6D4)]()
 [![Desktop](https://img.shields.io/badge/platform-desktop%20only-orange)]()
 [![License](https://img.shields.io/badge/license-proprietary-red)]()
 [![Status](https://img.shields.io/badge/status-production--ready-success)]()
 [![Code](https://img.shields.io/badge/lines-121K+-informational)]()
-[![Endpoints](https://img.shields.io/badge/API-123%20endpoints-blueviolet)]()
+[![Endpoints](https://img.shields.io/badge/API-148%20endpoints-blueviolet)]()
+[![Dashboard](https://img.shields.io/badge/Dashboard-9%20panels-cyan)]()
 
 **Owner:** Lamont Labs - Jesse J. Lamont  
 **Version:** v9.0-A (Production-Ready Paper Trading)  
@@ -30,15 +31,16 @@
 | Component | Status | Details |
 |-----------|--------|---------|
 | **ApexEngine** | Operational | Deterministic core with 80 Tier protocols |
-| **ApexDesk UI** | Operational | React 18 + Vite 5 + Tailwind CSS 4 |
-| **FastAPI Backend** | Operational | **123 REST endpoints** on port 8000 |
+| **ApexDesk UI** | Operational | React 18.2 + Vite 7.2 + Tailwind CSS 4 (9 panels) |
+| **FastAPI Backend** | Operational | **148 REST endpoints** on port 8000 |
 | **Test Suite** | **1,145 tests passing** | Regulatory excellence + hardening + institutional |
 | **Universal Scanner** | Operational | 7 market cap buckets, 4 scan modes |
 | **Alpaca Paper Trading** | **Connected** | All position types enabled |
 | **Data Layer** | Operational | Alpaca (200/min) + Polygon (5/min) |
-| **ApexCore Models** | Operational | V2 neural models (scikit-learn) |
+| **ApexCore Models** | Operational | V3 neural models with 7 prediction heads |
 | **Broker Layer** | Operational | Paper trading with 9-check risk engine |
 | **EEO Engine** | Operational | Entry/exit optimization, 6 strategies |
+| **Velocity Mode** | Operational | Standard (30s), High (5s), Turbo (2s) |
 
 ### Trading Capabilities (All Enabled)
 

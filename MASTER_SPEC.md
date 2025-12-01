@@ -109,8 +109,9 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Python 3.11, FastAPI, Uvicorn |
-| Frontend | React 18.2, Vite 5, Tailwind CSS 4.0, TypeScript |
+| Backend | Python 3.11, FastAPI, Uvicorn (port 8000) |
+| Frontend | React 18.2, Vite 7.2, Tailwind CSS 4.0, TypeScript (port 5000) |
+| Dashboard | 9 real-time panels with Velocity Mode (Standard/High/Turbo) |
 | Machine Learning | scikit-learn (GradientBoosting), joblib |
 | Numerical | NumPy, Pandas |
 | Testing | pytest (1,145+ tests), vitest |

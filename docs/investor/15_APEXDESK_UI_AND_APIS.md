@@ -19,21 +19,35 @@ ApexDesk is the React-based dashboard that provides a visual interface for resea
 | Component | Technology |
 |-----------|------------|
 | Framework | React 18.2 |
-| Build Tool | Vite 5 |
+| Build Tool | Vite 7.2 |
 | Language | TypeScript |
-| Styling | Tailwind CSS 3.4 |
-| State | React hooks |
+| Styling | Tailwind CSS 4.0 |
+| State | React hooks + Context |
+| Port | 5000 (Frontend) |
 
-### Key Views
+### Dashboard Panels (9 Total)
 
-| View | Purpose |
-|------|---------|
-| **Scanner** | Browse and filter scan results |
-| **Signal Details** | Deep dive into individual symbols |
-| **Proof Explorer** | Audit decision traces |
-| **Model Metrics** | View ApexCore performance |
-| **Lab Status** | Monitor ApexLab datasets |
-| **Compliance** | View regulatory scores |
+The institutional trading dashboard provides real-time monitoring and control via 9 specialized panels:
+
+| Panel | Description | Key Features |
+|-------|-------------|--------------|
+| **SystemStatusPanel** | Real-time system health monitoring | Market hours, broker status, compliance score, data feeds, ApexCore model status |
+| **PortfolioPanel** | Live Alpaca paper trading portfolio | Total equity, cash, positions with P&L, real-time updates (15s intervals) |
+| **TradingSetupsPanel** | Top trading opportunities ranked by QuantraScore | Signal ranking, conviction tiers, entry/stop/target levels, timing guidance |
+| **ModelMetricsPanel** | ApexCore V3 model performance | 7 prediction heads, training samples, accuracy metrics, model reload |
+| **AutoTraderPanel** | Autonomous swing trade execution | Trade status, position hold decisions, continuation probability |
+| **SignalsAlertsPanel** | Live signals and SMS alert status | Active signals, Twilio SMS configuration, alert history |
+| **RunnerScreenerPanel** | Low-float penny stock scanner | 110 symbols, volume surge detection, momentum alerts |
+| **ContinuousLearningPanel** | ML training orchestrator status | Drift detection, incremental learning, training schedule |
+| **LogsProvenancePanel** | System logs and audit trail | Real-time logs, provenance tracking, compliance audit |
+
+### Velocity Mode System
+
+| Mode | Refresh Rate | Use Case |
+|------|--------------|----------|
+| Standard | 30s | Research and analysis |
+| High Velocity | 5s | Active trading sessions |
+| Turbo | 2s | Scalping and rapid execution |
 
 ---
 
@@ -98,7 +112,7 @@ ApexDesk is the React-based dashboard that provides a visual interface for resea
 
 ## API Endpoints
 
-The FastAPI backend exposes 36 REST endpoints organized by category.
+The FastAPI backend exposes 148 REST endpoints organized by category (running on port 8000).
 
 ### Health & System
 
