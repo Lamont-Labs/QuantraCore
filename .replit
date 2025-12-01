@@ -36,7 +36,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -m uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000"
+args = "python -m uvicorn src.quantracore_apex.server.app:app --host 0.0.0.0 --port 8000 --workers 4"
 waitForPort = 8000
 
 [[workflows.workflow]]
@@ -70,10 +70,6 @@ externalPort = 5000
 [[ports]]
 localPort = 8000
 externalPort = 8000
-
-[[ports]]
-localPort = 8080
-externalPort = 8080
 
 [[ports]]
 localPort = 34751

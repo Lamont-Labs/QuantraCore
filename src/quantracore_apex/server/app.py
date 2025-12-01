@@ -2,18 +2,21 @@
 FastAPI Application for QuantraCore Apex.
 
 Provides REST API for Apex engine functionality.
+Performance optimized with orjson serialization and gzip compression.
 """
 
-from fastapi import FastAPI, HTTPException, Header, Depends, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Header, Depends, BackgroundTasks, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, ORJSONResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import logging
 import os
 import time
+import orjson
 
 from src.quantracore_apex.core.engine import ApexEngine
 from src.quantracore_apex.core.schemas import ApexContext
@@ -113,8 +116,12 @@ ALLOWED_ORIGINS = [
     "https://*.repl.co",
 ]
 
-CACHE_MAX_SIZE = 1000
+CACHE_MAX_SIZE = 5000
 CACHE_TTL_SECONDS = 300
+PREDICTION_CACHE_SIZE = 2000
+PREDICTION_CACHE_TTL = 120
+QUOTE_CACHE_SIZE = 1000
+QUOTE_CACHE_TTL = 30
 
 
 class CacheEntry:
@@ -188,15 +195,18 @@ def verify_api_key(x_api_key: Optional[str] = Header(None, alias=API_KEY_HEADER)
 
 
 def create_app() -> FastAPI:
-    """Create and configure the FastAPI application."""
+    """Create and configure the FastAPI application with performance optimizations."""
     
     app = FastAPI(
         title="QuantraCore Apex API",
         description="Institutional-Grade Deterministic AI Trading Intelligence Engine (v9.0-A Institutional Hardening)",
         version="9.0-A",
         docs_url="/docs",
-        redoc_url="/redoc"
+        redoc_url="/redoc",
+        default_response_class=ORJSONResponse,
     )
+    
+    app.add_middleware(GZipMiddleware, minimum_size=500)
     
     allowed_origin_regex = r"https://.*\.(replit\.dev|repl\.co)|http://localhost:\d+|http://127\.0\.0\.1:\d+"
     
@@ -223,6 +233,9 @@ def create_app() -> FastAPI:
     signal_builder = SignalBuilder()
     
     scan_cache = TTLCache(max_size=CACHE_MAX_SIZE, ttl=CACHE_TTL_SECONDS)
+    prediction_cache = TTLCache(max_size=PREDICTION_CACHE_SIZE, ttl=PREDICTION_CACHE_TTL)
+    quote_cache = TTLCache(max_size=QUOTE_CACHE_SIZE, ttl=QUOTE_CACHE_TTL)
+    health_cache = TTLCache(max_size=10, ttl=5)
     
     @app.get("/")
     async def root():
@@ -391,11 +404,10 @@ def create_app() -> FastAPI:
     
     @app.post("/scan_universe")
     async def scan_universe(request: UniverseScanRequest):
-        """Scan multiple symbols and return summarized results."""
-        results = []
-        errors = []
+        """Scan multiple symbols and return summarized results with parallel processing."""
         
-        for symbol in request.symbols:
+        async def scan_single_symbol(symbol: str):
+            """Helper for parallel symbol scanning."""
             try:
                 scan_request = ScanRequest(
                     symbol=symbol,
@@ -403,9 +415,20 @@ def create_app() -> FastAPI:
                     lookback_days=request.lookback_days
                 )
                 result = await scan_symbol(scan_request)
-                results.append(result.model_dump())
+                return {"success": True, "result": result.model_dump()}
             except Exception as e:
-                errors.append({"symbol": symbol, "error": str(e)})
+                return {"success": False, "symbol": symbol, "error": str(e)}
+        
+        scan_tasks = [scan_single_symbol(sym) for sym in request.symbols]
+        scan_results = await asyncio.gather(*scan_tasks, return_exceptions=False)
+        
+        results = []
+        errors = []
+        for item in scan_results:
+            if item["success"]:
+                results.append(item["result"])
+            else:
+                errors.append({"symbol": item["symbol"], "error": item["error"]})
         
         results.sort(key=lambda x: x["quantrascore"], reverse=True)
         
@@ -1696,6 +1719,11 @@ def create_app() -> FastAPI:
     async def predictive_advise(request: PredictiveAdvisoryRequest):
         """Get predictive advisory for a symbol (ApexCore V2 integration)."""
         try:
+            cache_key = f"pred:{request.symbol}:{request.lookback_days}:{request.timeframe}"
+            cached_result = prediction_cache.get(cache_key)
+            if cached_result is not None:
+                return cached_result
+            
             from pathlib import Path
             import joblib
             
@@ -1870,7 +1898,9 @@ def create_app() -> FastAPI:
                     "timestamp": datetime.utcnow().isoformat()
                 }
                 
-                return convert_numpy_types(response)
+                final_response = convert_numpy_types(response)
+                prediction_cache.set(cache_key, final_response)
+                return final_response
             else:
                 return {
                     "symbol": request.symbol,

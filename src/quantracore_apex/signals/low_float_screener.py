@@ -20,6 +20,48 @@ import os
 
 logger = logging.getLogger(__name__)
 
+_alpaca_client_cache: Dict[str, Any] = {}
+_quote_cache: Dict[str, Dict] = {}
+_quote_cache_time: Dict[str, datetime] = {}
+QUOTE_CACHE_TTL_SECONDS = 30
+
+def get_cached_alpaca_client():
+    """Get or create cached Alpaca client for performance."""
+    global _alpaca_client_cache
+    
+    if "stock_client" not in _alpaca_client_cache:
+        api_key = os.environ.get("ALPACA_PAPER_API_KEY")
+        api_secret = os.environ.get("ALPACA_PAPER_API_SECRET")
+        
+        if api_key and api_secret:
+            try:
+                from alpaca.data.historical import StockHistoricalDataClient
+                _alpaca_client_cache["stock_client"] = StockHistoricalDataClient(api_key, api_secret)
+                logger.info("[LowFloatScreener] Alpaca client cached for warm loading")
+            except Exception as e:
+                logger.warning(f"[LowFloatScreener] Could not create Alpaca client: {e}")
+                return None
+    
+    return _alpaca_client_cache.get("stock_client")
+
+def get_cached_quote(symbol: str) -> Optional[Dict]:
+    """Get cached quote if still valid."""
+    global _quote_cache, _quote_cache_time
+    
+    if symbol in _quote_cache:
+        cache_time = _quote_cache_time.get(symbol)
+        if cache_time and (datetime.utcnow() - cache_time).total_seconds() < QUOTE_CACHE_TTL_SECONDS:
+            return _quote_cache[symbol]
+    return None
+
+def cache_quotes(quotes: Dict[str, Dict]) -> None:
+    """Cache quotes for subsequent requests."""
+    global _quote_cache, _quote_cache_time
+    now = datetime.utcnow()
+    for symbol, quote in quotes.items():
+        _quote_cache[symbol] = quote
+        _quote_cache_time[symbol] = now
+
 
 @dataclass
 class LowFloatAlert:
@@ -130,26 +172,36 @@ class LowFloatScreener:
         return alerts
     
     async def _fetch_realtime_quotes(self, symbols: List[str]) -> Dict[str, Dict]:
-        """Fetch real-time quotes from Alpaca."""
+        """Fetch real-time quotes from Alpaca with caching."""
         quotes = {}
+        symbols_to_fetch = []
+        
+        for sym in symbols:
+            cached = get_cached_quote(sym)
+            if cached:
+                quotes[sym] = cached
+            else:
+                symbols_to_fetch.append(sym)
+        
+        if not symbols_to_fetch:
+            logger.debug(f"[LowFloatScreener] All {len(symbols)} quotes served from cache")
+            return quotes
         
         try:
-            api_key = os.environ.get("ALPACA_PAPER_API_KEY")
-            api_secret = os.environ.get("ALPACA_PAPER_API_SECRET")
+            client = get_cached_alpaca_client()
             
-            if not api_key or not api_secret:
+            if not client:
                 logger.warning("[LowFloatScreener] Alpaca credentials not configured")
                 return self._generate_synthetic_quotes(symbols)
             
-            from alpaca.data.historical import StockHistoricalDataClient
             from alpaca.data.requests import StockLatestQuoteRequest, StockBarsRequest
             from alpaca.data.timeframe import TimeFrame
             
-            client = StockHistoricalDataClient(api_key, api_secret)
-            
             batch_size = 50
-            for i in range(0, len(symbols), batch_size):
-                batch = symbols[i:i+batch_size]
+            fetched_quotes = {}
+            
+            for i in range(0, len(symbols_to_fetch), batch_size):
+                batch = symbols_to_fetch[i:i+batch_size]
                 
                 try:
                     request = StockLatestQuoteRequest(symbol_or_symbols=batch)
@@ -178,7 +230,7 @@ class LowFloatScreener:
                             
                             current_price = (quote.ask_price + quote.bid_price) / 2 if quote.bid_price else quote.ask_price
                             
-                            quotes[sym] = {
+                            fetched_quotes[sym] = {
                                 "symbol": sym,
                                 "price": current_price,
                                 "prev_close": prev_close,
@@ -194,6 +246,11 @@ class LowFloatScreener:
                     continue
                 
                 await asyncio.sleep(0.1)
+            
+            cache_quotes(fetched_quotes)
+            quotes.update(fetched_quotes)
+            
+            logger.debug(f"[LowFloatScreener] Fetched {len(fetched_quotes)} quotes, {len(quotes) - len(fetched_quotes)} from cache")
                 
         except Exception as e:
             logger.error(f"[LowFloatScreener] Quote fetch error: {e}")

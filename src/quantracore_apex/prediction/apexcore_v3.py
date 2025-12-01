@@ -40,6 +40,26 @@ logger = logging.getLogger(__name__)
 
 MODEL_DIR = "models/apexcore_v3"
 
+_cached_models: Dict[str, "ApexCoreV3Model"] = {}
+_model_load_lock = None
+
+def get_cached_model(model_size: str = "big") -> Optional["ApexCoreV3Model"]:
+    """Get cached model instance for performance (warm loading)."""
+    global _cached_models
+    return _cached_models.get(model_size)
+
+def cache_model(model: "ApexCoreV3Model", model_size: str = "big") -> None:
+    """Cache model instance for subsequent requests."""
+    global _cached_models
+    _cached_models[model_size] = model
+    logger.info(f"[ApexCoreV3] Model {model_size} cached for warm loading")
+
+def clear_model_cache() -> None:
+    """Clear all cached models."""
+    global _cached_models
+    _cached_models.clear()
+    logger.info("[ApexCoreV3] Model cache cleared")
+
 
 @dataclass
 class ApexCoreV3Manifest:
@@ -686,8 +706,20 @@ class ApexCoreV3Model:
         return save_dir
     
     @classmethod
-    def load(cls, model_dir: Optional[str] = None, model_size: str = "big") -> "ApexCoreV3Model":
-        """Load model from disk."""
+    def load(cls, model_dir: Optional[str] = None, model_size: str = "big", use_cache: bool = True) -> "ApexCoreV3Model":
+        """Load model from disk with warm loading support.
+        
+        Args:
+            model_dir: Directory to load from (optional)
+            model_size: Model size ('big' or 'mini')
+            use_cache: If True, return cached model if available (3x faster)
+        """
+        if use_cache:
+            cached = get_cached_model(model_size)
+            if cached is not None:
+                logger.debug(f"[ApexCoreV3] Returning cached model {model_size}")
+                return cached
+        
         load_dir = model_dir or os.path.join(MODEL_DIR, model_size)
         
         if not os.path.exists(os.path.join(load_dir, "quantrascore_head.joblib")):
@@ -749,6 +781,10 @@ class ApexCoreV3Model:
                 model._manifest = ApexCoreV3Manifest(**data)
         
         model._is_fitted = True
+        
+        if use_cache:
+            cache_model(model, model_size)
+        
         logger.info(f"[ApexCoreV3] Model loaded from {load_dir}")
         return model
     

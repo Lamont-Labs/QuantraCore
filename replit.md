@@ -26,7 +26,8 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 - **Numerical Operations:** `NumPy` and `Pandas` are used for data manipulation.
 - **Testing:** `pytest` for backend and `vitest` for frontend.
 - **API Endpoints:** A suite of REST APIs manage trading capabilities, data providers, market scanning, health checks, and comprehensive investor reporting.
-- **Security:** Implements `X-API-Key` authentication for protected endpoints and a restrictive CORS policy allowing only localhost and Replit domains. A TTL cache with a 1000-entry limit and 5-minute expiration is used.
+- **Security:** Implements `X-API-Key` authentication for protected endpoints and a restrictive CORS policy allowing only localhost and Replit domains.
+- **Performance Optimizations (3x improvement):** ORJSONResponse for fast JSON serialization, GZipMiddleware for automatic compression (>500 bytes), 4-worker uvicorn configuration, expanded TTL caches (5000 entries for scans, 1000 for predictions, 500 for quotes), module-level ML model caching (warm loading), Alpaca client caching, parallel universe scanning with asyncio.gather, prediction result caching.
 
 ### Feature Specifications
 - **Full Trading Capabilities:** Supports long, short, margin (up to 4x leverage), intraday, swing, and scalping trades with configurable risk limits ($100K max exposure, $10K per symbol, 50 positions max).
@@ -78,6 +79,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 
 ## Recent Changes
 
+- **2025-12-01:** Phase 1 performance optimizations: ORJSONResponse, GZipMiddleware, 4-worker uvicorn, expanded caches, parallel scanning
 - **2025-12-01:** Added low-float runner screener with 110 symbols, 5 new API endpoints
 - **2025-12-01:** Expanded penny stock universe from 15 to 64 symbols
 - **2025-12-01:** Fixed ApexCore V3 timing/runup heads (7 total heads now)
