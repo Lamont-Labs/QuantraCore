@@ -335,6 +335,10 @@ All 25 learning protocols fully implemented for ApexLab labels.
 | `/drift/status` | GET | Current drift metrics |
 | `/replay/run_demo` | POST | Run sandbox replay |
 | `/score/consistency/{symbol}` | GET | Score consistency check |
+| `/model/status` | GET | Model version, hash, reload status |
+| `/model/reload` | POST | Force model hot-reload |
+| `/apexlab/train-incremental` | POST | Trigger incremental training update |
+| `/apexlab/incremental/status` | GET | Incremental learning status and buffer metrics |
 
 ---
 
@@ -500,3 +504,76 @@ Fully autonomous swing trade executor with Alpaca paper trading integration.
 - Excludes existing positions
 - ATR-based stop-loss levels
 - Position size limits enforced
+
+---
+
+## 20. Model Management & Continuous Learning
+
+### 20.1 Hot Model Reload System (ModelManager)
+
+Unified model management with automatic hot-reload, cache clearing, and version tracking.
+
+| Component | Description |
+|-----------|-------------|
+| ModelManager | Singleton coordinator for model lifecycle |
+| Cache Integration | Automatic clearing of ApexCore, SignalService, AutoTrader caches |
+| Subscriber Pattern | Services subscribe for reload notifications |
+| Version Tracking | SHA-256 hash, file size, load timestamp |
+
+**Workflow:**
+1. Training completes, writes new model to disk
+2. Training endpoint calls `model_manager.notify_model_updated()`
+3. ModelManager reloads model, clears prediction caches
+4. All subscribers notified (SignalService, AutoTrader, etc.)
+5. Version metadata updated for monitoring
+
+**Endpoints:** `/model/status`, `/model/reload`
+
+### 20.2 Dual-Phase Incremental Learning (IncrementalTrainer)
+
+Efficient knowledge retention system for continuous market adaptation.
+
+| Feature | Description |
+|---------|-------------|
+| Warm-Start | Builds on previous model weights instead of retraining from scratch |
+| Dual-Buffer | Anchor reservoir (rare patterns) + Recency buffer (recent samples) |
+| Time-Decay | Older samples weighted less but preserved for long-term memory |
+| Graceful Fallback | LightGBM when available, scikit-learn warm_start as fallback |
+
+**Buffer Architecture:**
+
+| Buffer | Purpose | Size |
+|--------|---------|------|
+| Anchor Reservoir | Preserves rare, high-value patterns (runners, extremes) | 20K samples |
+| Recency Buffer | Rolling window of recent market observations | 80K samples |
+
+**Learning Strategy:**
+- Fast incremental updates: Add ~50 trees in seconds when drift exceeds 0.5× threshold or ≥5K new samples
+- Full refresh: Complete retrain when drift breaches threshold or weekly heartbeat
+- Time-decay halflife: 30 days (older samples weighted less but never forgotten)
+- Rare pattern boost: 2× weight multiplier for preserved anchor samples
+
+**GBMHead Implementation:**
+- Primary: LightGBM with `init_model` for warm-start (fastest)
+- Fallback: scikit-learn GradientBoosting with `warm_start=True`
+- Automatic detection: System uses LightGBM if `libgomp` available, otherwise fallback
+
+**7 Prediction Heads with Incremental Training:**
+
+| Head | Type | Output |
+|------|------|--------|
+| quantrascore | Regression | 0-100 score |
+| runner | Binary | Monster runner probability |
+| quality | Multiclass | Quality tier (0-4) |
+| avoid | Binary | Avoid signal |
+| regime | Multiclass | Market regime (0-4) |
+| timing | Multiclass | Move timing bucket (0-4) |
+| runup | Regression | Expected price appreciation (0-100%+) |
+
+**Endpoints:** `POST /apexlab/train-incremental`, `GET /apexlab/incremental/status`
+
+**Manifest Tracking:**
+- Version number, training timestamp
+- Total samples, anchor/recency split
+- Head-specific tree counts
+- Drift metrics at training time
