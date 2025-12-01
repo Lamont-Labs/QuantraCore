@@ -64,12 +64,12 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 
 | Metric | Value |
 |--------|-------|
-| **Total Files** | 520+ source files |
-| **Total Lines of Code** | 125,000+ lines |
-| **API Endpoints** | 130+ REST endpoints |
+| **Total Files** | 478 Python files |
+| **Total Lines of Code** | 100,000+ lines |
+| **API Endpoints** | 148 REST endpoints |
 | **Development Stage** | Beta / Production-Ready (Paper Mode) |
 | **Execution Mode** | PAPER (Alpaca connected) |
-| **Symbol Universe** | 251 symbols (64 penny, 110 low-float) |
+| **Symbol Universe** | 251 symbols (64 penny, 114 low-float) |
 
 ### 1.4 Capability Summary
 
@@ -80,7 +80,7 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 - **Full Paper Trading**: Alpaca integration with all position types
 - **Self-Learning**: Feedback loop → ApexLab → periodic retraining
 - **All Trading Types**: Long, short, margin, intraday, swing, scalping
-- **Low-Float Screener**: Real-time penny runner detection (110 symbols)
+- **Low-Float Screener**: Real-time penny runner detection (114 symbols)
 - **SMS Alerts**: Twilio-powered trading signal notifications
 
 ### 1.5 Trading Capabilities
@@ -125,8 +125,8 @@ The system implements multiple layers of performance optimization to achieve 3x 
 | **Response Compression** | GZipMiddleware (>500 bytes) | 60-80% bandwidth reduction |
 | **Multi-Worker** | Uvicorn with 4 workers | Parallel request handling |
 | **Scan Cache** | TTLCache (5000 entries, 5min TTL) | Eliminates redundant universe scans |
-| **Prediction Cache** | TTLCache (1000 entries, 60s TTL) | Caches ML inference results |
-| **Quote Cache** | TTLCache (500 entries, 30s TTL) | Reduces Alpaca API calls |
+| **Prediction Cache** | TTLCache (2000 entries, 120s TTL) | Caches ML inference results |
+| **Quote Cache** | TTLCache (1000 entries, 30s TTL) | Reduces Alpaca API calls |
 | **Model Warm Loading** | Module-level ML model cache | Eliminates 200-500ms cold-start |
 | **Client Reuse** | Module-level Alpaca client cache | Reuses authenticated connections |
 | **Parallel Scanning** | asyncio.gather for universe scans | Concurrent symbol processing |
@@ -1573,8 +1573,8 @@ data/
 | Cache | Max Size | TTL | Purpose |
 |-------|----------|-----|---------|
 | `scan_cache` | 5000 | 300s | Universe scan results |
-| `prediction_cache` | 1000 | 60s | ML inference results |
-| `quote_cache` | 500 | 30s | Alpaca quote data |
+| `prediction_cache` | 2000 | 120s | ML inference results |
+| `quote_cache` | 1000 | 30s | Alpaca quote data |
 
 **Module-Level Caching:**
 

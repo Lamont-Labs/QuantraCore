@@ -462,13 +462,13 @@ Twilio-powered SMS alerts for trading signals.
 
 ### 19.3 Low-Float Runner Screener
 
-Real-time scanner for penny stock runners (110 symbols).
+Real-time scanner for penny stock runners (114 symbols).
 
 | Criteria | Threshold |
 |----------|-----------|
 | Relative Volume | 3x+ |
 | Price Momentum | 5%+ |
 | Max Float | 50M shares |
-| Symbol Universe | 64 penny + 20 nano + 26 micro |
+| Symbol Universe | 64 penny + 20 nano + 30 micro |
 
 **Endpoints:** `/screener/status`, `/screener/scan`, `/screener/alerts`, `/screener/config`, `/screener/alert-runner`

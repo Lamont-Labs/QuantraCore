@@ -27,7 +27,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 - **Testing:** `pytest` for backend and `vitest` for frontend.
 - **API Endpoints:** A suite of REST APIs manage trading capabilities, data providers, market scanning, health checks, and comprehensive investor reporting.
 - **Security:** Implements `X-API-Key` authentication for protected endpoints and a restrictive CORS policy allowing only localhost and Replit domains.
-- **Performance Optimizations (3x improvement):** ORJSONResponse for fast JSON serialization, GZipMiddleware for automatic compression (>500 bytes), 4-worker uvicorn configuration, expanded TTL caches (5000 entries for scans, 1000 for predictions, 500 for quotes), module-level ML model caching (warm loading), Alpaca client caching, parallel universe scanning with asyncio.gather, prediction result caching.
+- **Performance Optimizations (3x improvement):** ORJSONResponse for fast JSON serialization, GZipMiddleware for automatic compression (>500 bytes), 4-worker uvicorn configuration, expanded TTL caches (5000 entries for scans, 2000 for predictions @ 120s TTL, 1000 for quotes @ 30s TTL), module-level ML model caching (warm loading), Alpaca client caching, parallel universe scanning with asyncio.gather, prediction result caching.
 
 ### Feature Specifications
 - **Full Trading Capabilities:** Supports long, short, margin (up to 4x leverage), intraday, swing, and scalping trades with configurable risk limits ($100K max exposure, $10K per symbol, 50 positions max).
@@ -42,7 +42,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 - **Continuous Learning System:** Autonomous learning orchestrator with: (1) Auto-learning scheduler running every **15 minutes**, (2) Incremental learning with warm-start and 100K sample cache, (3) Drift detection for feature/label distribution changes (15% threshold), (4) Validation gates before model promotion, (5) Multi-pass training epochs, (6) **Extended 251 symbol universe** covering tech, financials, energy, healthcare, consumer, and more. API endpoints: `POST /apexlab/continuous/start`, `GET /apexlab/continuous/status`, `POST /apexlab/continuous/trigger`.
 - **Manual Trading Signal Service (ApexSignalService):** Generates actionable trading signals for use on external platforms (Webull, TD Ameritrade, etc.) without API integration. Features: (1) Signal ranking by priority score (quantrascore, runner probability, timing urgency), (2) Timing guidance with actionable language (e.g., "ENTER NOW - Move expected within 15 minutes"), (3) ATR-based entry/exit levels with 2:1 minimum risk/reward, (4) Conviction tiers (high/medium/low/avoid), (5) Signal persistence to disk (24h rolling store), (6) **Predicted top price** from runup model. API endpoints: `GET /signals/live`, `POST /signals/scan`, `GET /signals/symbol/{symbol}`, `GET /signals/status`.
 - **SMS Alert Service:** Sends trading signals via Twilio SMS with configurable thresholds. Features: (1) QuantraScore and conviction tier display, (2) Predicted top price with expected runup %, (3) Entry/stop/target levels, (4) Rate limiting (max alerts/hour, per-symbol cooldown), (5) Timing bucket guidance. API endpoints: `GET /sms/status`, `POST /sms/config`, `POST /sms/test`, `POST /sms/alert`.
-- **Low-Float Runner Screener:** Real-time scanner for penny stock runners with volume surge and momentum detection. Features: (1) 3x+ relative volume threshold, (2) 5%+ price momentum filter, (3) Max 50M float filter for true low-float stocks, (4) ApexCore V3 prediction integration, (5) SMS alerts for detected runners, (6) Per-symbol cooldowns to prevent alert spam. Scans **110 low-float symbols** (64 penny + 20 nano + 26 micro caps). API endpoints: `GET /screener/status`, `POST /screener/scan`, `GET /screener/alerts`, `POST /screener/config`, `POST /screener/alert-runner`.
+- **Low-Float Runner Screener:** Real-time scanner for penny stock runners with volume surge and momentum detection. Features: (1) 3x+ relative volume threshold, (2) 5%+ price momentum filter, (3) Max 50M float filter for true low-float stocks, (4) ApexCore V3 prediction integration, (5) SMS alerts for detected runners, (6) Per-symbol cooldowns to prevent alert spam. Scans **114 low-float symbols** (64 penny + 20 nano + 30 micro caps). API endpoints: `GET /screener/status`, `POST /screener/scan`, `GET /screener/alerts`, `POST /screener/config`, `POST /screener/alert-runner`.
 - **MarketSimulator:** Provides 8 chaos scenarios for stress testing the system.
 - **Protocol System:** Comprises 80 Tier protocols for analysis, 25 Learning protocols for training labels, 20 MonsterRunner protocols for explosive movement detection, and 20 Omega Directives as safety overrides.
 - **Investor Trade Logging:** Comprehensive logging of every paper trade with details on account state, signal quality, market context, risk assessment, protocol analysis, execution details, and trade outcome, stored in `investor_logs/`.
@@ -52,13 +52,13 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 |--------|-------|-------------|
 | **Penny** | 64 | Sub-$5 volatile small-caps (MARA, RIOT, SOFI, GME, AMC, etc.) |
 | **Nano** | 20 | Ultra-small caps < $50M (SNDL, TELL, MNMD, etc.) |
-| **Micro** | 26 | Micro caps $50M-$300M |
-| **Small** | 22 | Small caps $300M-$2B |
-| **Mid** | 39 | Mid caps $2B-$10B |
+| **Micro** | 30 | Micro caps $50M-$300M |
+| **Small** | 40 | Small caps $300M-$2B |
+| **Mid** | 40 | Mid caps $2B-$10B |
 | **Large** | 50 | Large caps $10B-$200B |
 | **Mega** | 30 | Mega caps > $200B (AAPL, MSFT, GOOGL, etc.) |
 
-**Low-Float Universe:** 110 symbols (penny + nano + micro) for runner scanning.
+**Low-Float Universe:** 114 symbols (penny + nano + micro) for runner scanning.
 
 ### System Design Choices
 - **Broker Layer:** Supports `NullAdapter` (research), `PaperSimAdapter` (offline simulation), and `AlpacaPaperAdapter` (live paper trading).
@@ -80,7 +80,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 ## Recent Changes
 
 - **2025-12-01:** Phase 1 performance optimizations: ORJSONResponse, GZipMiddleware, 4-worker uvicorn, expanded caches, parallel scanning
-- **2025-12-01:** Added low-float runner screener with 110 symbols, 5 new API endpoints
+- **2025-12-01:** Added low-float runner screener with 114 symbols, 5 new API endpoints
 - **2025-12-01:** Expanded penny stock universe from 15 to 64 symbols
 - **2025-12-01:** Fixed ApexCore V3 timing/runup heads (7 total heads now)
 - **2025-11-30:** Added SMS alert service with Twilio integration
