@@ -183,6 +183,7 @@ class AlpacaDataAdapter:
             "timeframe": alpaca_tf,
             "adjustment": "all",
             "limit": 10000,
+            "feed": "iex",
         }
         
         all_bars = []
@@ -360,6 +361,7 @@ class AlpacaDataAdapter:
             "timeframe": alpaca_tf,
             "adjustment": "all",
             "limit": 10000,
+            "feed": "iex",
         }
         
         result = {sym: [] for sym in symbols}

@@ -190,6 +190,7 @@ class AlpacaFetcher:
             "timeframe": "1Day",
             "adjustment": "all",
             "limit": 10000,
+            "feed": "iex",
         }
         
         all_bars = []
@@ -487,7 +488,7 @@ class UnifiedTrainer:
         
         logger.info(f"Available sources: {sources}")
         
-        end_date = datetime.now()
+        end_date = datetime.now() - timedelta(minutes=20)
         start_date = end_date - timedelta(days=self.config.lookback_days)
         
         symbols = self.config.symbols
