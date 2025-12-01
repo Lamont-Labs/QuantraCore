@@ -48,11 +48,27 @@ class ApexCoreV3Manifest:
     model_size: str
     trained_at: str
     training_samples: int
-    feature_count: int
-    heads: List[str]
-    accuracy_modules: List[str]
     metrics: Dict[str, float]
-    feature_names: List[str]
+    feature_count: int = 0
+    heads: List[str] = None
+    accuracy_modules: List[str] = None
+    feature_names: List[str] = None
+    data_sources: Dict[str, Any] = None
+    lookback_days: int = 0
+    note: str = ""
+    augmentation: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.heads is None:
+            self.heads = []
+        if self.accuracy_modules is None:
+            self.accuracy_modules = []
+        if self.feature_names is None:
+            self.feature_names = []
+        if self.data_sources is None:
+            self.data_sources = {}
+        if self.augmentation is None:
+            self.augmentation = {}
     
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
