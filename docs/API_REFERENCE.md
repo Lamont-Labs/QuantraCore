@@ -107,6 +107,101 @@ Export audit data to file.
 
 ---
 
+### GET /trading/account
+
+Get Alpaca paper trading account status.
+
+**Response:**
+```json
+{
+  "account": {
+    "equity": 100015.21,
+    "cash": 67347.43,
+    "buying_power": 167362.64,
+    "positions_count": 4,
+    "positions": [
+      {"symbol": "NET", "qty": 50, "market_value": 9943.50, "unrealized_pl": -6.00}
+    ]
+  },
+  "timestamp": "2025-12-01T19:05:00Z"
+}
+```
+
+---
+
+### GET /trading/setups
+
+Get ranked swing trade candidates.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `top_n` | integer | No | Number of setups to return (default: 10) |
+| `min_score` | float | No | Minimum QuantraScore (default: 60.0) |
+
+**Response:**
+```json
+{
+  "setups": [
+    {
+      "symbol": "NET",
+      "quantrascore": 83.0,
+      "current_price": 198.60,
+      "entry": 198.80,
+      "stop": 196.29,
+      "target": 203.81,
+      "shares": 50,
+      "position_value": 9930.00,
+      "risk_amount": 125.50,
+      "reward_amount": 250.50,
+      "risk_reward": 2.0,
+      "conviction": "low",
+      "regime": "range_bound",
+      "timing": "none"
+    }
+  ],
+  "count": 9,
+  "timestamp": "2025-12-01T19:03:00Z"
+}
+```
+
+---
+
+### POST /trading/execute
+
+Execute top swing trades on Alpaca paper trading.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `count` | integer | No | Number of trades to execute (default: 3) |
+
+**Response:**
+```json
+{
+  "execution_result": {
+    "success": true,
+    "timestamp": "2025-12-01T19:03:18Z",
+    "account_before": {"equity": 100027.00, "cash": 96938.11},
+    "account_after": {"equity": 100017.42, "cash": 72543.11},
+    "setups_scanned": 9,
+    "trades_selected": [
+      {"symbol": "NET", "quantrascore": 83.0, "shares": 50, "entry": 198.80}
+    ],
+    "trades_executed": [
+      {"symbol": "NET", "order_id": "a10b4734-9d31-...", "shares": 50, "status": "new"}
+    ]
+  },
+  "timestamp": "2025-12-01T19:03:19Z"
+}
+```
+
+**Side Effect:** Executes market orders on Alpaca paper trading; logs trades to `investor_logs/auto_trades/`
+
+---
+
 ## Error Responses
 
 ### 400 Bad Request

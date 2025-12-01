@@ -472,3 +472,31 @@ Real-time scanner for penny stock runners (114 symbols).
 | Symbol Universe | 64 penny + 20 nano + 30 micro |
 
 **Endpoints:** `/screener/status`, `/screener/scan`, `/screener/alerts`, `/screener/config`, `/screener/alert-runner`
+
+### 19.4 AutoTrader — Automatic Swing Trade Execution
+
+Fully autonomous swing trade executor with Alpaca paper trading integration.
+
+| Feature | Description |
+|---------|-------------|
+| Universe Scan | Real-time analysis via ApexSignalService |
+| Qualification | QuantraScore >= 60.0 threshold |
+| Position Sizing | 10% of account equity per trade |
+| Execution | Market orders via AlpacaPaperAdapter |
+| Audit Trail | Full trade logging to `investor_logs/auto_trades/` |
+
+**Workflow:**
+1. Scan universe for qualified setups
+2. Rank by QuantraScore descending
+3. Select top N (default 3) excluding existing positions
+4. Calculate position size based on account equity
+5. Execute market orders on Alpaca paper trading
+6. Log all trades for audit compliance
+
+**Endpoints:** `/trading/account`, `/trading/setups`, `/trading/execute`
+
+**Safety Controls:**
+- Paper trading only (Alpaca paper-api)
+- Excludes existing positions
+- ATR-based stop-loss levels
+- Position size limits enforced

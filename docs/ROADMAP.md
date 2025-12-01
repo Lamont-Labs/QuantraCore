@@ -38,6 +38,11 @@ This roadmap outlines the planned development trajectory for QuantraCore Apex. A
 - **Regulatory Excellence Module** — 163 compliance tests (2x stricter)
 - **970+ institutional-grade tests**
 - Comprehensive documentation (v9.0-A)
+- **Signal & Alert Services** — Manual trading signals, SMS alerts via Twilio
+- **Low-Float Runner Screener** — Real-time penny stock scanner (114 symbols)
+- **Investor Due Diligence Suite** — 8 modules, 70+ endpoints, automated attestations
+- **AutoTrader** — Automatic swing trade execution on Alpaca paper trading
+- **Performance Optimizations** — 3x improvement with ORJSONResponse, GZipMiddleware
 
 ---
 

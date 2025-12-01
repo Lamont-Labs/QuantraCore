@@ -2341,6 +2341,68 @@ src/quantracore_apex/autonomous/
     └── rolling_window.py          # Bar aggregation
 ```
 
+### 21.11 AutoTrader — Automatic Swing Trade Execution
+
+The AutoTrader provides fully autonomous swing trade execution, scanning the universe and executing top-ranked setups on Alpaca paper trading.
+
+**Workflow:**
+1. **Universe Scan** — Analyzes all symbols using ApexSignalService
+2. **Qualification** — Filters for QuantraScore >= 60.0
+3. **Ranking** — Sorts by QuantraScore descending
+4. **Selection** — Picks top N (default 3) excluding existing positions
+5. **Position Sizing** — 10% of account equity per trade
+6. **Execution** — Market orders via AlpacaPaperAdapter
+7. **Logging** — Full audit trail to `investor_logs/auto_trades/`
+
+**Configuration:**
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `max_positions` | 3 | Maximum concurrent auto-trades |
+| `max_position_pct` | 0.10 | 10% of equity per position |
+| `min_quantrascore` | 60.0 | Minimum score threshold |
+
+**API Endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/trading/account` | GET | View Alpaca account & positions |
+| `/trading/setups` | GET | Get ranked trade candidates |
+| `/trading/execute` | POST | Execute top N swing trades |
+
+**Example Execution:**
+
+```bash
+# Execute top 3 swing trades
+curl -X POST "http://localhost:8000/trading/execute?count=3"
+
+# Response shows:
+# - Setups scanned (e.g., 9 qualified)
+# - Trades selected (e.g., NET, NOW, ADBE)
+# - Execution results (order IDs, status)
+# - Account before/after comparison
+```
+
+**Safety Controls:**
+- Paper trading only (Alpaca paper-api.alpaca.markets)
+- Excludes symbols with existing positions
+- ATR-based stop-loss levels
+- Full trade logging for audit
+- Position size limits enforced
+
+**Directory Structure:**
+
+```
+src/quantracore_apex/trading/
+├── __init__.py              # Module exports
+└── auto_trader.py           # AutoTrader implementation
+
+investor_logs/auto_trades/   # Trade audit logs
+├── auto_trade_NET_20251201_190318.json
+├── auto_trade_NOW_20251201_190318.json
+└── auto_trade_ADBE_20251201_190319.json
+```
+
 ---
 
 ## 22. Battle Simulator — Competitive Intelligence
@@ -2872,6 +2934,8 @@ The Investor Due Diligence Suite is a comprehensive platform for institutional-g
 | 9.0-A | 2025-11-30 | Added Section 24: Vision & Roadmap documenting full system potential |
 | 9.0-A | 2025-12-01 | Added Phase 1 performance optimizations (3x improvement) |
 | 9.0-A | 2025-12-01 | Added Section 26: Investor Due Diligence Suite specification |
+| 9.0-A | 2025-12-01 | Added AutoTrader (21.11) - automatic swing trade execution on Alpaca paper trading |
+| 9.0-A | 2025-12-01 | Added 3 new trading endpoints: `/trading/account`, `/trading/setups`, `/trading/execute` |
 
 ---
 
