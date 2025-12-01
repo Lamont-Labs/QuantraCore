@@ -1,7 +1,15 @@
 """
 Automatic Swing Trade Executor.
 
-Scans the universe, picks top setups, and executes trades on Alpaca paper.
+LEGAL NOTICE AND COMPLIANCE:
+- This module operates EXCLUSIVELY on Alpaca PAPER trading accounts
+- NO REAL MONEY is ever at risk - all trades are simulated
+- All outputs are for RESEARCH and EDUCATIONAL purposes only
+- This is NOT financial advice and should not be treated as such
+- Past performance in paper trading does NOT guarantee future results
+- Users are solely responsible for any decisions made based on this system
+
+Scans the universe, picks top setups, and executes simulated trades on Alpaca paper.
 """
 
 import logging
@@ -55,13 +63,20 @@ class ExecutedTrade:
 
 class AutoTrader:
     """
-    Automatic swing trade executor.
+    Automatic swing trade executor for PAPER TRADING ONLY.
+    
+    IMPORTANT LEGAL DISCLAIMERS:
+    - Executes ONLY on Alpaca paper trading accounts (simulated, no real money)
+    - All signals are structural probability analyses for research purposes
+    - This is NOT investment advice and should not be treated as such
+    - Past paper trading performance does NOT guarantee future results
+    - The system may produce losses even in paper trading
     
     Workflow:
-    1. Scan universe for top setups
-    2. Rank by QuantraScore
-    3. Apply position sizing
-    4. Execute on Alpaca paper
+    1. Scan universe for top setups (research analysis)
+    2. Rank by QuantraScore (probability metric, not guarantee)
+    3. Apply position sizing (simulated positions)
+    4. Execute on Alpaca paper (NO REAL MONEY)
     """
     
     def __init__(

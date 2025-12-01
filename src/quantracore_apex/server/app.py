@@ -6463,6 +6463,12 @@ def create_app() -> FastAPI:
                 },
                 "recent_trades": recent_trades,
                 "account": account_status if "error" not in account_status else None,
+                "compliance": {
+                    "paper_trading_only": True,
+                    "no_real_money_risk": True,
+                    "broker": "Alpaca Paper Trading",
+                    "legal_notice": "SIMULATION ONLY - This is paper trading with no real money. Not investment advice. Past performance does not guarantee future results.",
+                },
                 "timestamp": datetime.utcnow().isoformat()
             }
         except Exception as e:

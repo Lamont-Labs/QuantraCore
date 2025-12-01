@@ -45,6 +45,7 @@ export function AutoTraderPanel({ compact = false }: AutoTraderPanelProps) {
   const isEnabled = status?.enabled ?? false
   const isProfitable = (status?.today_pnl ?? 0) >= 0
   const recentTrades = status?.recent_trades ?? []
+  const isPaperMode = status?.mode === 'paper'
 
   return (
     <div className={`apex-card ${compact ? 'p-3' : ''}`}>
@@ -52,6 +53,9 @@ export function AutoTraderPanel({ compact = false }: AutoTraderPanelProps) {
         <h3 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
           <span className="text-lg">🤖</span>
           AutoTrader
+          <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded border border-amber-500/40">
+            PAPER ONLY
+          </span>
         </h3>
         <div className="flex items-center gap-2">
           <span className={`px-2 py-0.5 rounded text-xs font-bold ${
@@ -66,6 +70,17 @@ export function AutoTraderPanel({ compact = false }: AutoTraderPanelProps) {
           </span>
         </div>
       </div>
+      
+      {isPaperMode && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 text-sm">⚠️</span>
+            <span className="text-amber-400/90 text-xs font-medium">
+              SIMULATED TRADING - No real money at risk
+            </span>
+          </div>
+        </div>
+      )}
 
       {error ? (
         <div className="text-center py-4">
@@ -159,6 +174,12 @@ export function AutoTraderPanel({ compact = false }: AutoTraderPanelProps) {
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-slate-700/50">
+            <div className="text-xs text-amber-400/70 text-center">
+              Paper trading simulation only - Not investment advice - Past performance does not guarantee results
+            </div>
           </div>
         </>
       )}
