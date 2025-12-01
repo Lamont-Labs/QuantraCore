@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { api, type BrokerStatusResponse, type ComplianceScoreResponse, type DataProvidersResponse, type PredictiveStatusResponse } from '../lib/api'
+import { api, type BrokerStatusResponse, type ComplianceScoreResponse, type DataProvidersResponse, type PredictiveStatusResponse, type MarketHoursResponse } from '../lib/api'
 import { useVelocityMode } from '../hooks/useVelocityMode'
 
 interface SystemStatusPanelProps {
@@ -11,6 +11,7 @@ export function SystemStatusPanel({ compact = false }: SystemStatusPanelProps) {
   const [compliance, setCompliance] = useState<ComplianceScoreResponse | null>(null)
   const [providers, setProviders] = useState<DataProvidersResponse | null>(null)
   const [predictive, setPredictive] = useState<PredictiveStatusResponse | null>(null)
+  const [marketHours, setMarketHours] = useState<MarketHoursResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const { config } = useVelocityMode()
@@ -22,11 +23,12 @@ export function SystemStatusPanel({ compact = false }: SystemStatusPanelProps) {
     
     async function loadData() {
       try {
-        const [brokerData, complianceData, providersData, predictiveData] = await Promise.all([
+        const [brokerData, complianceData, providersData, predictiveData, marketHoursData] = await Promise.all([
           api.getBrokerStatus().catch(() => null),
           api.getComplianceScore().catch(() => null),
           api.getDataProviders().catch(() => null),
           api.getPredictiveStatus().catch(() => null),
+          api.getMarketHours().catch(() => null),
         ])
         
         if (!mounted) return
@@ -38,6 +40,7 @@ export function SystemStatusPanel({ compact = false }: SystemStatusPanelProps) {
         if (complianceData) setCompliance(complianceData)
         if (providersData) setProviders(providersData)
         if (predictiveData) setPredictive(predictiveData)
+        if (marketHoursData) setMarketHours(marketHoursData)
         setLastUpdate(new Date())
       } catch (err) {
         console.warn('SystemStatusPanel load error:', err)
@@ -56,7 +59,14 @@ export function SystemStatusPanel({ compact = false }: SystemStatusPanelProps) {
 
 
   const activeProviders = providers?.providers.filter(p => p.available).length ?? 0
-
+  
+  const getSessionStatus = (): 'operational' | 'warning' | 'exceptional' | 'error' => {
+    if (!marketHours) return 'error'
+    if (marketHours.current_session === 'regular') return 'exceptional'
+    if (marketHours.trading_allowed) return 'operational'
+    return 'warning'
+  }
+  
   return (
     <div className={`apex-card ${compact ? 'p-3' : ''}`}>
       <div className="flex items-center justify-between mb-4">
@@ -69,7 +79,19 @@ export function SystemStatusPanel({ compact = false }: SystemStatusPanelProps) {
         </span>
       </div>
 
-      <div className={`grid ${compact ? 'grid-cols-2 gap-2' : 'grid-cols-4 gap-3'}`}>
+      <div className={`grid ${compact ? 'grid-cols-2 gap-2' : 'grid-cols-5 gap-3'}`}>
+        <StatusCard
+          label="Market"
+          value={marketHours?.session_display ?? 'Unknown'}
+          status={getSessionStatus()}
+          detail={marketHours?.trading_allowed ? 'Trading Active' : 'Trading Paused'}
+          icon={
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+        />
+      
         <StatusCard
           label="Broker"
           value={broker?.mode ?? 'OFFLINE'}
@@ -156,6 +178,34 @@ export function SystemStatusPanel({ compact = false }: SystemStatusPanelProps) {
               <div className="text-slate-500 text-xs mb-1">Open Orders</div>
               <div className="text-white font-mono">{broker.open_order_count}</div>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {!compact && marketHours && (
+        <div className="mt-4 pt-4 border-t border-slate-700/50">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-slate-400 uppercase tracking-wider">Extended Hours Trading</span>
+            <span className={`text-xs px-2 py-0.5 rounded ${marketHours.extended_hours_enabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}`}>
+              {marketHours.extended_hours_enabled ? 'Enabled' : 'Disabled'}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-4 text-xs">
+            <div className={`p-2 rounded ${marketHours.current_session === 'pre_market' ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-slate-800/50'}`}>
+              <div className="text-amber-400 font-medium mb-1">Pre-Market</div>
+              <div className="text-slate-400 font-mono">{marketHours.session_schedule.pre_market}</div>
+            </div>
+            <div className={`p-2 rounded ${marketHours.current_session === 'regular' ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-slate-800/50'}`}>
+              <div className="text-emerald-400 font-medium mb-1">Regular</div>
+              <div className="text-slate-400 font-mono">{marketHours.session_schedule.regular}</div>
+            </div>
+            <div className={`p-2 rounded ${marketHours.current_session === 'after_hours' ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-slate-800/50'}`}>
+              <div className="text-purple-400 font-medium mb-1">After-Hours</div>
+              <div className="text-slate-400 font-mono">{marketHours.session_schedule.after_hours}</div>
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            {marketHours.current_time_et} | {marketHours.is_extended_hours ? 'Extended Hours Active' : marketHours.current_session === 'regular' ? 'Regular Trading Session' : 'Market Closed'}
           </div>
         </div>
       )}

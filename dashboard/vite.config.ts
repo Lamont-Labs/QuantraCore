@@ -132,6 +132,14 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
+      '/market': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/positions': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
     },
   },
   build: {

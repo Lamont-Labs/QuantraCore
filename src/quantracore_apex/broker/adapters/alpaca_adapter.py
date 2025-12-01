@@ -181,13 +181,20 @@ class AlpacaPaperAdapter(BrokerAdapter):
             raise
     
     def place_order(self, order: OrderTicket) -> ExecutionResult:
-        """Place an order with Alpaca."""
+        """Place an order with Alpaca.
+        
+        Extended hours trading is enabled by default to support:
+        - Pre-market: 4:00 AM - 9:30 AM ET
+        - Regular hours: 9:30 AM - 4:00 PM ET
+        - After-hours: 4:00 PM - 8:00 PM ET
+        """
         body = {
             "symbol": order.symbol.upper(),
             "qty": str(order.qty),
             "side": self.SIDE_MAP[order.side],
             "type": self.ORDER_TYPE_MAP[order.order_type],
             "time_in_force": self.TIME_IN_FORCE_MAP[order.time_in_force],
+            "extended_hours": getattr(order, 'extended_hours', True),
         }
         
         if order.limit_price is not None and order.order_type in [OrderType.LIMIT, OrderType.STOP_LIMIT]:

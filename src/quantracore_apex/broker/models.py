@@ -101,6 +101,7 @@ class OrderTicket:
     intent: OrderIntent = OrderIntent.OPEN_LONG
     source_signal_id: str = ""
     strategy_id: str = "default"
+    extended_hours: bool = True  # Enable extended hours trading by default
     metadata: OrderMetadata = field(default_factory=OrderMetadata)
     ticket_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -118,6 +119,7 @@ class OrderTicket:
             "intent": self.intent.value,
             "source_signal_id": self.source_signal_id,
             "strategy_id": self.strategy_id,
+            "extended_hours": self.extended_hours,
             "metadata": self.metadata.to_dict(),
             "created_at": self.created_at.isoformat(),
         }

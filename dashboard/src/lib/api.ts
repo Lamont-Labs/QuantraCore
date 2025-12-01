@@ -7,6 +7,33 @@ export interface HealthResponse {
   data_layer: string
 }
 
+export interface MarketHoursResponse {
+  current_session: 'pre_market' | 'regular' | 'after_hours' | 'closed' | 'unknown'
+  session_display: string
+  is_extended_hours: boolean
+  trading_allowed: boolean
+  trading_allowed_regular_only: boolean
+  current_time_et: string
+  current_time_utc: string
+  is_weekend: boolean
+  is_holiday: boolean
+  is_early_close: boolean
+  next_session_info: {
+    next_session: string
+    next_session_start: string
+    hours_until: number
+    hours_until_close?: number
+    next_trading_day?: string
+  }
+  session_schedule: {
+    pre_market: string
+    regular: string
+    after_hours: string
+  }
+  extended_hours_enabled: boolean
+  note: string
+}
+
 export interface ScanRequest {
   symbol: string
   timeframe?: string
@@ -526,6 +553,10 @@ async function request<T>(endpoint: string, options?: RequestInit, retries = 2):
 export const api = {
   getHealth(): Promise<HealthResponse> {
     return request('/health')
+  },
+
+  getMarketHours(): Promise<MarketHoursResponse> {
+    return request('/market/hours')
   },
 
   scanSymbol(params: ScanRequest): Promise<ScanResult> {

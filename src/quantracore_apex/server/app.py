@@ -255,6 +255,29 @@ def create_app() -> FastAPI:
             "data_layer": "operational"
         }
     
+    @app.get("/market/hours")
+    async def get_market_hours():
+        """
+        Get current market hours status with extended hours support.
+        
+        Extended Market Hours (Eastern Time):
+        - Pre-market: 4:00 AM - 9:30 AM ET
+        - Regular hours: 9:30 AM - 4:00 PM ET
+        - After-hours: 4:00 PM - 8:00 PM ET
+        """
+        try:
+            from src.quantracore_apex.trading.market_hours import get_market_hours_service
+            service = get_market_hours_service()
+            return service.get_status()
+        except Exception as e:
+            logger.error(f"Market hours check failed: {e}")
+            return {
+                "current_session": "unknown",
+                "session_display": "Unknown",
+                "trading_allowed": False,
+                "error": str(e),
+            }
+    
     @app.get("/trading_capabilities")
     async def get_trading_capabilities():
         """Get current trading capabilities and configuration."""
