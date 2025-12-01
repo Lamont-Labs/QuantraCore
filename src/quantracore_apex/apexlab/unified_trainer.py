@@ -187,7 +187,7 @@ class AlpacaFetcher:
         params = {
             "start": start.strftime("%Y-%m-%dT%H:%M:%SZ"),
             "end": end.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "timeframe": "1Day",
+            "timeframe": "15Min",
             "adjustment": "all",
             "limit": 10000,
             "feed": "iex",
@@ -215,7 +215,7 @@ class AlpacaFetcher:
                 resp.raise_for_status()
                 data = resp.json()
                 
-                bars_data = data.get("bars", [])
+                bars_data = data.get("bars") or []
                 for bar in bars_data:
                     try:
                         timestamp = datetime.fromisoformat(bar["t"].replace("Z", "+00:00"))
@@ -489,25 +489,13 @@ class UnifiedTrainer:
         logger.info(f"Available sources: {sources}")
         
         end_date = datetime.now() - timedelta(minutes=20)
-        
-        polygon_start = end_date - timedelta(days=730)
-        alpaca_start = end_date - timedelta(days=1825)
+        alpaca_start = end_date - timedelta(days=90)
         
         symbols = self.config.symbols
         
-        if len(sources) == 2:
-            mid = len(symbols) // 2
-            assignments = [
-                (s, "polygon", polygon_start) for s in symbols[:mid]
-            ] + [
-                (s, "alpaca", alpaca_start) for s in symbols[mid:]
-            ]
-        elif "polygon" in sources:
-            assignments = [(s, "polygon", polygon_start) for s in symbols]
-        else:
-            assignments = [(s, "alpaca", alpaca_start) for s in symbols]
+        assignments = [(s, "alpaca", alpaca_start) for s in symbols]
         
-        logger.info(f"Fetching {len(symbols)} symbols: Polygon=2yr, Alpaca=5yr...")
+        logger.info(f"Fetching {len(symbols)} symbols from Alpaca (15-min bars, 90 days)...")
         
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             futures = {
