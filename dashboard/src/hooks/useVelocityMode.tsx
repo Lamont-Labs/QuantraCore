@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode, type ReactElement } from 'react'
 
 export type VelocityMode = 'standard' | 'high' | 'turbo'
 
@@ -74,15 +74,17 @@ export function useVelocityMode(): VelocityContextType {
   return context
 }
 
-export function VelocityProvider({ children }: { children: ReactNode }) {
+export function VelocityProvider({ children }: { children: ReactNode }): ReactElement {
   const [mode, setMode] = useState<VelocityMode>('standard')
 
   const config = VELOCITY_CONFIGS[mode]
   const isHighVelocity = mode === 'high' || mode === 'turbo'
   const isTurbo = mode === 'turbo'
 
+  const contextValue: VelocityContextType = { mode, config, setMode, isHighVelocity, isTurbo }
+
   return (
-    <VelocityContext.Provider value={{ mode, config, setMode, isHighVelocity, isTurbo }}>
+    <VelocityContext.Provider value={contextValue}>
       {children}
     </VelocityContext.Provider>
   )
