@@ -1470,6 +1470,7 @@ def create_app() -> FastAPI:
             
             for mode_name in modes_list:
                 config = load_scan_mode(mode_name)
+                from dataclasses import asdict
                 modes_detail.append({
                     "name": config.name,
                     "description": config.description,
@@ -1478,8 +1479,8 @@ def create_app() -> FastAPI:
                     "chunk_size": config.chunk_size,
                     "is_smallcap_focused": config.is_smallcap_focused,
                     "is_extreme_risk": config.is_extreme_risk,
-                    "risk_flags": config.risk_flags,
-                    "filters": config.filters.model_dump() if config.filters else None,
+                    "risk_default": config.risk_default,
+                    "filters": asdict(config.filters) if config.filters else None,
                 })
             
             return {
