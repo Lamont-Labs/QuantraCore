@@ -79,6 +79,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 
 ## Recent Changes
 
+- **2025-12-01:** Scoped Investor Due Diligence Suite (8 modules, 70+ endpoints) - see `docs/INVESTOR_DUE_DILIGENCE_SUITE_SPEC.md`
 - **2025-12-01:** Phase 1 performance optimizations: ORJSONResponse, GZipMiddleware, 4-worker uvicorn, expanded caches, parallel scanning
 - **2025-12-01:** Added low-float runner screener with 114 symbols, 5 new API endpoints
 - **2025-12-01:** Expanded penny stock universe from 15 to 64 symbols

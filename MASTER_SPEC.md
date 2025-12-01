@@ -41,6 +41,7 @@
 23. [HyperLearner](#23-hyperlearner)
 24. [Signal & Alert Services](#24-signal--alert-services)
 25. [Vision & Roadmap](#25-vision--roadmap)
+26. [Investor Due Diligence Suite](#26-investor-due-diligence-suite)
 
 ---
 
@@ -2810,6 +2811,55 @@ orchestrator.start()
 
 ---
 
+## 26. Investor Due Diligence Suite
+
+### 26.1 Overview
+
+The Investor Due Diligence Suite is a comprehensive platform for institutional-grade investor relations, performance verification, and compliance documentation. It transforms raw trading data into investor-grade materials suitable for LP due diligence, regulatory review, and capital allocation decisions.
+
+**Full Specification:** See `docs/INVESTOR_DUE_DILIGENCE_SUITE_SPEC.md`
+
+### 26.2 Eight Core Modules
+
+| Module | Purpose |
+|--------|---------|
+| **Performance Analytics Console** | Equity curves, risk-adjusted metrics, benchmark comparison, attribution |
+| **Trade Intelligence Center** | Complete trade history, statistics, execution quality, signal performance |
+| **Risk Command Center** | Real-time exposure, stress testing, VaR, limit monitoring |
+| **Compliance & Governance Hub** | Policy management, attestations, regulatory readiness, incident tracking |
+| **Audit Trail & Verification** | Broker reconciliation, data integrity, third-party verification |
+| **Legal & Disclosure Center** | Required disclaimers, risk disclosures, fee transparency, consent management |
+| **Secure Data Room** | Document storage, access control, watermarking, audit logging |
+| **Investor Portal** | Self-service dashboard, statements, tax documents, communications |
+
+### 26.3 Key Features
+
+- Real-time transparency (not quarterly snapshots)
+- AI model explainability built-in
+- Automated compliance attestation
+- Verifiable track record with broker reconciliation
+- Self-service investor portal
+- 118 new API endpoints (detailed breakdown in spec)
+- Role-based access control (RBAC)
+
+### 26.4 Implementation Status
+
+| Phase | Scope | Endpoints | Hours | Status |
+|-------|-------|-----------|-------|--------|
+| Phase 1 | Core Analytics | 19 | 85-105 | Planned |
+| Phase 2 | Trade Intelligence | 16 | 70-90 | Planned |
+| Phase 3 | Risk Command | 17 | 85-110 | Planned |
+| Phase 4 | Compliance & Governance | 16 | 95-120 | Planned |
+| Phase 5 | Audit Trail | 12 | 100-130 | Planned |
+| Phase 6 | Legal & Disclosure | 10 | 60-80 | Planned |
+| Phase 7 | Secure Data Room | 13 | 105-135 | Planned |
+| Phase 8 | Investor Portal | 15 | 80-100 | Planned |
+
+**Total:** 118 endpoints, 76 UI surfaces, 680-870 hours  
+**Timeline:** 26-35 weeks sequential, 13-18 weeks with parallel tracks
+
+---
+
 ## Appendix A: Version History
 
 | Version | Date | Changes |
@@ -2820,6 +2870,8 @@ orchestrator.start()
 | 9.0-A | 2025-11-29 | Added HyperLearner hyper-velocity learning system |
 | 9.0-A | 2025-11-30 | Added Polygon Live Data Training Pipeline with real market data training |
 | 9.0-A | 2025-11-30 | Added Section 24: Vision & Roadmap documenting full system potential |
+| 9.0-A | 2025-12-01 | Added Phase 1 performance optimizations (3x improvement) |
+| 9.0-A | 2025-12-01 | Added Section 26: Investor Due Diligence Suite specification |
 
 ---
 
