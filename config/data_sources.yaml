@@ -1,0 +1,104 @@
+# QuantraCore Apex Data Sources Configuration
+# Hybrid Setup: Alpaca (Trading) + Polygon (Market Data)
+# Version: 1.0
+# Date: December 2025
+
+# Data Source Priority Configuration
+# This file controls which provider is used for each data type
+
+data_sources:
+  # Market Data (OHLCV, Quotes, Ticks) - Polygon Primary
+  market_data:
+    primary: "polygon"
+    fallback: "alpaca"
+    notes: "Polygon Developer tier ($249/mo) provides tick-by-tick data for runner detection"
+    
+  # Trading Execution - Alpaca Only
+  trading:
+    primary: "alpaca"
+    fallback: null
+    notes: "Alpaca paper trading for order execution and portfolio management"
+    
+  # Real-time Streaming - Polygon WebSocket
+  streaming:
+    primary: "polygon"
+    fallback: "alpaca"
+    notes: "Polygon WebSocket for real-time tick data"
+
+# Provider Configurations
+providers:
+  polygon:
+    enabled: true
+    env_key: "POLYGON_API_KEY"
+    tier: "developer"  # Options: free, starter, developer, advanced
+    features:
+      - real_time_quotes
+      - tick_data
+      - nbbo_pricing
+      - historical_15_years
+      - websocket_streaming
+    rate_limits:
+      free: 5          # 5 calls/min
+      starter: 100     # Unlimited but 15-min delay
+      developer: 1000  # Unlimited real-time
+      advanced: 10000  # Unlimited + market events
+    latency_ms: 2
+    monthly_cost:
+      free: 0
+      starter: 99
+      developer: 249
+      advanced: 500
+      
+  alpaca:
+    enabled: true
+    env_key: "ALPACA_PAPER_API_KEY"
+    tier: "paper"  # Options: free, algo_trader_plus, elite
+    features:
+      - portfolio_management
+      - order_execution
+      - position_tracking
+      - iex_market_data
+    rate_limits:
+      free: 200       # IEX data only
+      algo_trader_plus: 10000  # Full SIP data
+    notes: "Used for trading execution only in hybrid setup"
+    
+  binance:
+    enabled: true
+    env_key: null  # Public API, no key needed
+    features:
+      - crypto_ohlcv
+      - crypto_quotes
+      - websocket_streaming
+    rate_limits:
+      default: 1200
+    notes: "Free crypto data for Alpha Factory"
+
+# Runner Detection Configuration
+runner_detection:
+  data_source: "polygon"
+  timeframes:
+    - "tick"
+    - "1m"
+    - "5m"
+  volume_surge_threshold: 3.0
+  price_move_threshold: 0.02
+  notes: "Tick data from Polygon enables faster runner detection"
+
+# ML Training Data Source
+ml_training:
+  primary: "polygon"
+  historical_depth_years: 15
+  timeframes:
+    - "1m"
+    - "5m"
+    - "15m"
+    - "1d"
+  notes: "Polygon provides deeper historical data for model training"
+
+# Extended Hours Data
+extended_hours:
+  provider: "polygon"
+  pre_market: true
+  after_hours: true
+  notes: "Polygon has better extended hours coverage"
