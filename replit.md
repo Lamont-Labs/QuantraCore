@@ -52,6 +52,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, uses an insti
 - **Investor Legal Documents:** Legal documentation stored in `docs/investor/legal/`.
 - **Automated Swing Trade Execution (AutoTrader):** Autonomous system scanning for setups, picking top QuantraScore candidates, calculating position sizing, and executing market orders on Alpaca paper trading. Logs auto-trades to `investor_logs/auto_trades/`.
 - **Hot Model Reload System (ModelManager):** Unified model management with automatic hot-reload, cache clearing, and version tracking upon training completion.
+- **Dual-Phase Incremental Learning (IncrementalTrainer):** Efficient knowledge retention system with warm-start capability (builds on previous model weights), dual-buffer architecture (anchor reservoir preserves rare patterns, recency buffer tracks recent samples), time-decay sample weighting (older samples weighted less but preserved), and graceful LightGBM/scikit-learn fallback. API endpoints: POST /apexlab/train-incremental, GET /apexlab/incremental/status.
 
 ### Symbol Universe (251 Total)
 Categorized by market cap (Penny, Nano, Micro, Small, Mid, Large, Mega). 114 low-float symbols (penny + nano + micro) are used for runner scanning.

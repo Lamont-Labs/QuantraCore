@@ -5173,6 +5173,203 @@ def create_app() -> FastAPI:
         }
     
     # =========================================================================
+    # INCREMENTAL LEARNING ENDPOINTS (LightGBM + Warm-Start)
+    # =========================================================================
+    
+    class IncrementalTrainRequest(BaseModel):
+        warm_start: bool = True
+        n_new_trees: int = 50
+        model_size: str = "big"
+    
+    @app.get("/apexlab/incremental/status")
+    async def get_incremental_status():
+        """Get status of the incremental learning model."""
+        try:
+            from src.quantracore_apex.prediction.incremental_learning import get_incremental_model
+            
+            model = get_incremental_model()
+            status = model.get_status()
+            
+            return {
+                "status": "operational",
+                "learning_mode": "incremental",
+                "features": [
+                    "LightGBM warm-start (builds on previous model)",
+                    "Dual-buffer system (anchor + recency)",
+                    "Time-decay sample weighting",
+                    "Rare pattern preservation",
+                ],
+                "model": status,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting incremental status: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/apexlab/incremental/train")
+    async def train_incremental(request: IncrementalTrainRequest, background_tasks: BackgroundTasks):
+        """
+        Train incrementally with LightGBM warm-start.
+        
+        This is the most efficient training mode:
+        - Adds trees to existing model (doesn't retrain from scratch)
+        - Uses time-decayed sample weights
+        - Preserves rare patterns in anchor buffer
+        
+        Perfect for continuous learning.
+        """
+        if _training_status["is_training"]:
+            raise HTTPException(status_code=409, detail="Training already in progress")
+        
+        async def run_incremental():
+            from src.quantracore_apex.prediction.incremental_learning import get_incremental_model
+            
+            _training_status["is_training"] = True
+            _training_status["progress"] = 0
+            _training_status["logs"] = []
+            _training_status["current_step"] = "Initializing incremental trainer"
+            
+            def log(msg: str):
+                _training_status["logs"].append(f"[{datetime.utcnow().strftime('%H:%M:%S')}] {msg}")
+            
+            try:
+                model = get_incremental_model(request.model_size)
+                
+                buffer_stats = model.buffer.get_stats()
+                log(f"[INFO] Buffer: {buffer_stats.anchor_size} anchor + {buffer_stats.recency_size} recency samples")
+                
+                if buffer_stats.total_samples < 30:
+                    log(f"[WARN] Insufficient samples ({buffer_stats.total_samples}), fetching new data...")
+                    
+                    _training_status["current_step"] = "Fetching training data"
+                    _training_status["progress"] = 20
+                    
+                    from src.quantracore_apex.apexlab.unified_trainer import UnifiedTrainer, UnifiedTrainingConfig
+                    config = UnifiedTrainingConfig(lookback_days=90)
+                    trainer = UnifiedTrainer(config)
+                    
+                    stats = trainer.fetch_and_process_all()
+                    log(f"[INFO] Fetched {stats['total_samples']} samples")
+                    
+                    counts = model.add_samples(trainer.training_rows)
+                    log(f"[INFO] Added to buffer: {counts['anchor']} anchor + {counts['recency']} recency")
+                
+                _training_status["current_step"] = f"Training (warm_start={request.warm_start})"
+                _training_status["progress"] = 60
+                
+                log(f"[INFO] Starting incremental training (warm_start={request.warm_start}, n_trees={request.n_new_trees})")
+                
+                metrics = model.train(
+                    warm_start=request.warm_start,
+                    n_new_trees=request.n_new_trees,
+                )
+                
+                model_path = f"models/apexcore_v3_incremental/{request.model_size}"
+                model.save(model_path)
+                log(f"[INFO] Model saved to {model_path}")
+                
+                from src.quantracore_apex.prediction.model_manager import notify_model_updated
+                notify_model_updated(request.model_size)
+                log(f"[INFO] Hot-reload notification sent")
+                
+                log(f"[SUCCESS] Incremental training complete!")
+                _training_status["progress"] = 100
+                _training_status["current_step"] = "Complete"
+                _training_status["last_training"] = datetime.utcnow().isoformat()
+                _training_status["last_result"] = {
+                    "mode": "incremental",
+                    "warm_start": request.warm_start,
+                    "trees_added": request.n_new_trees if request.warm_start else model.quantrascore_head._n_trees,
+                    "metrics": metrics,
+                    "buffer": model.buffer.get_stats().__dict__,
+                }
+                
+            except Exception as e:
+                log(f"[ERROR] Incremental training failed: {e}")
+                import traceback
+                log(f"[DEBUG] {traceback.format_exc()}")
+                _training_status["current_step"] = f"Failed: {e}"
+            finally:
+                _training_status["is_training"] = False
+        
+        background_tasks.add_task(run_incremental)
+        
+        return {
+            "status": "started",
+            "message": "Incremental training started (LightGBM warm-start)",
+            "warm_start": request.warm_start,
+            "n_new_trees": request.n_new_trees,
+            "benefits": [
+                "Faster training (adds trees instead of retraining)",
+                "Preserves existing knowledge",
+                "Time-decay weighting for recent data",
+            ],
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.post("/apexlab/incremental/add-samples")
+    async def add_samples_to_buffer(symbols: Optional[List[str]] = None, lookback_days: int = 30):
+        """
+        Add new training samples to the incremental learning buffer.
+        
+        Samples are automatically sorted into:
+        - Anchor buffer: Rare patterns (runners, crashes)
+        - Recency buffer: Rolling recent samples with time decay
+        """
+        try:
+            from src.quantracore_apex.prediction.incremental_learning import get_incremental_model
+            from src.quantracore_apex.apexlab.unified_trainer import UnifiedTrainer, UnifiedTrainingConfig
+            
+            config = UnifiedTrainingConfig(lookback_days=lookback_days)
+            if symbols:
+                config.symbols = symbols
+            
+            trainer = UnifiedTrainer(config)
+            stats = trainer.fetch_and_process_all()
+            
+            model = get_incremental_model()
+            counts = model.add_samples(trainer.training_rows)
+            
+            buffer_stats = model.buffer.get_stats()
+            
+            return {
+                "status": "success",
+                "samples_fetched": stats["total_samples"],
+                "samples_added": {
+                    "anchor": counts["anchor"],
+                    "recency": counts["recency"],
+                },
+                "buffer_status": {
+                    "anchor_size": buffer_stats.anchor_size,
+                    "recency_size": buffer_stats.recency_size,
+                    "total": buffer_stats.total_samples,
+                    "rare_patterns": buffer_stats.rare_pattern_count,
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error adding samples: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/apexlab/incremental/clear-buffer")
+    async def clear_incremental_buffer():
+        """Clear all samples from the incremental learning buffer."""
+        try:
+            from src.quantracore_apex.prediction.incremental_learning import get_incremental_model
+            
+            model = get_incremental_model()
+            model.buffer.clear()
+            
+            return {
+                "status": "cleared",
+                "message": "Buffer cleared - ready for fresh samples",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error clearing buffer: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    # =========================================================================
     # CONTINUOUS LEARNING ENDPOINTS
     # =========================================================================
     
