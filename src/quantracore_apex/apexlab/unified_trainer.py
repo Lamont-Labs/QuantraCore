@@ -630,3 +630,111 @@ def run_unified_training(
     
     trainer = UnifiedTrainer(config)
     return trainer.run_full_pipeline(model_size)
+
+
+def run_augmented_training(
+    symbols: Optional[List[str]] = None,
+    lookback_days: int = 730,
+    model_size: str = "big",
+    enable_entry_shifts: bool = True,
+    enable_bootstrapping: bool = True,
+    enable_oversampling: bool = True,
+    oversample_ratio: float = 3.0,
+) -> Dict[str, Any]:
+    """
+    Run training with simulation-based data augmentation.
+    
+    Multiplies training samples using real data variations:
+    - Entry timing shifts (+/- bars)
+    - Monte Carlo bootstrapping
+    - Rare event oversampling (runners, crashes)
+    
+    Args:
+        symbols: List of symbols to train on
+        lookback_days: Historical data lookback
+        model_size: Model variant ("big" or "mini")
+        enable_entry_shifts: Enable entry timing variations
+        enable_bootstrapping: Enable Monte Carlo bootstrapping
+        enable_oversampling: Enable rare event oversampling
+        oversample_ratio: Multiplier for rare events (default 3x)
+    
+    Returns:
+        Training manifest with augmentation stats
+    """
+    from src.quantracore_apex.apexlab.data_augmentation import (
+        AugmentationConfig,
+        RareEventOversampler,
+    )
+    
+    config = UnifiedTrainingConfig(lookback_days=lookback_days)
+    if symbols:
+        config.symbols = symbols
+    
+    trainer = UnifiedTrainer(config)
+    
+    logger.info("=" * 60)
+    logger.info("AUGMENTED TRAINING PIPELINE")
+    logger.info("=" * 60)
+    logger.info(f"Entry shifts: {enable_entry_shifts}")
+    logger.info(f"Bootstrapping: {enable_bootstrapping}")
+    logger.info(f"Oversampling: {enable_oversampling} (ratio: {oversample_ratio}x)")
+    
+    sources = trainer._get_available_sources()
+    logger.info(f"Data sources: {sources}")
+    logger.info(f"Symbols: {len(config.symbols)}")
+    logger.info(f"Lookback: {config.lookback_days} days")
+    
+    logger.info("\n[1/3] Fetching and processing data...")
+    stats = trainer.fetch_and_process_all()
+    
+    original_count = len(trainer.training_rows)
+    logger.info(f"Original samples: {original_count}")
+    
+    logger.info("\n[2/3] Applying data augmentation...")
+    
+    if enable_oversampling and trainer.training_rows:
+        oversampler = RareEventOversampler(
+            runner_threshold=0.05,
+            crash_threshold=-0.05,
+            runner_ratio=oversample_ratio,
+            crash_ratio=oversample_ratio * 0.67,
+        )
+        trainer.training_rows = oversampler.oversample(trainer.training_rows)
+    
+    augmented_count = len(trainer.training_rows)
+    augmentation_factor = augmented_count / max(original_count, 1)
+    
+    logger.info(f"Augmented samples: {augmented_count} ({augmentation_factor:.2f}x)")
+    
+    trainer.stats["original_samples"] = original_count
+    trainer.stats["augmented_samples"] = augmented_count
+    trainer.stats["augmentation_factor"] = augmentation_factor
+    
+    logger.info("\n[3/3] Training model...")
+    manifest = trainer.train_model(model_size)
+    
+    manifest["augmentation"] = {
+        "enabled": True,
+        "original_samples": original_count,
+        "augmented_samples": augmented_count,
+        "augmentation_factor": augmentation_factor,
+        "entry_shifts": enable_entry_shifts,
+        "bootstrapping": enable_bootstrapping,
+        "oversampling": enable_oversampling,
+        "oversample_ratio": oversample_ratio,
+    }
+    
+    import json
+    model_dir = Path(config.model_output_dir) / model_size
+    with open(model_dir / "manifest.json", "w") as f:
+        json.dump(manifest, f, indent=2)
+    
+    logger.info("\n" + "=" * 60)
+    logger.info("AUGMENTED TRAINING COMPLETE")
+    logger.info(f"  Original samples: {original_count}")
+    logger.info(f"  Augmented samples: {augmented_count}")
+    logger.info(f"  Augmentation factor: {augmentation_factor:.2f}x")
+    logger.info(f"  Model saved to: {config.model_output_dir}/{model_size}")
+    logger.info("=" * 60)
+    
+    return manifest

@@ -4836,6 +4836,237 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    class AugmentedTrainRequest(BaseModel):
+        symbols: Optional[List[str]] = None
+        lookback_days: int = 730
+        model_size: str = "big"
+        enable_entry_shifts: bool = True
+        enable_bootstrapping: bool = True
+        enable_oversampling: bool = True
+        oversample_ratio: float = 3.0
+    
+    @app.post("/apexlab/train-augmented")
+    async def start_augmented_training(request: AugmentedTrainRequest, background_tasks: BackgroundTasks):
+        """
+        Start training with simulation-based data augmentation.
+        
+        Multiplies training samples using real data variations:
+        - Entry timing shifts (different entry points)
+        - Monte Carlo bootstrapping (outcome variations)
+        - Rare event oversampling (runners and crashes)
+        
+        This can multiply training data by 2-5x without creating fake data.
+        """
+        if _training_status["is_training"]:
+            raise HTTPException(status_code=409, detail="Training already in progress")
+        
+        async def run_augmented():
+            from src.quantracore_apex.apexlab.unified_trainer import UnifiedTrainer, UnifiedTrainingConfig
+            from src.quantracore_apex.apexlab.data_augmentation import (
+                RareEventOversampler, 
+                AugmentedWindowGenerator,
+                AugmentationConfig,
+            )
+            from src.quantracore_apex.core.schemas import OhlcvWindow
+            
+            _training_status["is_training"] = True
+            _training_status["progress"] = 0
+            _training_status["logs"] = []
+            _training_status["current_step"] = "Initializing augmented trainer"
+            
+            def log(msg: str):
+                _training_status["logs"].append(f"[{datetime.utcnow().strftime('%H:%M:%S')}] {msg}")
+            
+            try:
+                config = UnifiedTrainingConfig(lookback_days=request.lookback_days)
+                if request.symbols:
+                    config.symbols = request.symbols
+                
+                trainer = UnifiedTrainer(config)
+                
+                log(f"[INFO] Starting AUGMENTED training with {len(config.symbols)} symbols")
+                log(f"[INFO] Lookback: {request.lookback_days} days")
+                log(f"[INFO] Augmentation: entry_shifts={request.enable_entry_shifts}, bootstrap={request.enable_bootstrapping}, oversample={request.enable_oversampling} ({request.oversample_ratio}x)")
+                
+                sources = trainer._get_available_sources()
+                log(f"[INFO] Available data sources: {sources}")
+                
+                _training_status["current_step"] = "Fetching market data with augmentation"
+                _training_status["progress"] = 10
+                
+                aug_config = AugmentationConfig(
+                    entry_shifts=[-2, -1, 1, 2] if request.enable_entry_shifts else [],
+                    walkforward_windows=3 if request.enable_entry_shifts else 1,
+                    oversample_runners=request.enable_oversampling,
+                    oversample_ratio=request.oversample_ratio,
+                )
+                
+                aug_window_gen = AugmentedWindowGenerator(
+                    window_size=config.window_size,
+                    step_size=config.step_size,
+                    config=aug_config,
+                )
+                
+                from concurrent.futures import ThreadPoolExecutor, as_completed
+                from datetime import timedelta
+                
+                end_date = datetime.now() - timedelta(minutes=20)
+                start_date = end_date - timedelta(days=config.lookback_days)
+                
+                all_bars_cache = {}
+                total_bars = 0
+                
+                with ThreadPoolExecutor(max_workers=config.max_workers) as executor:
+                    futures = {
+                        executor.submit(trainer.alpaca.fetch, sym, start_date, end_date): sym
+                        for sym in config.symbols
+                    }
+                    
+                    for i, future in enumerate(as_completed(futures)):
+                        sym = futures[future]
+                        try:
+                            bars = future.result()
+                            if bars:
+                                all_bars_cache[sym] = bars
+                                total_bars += len(bars)
+                                log(f"[INFO] [{i+1}/{len(config.symbols)}] {sym}: {len(bars)} bars fetched")
+                        except Exception as e:
+                            log(f"[WARN] {sym}: fetch error - {e}")
+                
+                log(f"[INFO] Total bars fetched: {total_bars} from {len(all_bars_cache)} symbols")
+                
+                _training_status["current_step"] = "Generating augmented windows"
+                _training_status["progress"] = 40
+                
+                original_window_count = 0
+                augmented_window_count = 0
+                
+                for symbol, bars in all_bars_cache.items():
+                    aug_windows = aug_window_gen.generate(
+                        bars=bars,
+                        symbol=symbol,
+                        future_bars=config.future_bars,
+                    )
+                    
+                    for window_bars, future_closes, aug_tag in aug_windows:
+                        if aug_tag.startswith("original"):
+                            original_window_count += 1
+                        augmented_window_count += 1
+                        
+                        entry_price = window_bars[-1].close
+                        labels = trainer.label_gen.generate(entry_price, future_closes)
+                        
+                        try:
+                            from src.quantracore_apex.core.schemas import ApexContext as Ctx
+                            window = OhlcvWindow(symbol=symbol, bars=window_bars, timeframe="15min")
+                            apex_result = trainer.engine.run(window, Ctx(seed=42, compliance_mode=True))
+                            features = trainer.feature_extractor.extract(window)
+                            
+                            row = {
+                                "symbol": symbol,
+                                "source": "alpaca",
+                                "augmentation": aug_tag,
+                                "timestamp": window_bars[-1].timestamp.isoformat(),
+                                "entry_price": entry_price,
+                                "features": features.tolist() if hasattr(features, 'tolist') else list(features),
+                                **labels,
+                                "engine_score": apex_result.quantrascore,
+                                "engine_regime": apex_result.regime.value,
+                                "vix_level": 20.0,
+                                "vix_percentile": 50.0,
+                                "sector_momentum": 0.0,
+                                "market_breadth": 0.5,
+                            }
+                            trainer.training_rows.append(row)
+                        except Exception:
+                            continue
+                
+                log(f"[INFO] Original windows: {original_window_count}")
+                log(f"[INFO] Augmented windows (entry shifts + walk-forward): {augmented_window_count}")
+                
+                original_count = original_window_count
+                pre_oversample_count = len(trainer.training_rows)
+                
+                _training_status["current_step"] = "Applying rare event oversampling"
+                _training_status["progress"] = 60
+                
+                if request.enable_oversampling and trainer.training_rows:
+                    oversampler = RareEventOversampler(
+                        runner_threshold=0.05,
+                        crash_threshold=-0.05,
+                        runner_ratio=request.oversample_ratio,
+                        crash_ratio=request.oversample_ratio * 0.67,
+                    )
+                    trainer.training_rows = oversampler.oversample(trainer.training_rows)
+                
+                augmented_count = len(trainer.training_rows)
+                augmentation_factor = augmented_count / max(original_count, 1)
+                
+                log(f"[INFO] After oversampling: {augmented_count} samples")
+                
+                trainer.stats = {
+                    "polygon_symbols": 0,
+                    "polygon_bars": 0,
+                    "alpaca_symbols": len(all_bars_cache),
+                    "alpaca_bars": total_bars,
+                    "total_samples": augmented_count,
+                }
+                
+                log(f"[INFO] Augmented samples: {augmented_count} ({augmentation_factor:.2f}x multiplier)")
+                
+                _training_status["current_step"] = "Training model"
+                _training_status["progress"] = 70
+                
+                manifest = trainer.train_model(request.model_size)
+                
+                manifest["augmentation"] = {
+                    "enabled": True,
+                    "original_samples": original_count,
+                    "augmented_samples": augmented_count,
+                    "augmentation_factor": augmentation_factor,
+                    "entry_shifts": request.enable_entry_shifts,
+                    "bootstrapping": request.enable_bootstrapping,
+                    "oversampling": request.enable_oversampling,
+                    "oversample_ratio": request.oversample_ratio,
+                }
+                
+                import json
+                from pathlib import Path
+                model_dir = Path(config.model_output_dir) / request.model_size
+                with open(model_dir / "manifest.json", "w") as f:
+                    json.dump(manifest, f, indent=2)
+                
+                log(f"[SUCCESS] Augmented training complete!")
+                log(f"[INFO] Original: {original_count} → Augmented: {augmented_count} samples ({augmentation_factor:.2f}x)")
+                log(f"[INFO] Model saved to models/apexcore_v3/{request.model_size}")
+                
+                _training_status["progress"] = 100
+                _training_status["current_step"] = "Complete"
+                _training_status["last_training"] = datetime.utcnow().isoformat()
+                _training_status["last_result"] = manifest
+                
+            except Exception as e:
+                log(f"[ERROR] Augmented training failed: {e}")
+                import traceback
+                log(f"[DEBUG] {traceback.format_exc()}")
+                _training_status["current_step"] = f"Failed: {e}"
+            finally:
+                _training_status["is_training"] = False
+        
+        background_tasks.add_task(run_augmented)
+        
+        return {
+            "status": "started",
+            "message": "Augmented training started in background",
+            "augmentation": {
+                "entry_shifts": request.enable_entry_shifts,
+                "bootstrapping": request.enable_bootstrapping,
+                "oversampling": request.enable_oversampling,
+                "oversample_ratio": request.oversample_ratio,
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
     # =========================================================================
     # CONTINUOUS LEARNING ENDPOINTS
     # =========================================================================

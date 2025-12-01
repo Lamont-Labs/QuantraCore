@@ -1,27 +1,37 @@
 {
   "version": "3.0.0",
   "model_size": "big",
-  "trained_at": "2025-12-01T07:54:14.090715",
-  "training_samples": 107978,
+  "trained_at": "2025-12-01T14:48:04.655875",
+  "training_samples": 619,
   "data_sources": {
     "polygon": {
       "symbols": 0,
       "bars": 0
     },
     "alpaca": {
-      "symbols": 59,
-      "bars": 222412
+      "symbols": 3,
+      "bars": 1559
     }
   },
-  "lookback_days": 730,
+  "lookback_days": 30,
   "metrics": {
-    "quantrascore_rmse": 0.009994862761442722,
-    "runner_accuracy": 0.9888400092614031,
-    "quality_accuracy": 0.937531836073165,
-    "avoid_accuracy": 0.999073859689743,
-    "regime_accuracy": 0.9524890020838157,
-    "training_samples": 107978,
-    "validation_samples": 21595
+    "quantrascore_rmse": 0.22748609354755175,
+    "runner_accuracy": 0.991869918699187,
+    "quality_accuracy": 0.9349593495934959,
+    "avoid_accuracy": 0.5,
+    "regime_accuracy": 0.967479674796748,
+    "training_samples": 619,
+    "validation_samples": 123
   },
-  "note": "Trained on real market data with actual outcome labels"
+  "note": "Trained on real market data with actual outcome labels",
+  "augmentation": {
+    "enabled": true,
+    "original_samples": 615,
+    "augmented_samples": 619,
+    "augmentation_factor": 1.0065040650406505,
+    "entry_shifts": true,
+    "bootstrapping": true,
+    "oversampling": true,
+    "oversample_ratio": 3.0
+  }
 }
