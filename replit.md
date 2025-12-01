@@ -46,6 +46,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 - **MarketSimulator:** Provides 8 chaos scenarios for stress testing the system.
 - **Protocol System:** Comprises 80 Tier protocols for analysis, 25 Learning protocols for training labels, 20 MonsterRunner protocols for explosive movement detection, and 20 Omega Directives as safety overrides.
 - **Investor Trade Logging:** Comprehensive logging of every paper trade with details on account state, signal quality, market context, risk assessment, protocol analysis, execution details, and trade outcome, stored in `investor_logs/`.
+- **Due Diligence Logging:** Complete audit trail for institutional investors: (1) Compliance attestations and control checks, (2) Incident lifecycle with root cause and remediation, (3) Policy manifest with version tracking and checksums, (4) Broker reconciliation records, (5) Consent management for TCPA/GDPR compliance, (6) Document access logging. All stored in `investor_logs/compliance/`, `investor_logs/audit/`, `investor_logs/legal/`. API endpoints: `GET /investor/due-diligence/status`, `POST /investor/due-diligence/attestation`, `POST /investor/due-diligence/incident`, `POST /investor/due-diligence/policy`, `POST /investor/due-diligence/reconciliation`, `POST /investor/due-diligence/consent`, `POST /investor/due-diligence/access`.
 
 ### Symbol Universe (251 Total)
 | Bucket | Count | Description |
@@ -79,6 +80,7 @@ The frontend, built with React 18.2, Vite 5, and Tailwind CSS 4.0, adopts an ins
 
 ## Recent Changes
 
+- **2025-12-01:** Implemented Due Diligence Logging infrastructure (attestations, incidents, policies, reconciliation, consents, access logs)
 - **2025-12-01:** Scoped Investor Due Diligence Suite (8 modules, 70+ endpoints) - see `docs/INVESTOR_DUE_DILIGENCE_SUITE_SPEC.md`
 - **2025-12-01:** Phase 1 performance optimizations: ORJSONResponse, GZipMiddleware, 4-worker uvicorn, expanded caches, parallel scanning
 - **2025-12-01:** Added low-float runner screener with 114 symbols, 5 new API endpoints

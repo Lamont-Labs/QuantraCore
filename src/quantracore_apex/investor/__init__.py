@@ -19,6 +19,23 @@ from .trade_journal import (
     get_trade_journal,
 )
 
+from .due_diligence_logger import (
+    DueDiligenceLogger,
+    ComplianceAttestation,
+    IncidentLifecycle,
+    PolicyManifestEntry,
+    ReconciliationRecord,
+    ConsentRecord,
+    DocumentAccessLog,
+    AttestationType,
+    AttestationStatus,
+    IncidentLifecycleStatus,
+    ReconciliationStatus,
+    ConsentType,
+    DocumentAccessAction,
+    get_due_diligence_logger,
+)
+
 __all__ = [
     "InvestorTradeJournal",
     "InvestorTradeEntry",
@@ -31,4 +48,18 @@ __all__ = [
     "DailySummary",
     "MonthlyReport",
     "get_trade_journal",
+    "DueDiligenceLogger",
+    "ComplianceAttestation",
+    "IncidentLifecycle",
+    "PolicyManifestEntry",
+    "ReconciliationRecord",
+    "ConsentRecord",
+    "DocumentAccessLog",
+    "AttestationType",
+    "AttestationStatus",
+    "IncidentLifecycleStatus",
+    "ReconciliationStatus",
+    "ConsentType",
+    "DocumentAccessAction",
+    "get_due_diligence_logger",
 ]

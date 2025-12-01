@@ -5627,6 +5627,358 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    from src.quantracore_apex.investor import (
+        get_due_diligence_logger,
+        AttestationType,
+        AttestationStatus,
+        IncidentLifecycleStatus,
+        ReconciliationStatus,
+        ConsentType,
+        DocumentAccessAction,
+    )
+    
+    dd_logger = get_due_diligence_logger()
+    
+    @app.get("/investor/due-diligence/status")
+    async def get_due_diligence_status():
+        """
+        Get status of all due diligence logging systems.
+        
+        Returns summary of attestations, incidents, reconciliations, and consents.
+        """
+        try:
+            summary = dd_logger.generate_daily_summary()
+            
+            return {
+                "status": "operational",
+                "summary": summary,
+                "log_locations": {
+                    "attestations": "investor_logs/compliance/attestations/",
+                    "incidents": "investor_logs/compliance/incidents/",
+                    "policies": "investor_logs/compliance/policies/",
+                    "reconciliation": "investor_logs/audit/reconciliation/",
+                    "consents": "investor_logs/legal/consents/",
+                    "access_logs": "investor_logs/legal/access_logs/",
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting due diligence status: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    class AttestationRequest(BaseModel):
+        attestation_type: str
+        control_id: str
+        control_name: str
+        status: str
+        attestor: str
+        attestor_role: str = "system"
+        evidence_path: Optional[str] = None
+        notes: str = ""
+        exceptions: List[str] = []
+        next_review_date: Optional[str] = None
+    
+    @app.post("/investor/due-diligence/attestation")
+    async def log_compliance_attestation(request: AttestationRequest):
+        """
+        Log a compliance attestation or control check.
+        
+        Used for daily reconciliation, risk limit checks, policy acknowledgments.
+        """
+        try:
+            try:
+                attestation_type = AttestationType(request.attestation_type)
+            except ValueError:
+                valid_types = [e.value for e in AttestationType]
+                raise HTTPException(status_code=400, detail=f"Invalid attestation_type. Must be one of: {valid_types}")
+            
+            try:
+                status = AttestationStatus(request.status)
+            except ValueError:
+                valid_statuses = [e.value for e in AttestationStatus]
+                raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+            
+            attestation = dd_logger.log_attestation(
+                attestation_type=attestation_type,
+                control_id=request.control_id,
+                control_name=request.control_name,
+                status=status,
+                attestor=request.attestor,
+                attestor_role=request.attestor_role,
+                evidence_path=request.evidence_path,
+                notes=request.notes,
+                exceptions=request.exceptions,
+                next_review_date=request.next_review_date,
+            )
+            
+            return {
+                "attestation_id": attestation.attestation_id,
+                "status": "logged",
+                "message": f"Attestation logged: {request.control_name}",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error logging attestation: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    class IncidentLifecycleRequest(BaseModel):
+        incident_id: str
+        original_class: str
+        severity: str
+        title: str
+        description: str
+        status: str = "OPEN"
+        root_cause: Optional[str] = None
+        root_cause_category: Optional[str] = None
+        impact_assessment: Optional[str] = None
+        remediation_steps: List[str] = []
+        remediation_owner: Optional[str] = None
+        prevention_measures: List[str] = []
+        resolved_by: Optional[str] = None
+        lessons_learned: str = ""
+    
+    @app.post("/investor/due-diligence/incident")
+    async def log_incident_lifecycle(request: IncidentLifecycleRequest):
+        """
+        Log incident lifecycle with root cause, remediation, and closure data.
+        
+        Extends base incident logging with full audit trail.
+        """
+        try:
+            try:
+                status = IncidentLifecycleStatus(request.status)
+            except ValueError:
+                valid_statuses = [e.value for e in IncidentLifecycleStatus]
+                raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+            
+            incident = dd_logger.log_incident_lifecycle(
+                incident_id=request.incident_id,
+                original_class=request.original_class,
+                severity=request.severity,
+                title=request.title,
+                description=request.description,
+                status=status,
+                root_cause=request.root_cause,
+                root_cause_category=request.root_cause_category,
+                impact_assessment=request.impact_assessment,
+                remediation_steps=request.remediation_steps,
+                remediation_owner=request.remediation_owner,
+                prevention_measures=request.prevention_measures,
+                resolved_by=request.resolved_by,
+                lessons_learned=request.lessons_learned,
+            )
+            
+            return {
+                "incident_id": incident.incident_id,
+                "status": incident.status.value,
+                "message": f"Incident lifecycle logged: {request.title}",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error logging incident lifecycle: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    class PolicyManifestRequest(BaseModel):
+        policy_name: str
+        version: str
+        document_path: str
+        approver: str
+        approver_role: str
+        category: str
+        effective_date: Optional[str] = None
+        review_date: Optional[str] = None
+        next_review_date: Optional[str] = None
+        supersedes: Optional[str] = None
+        changelog: str = ""
+    
+    @app.post("/investor/due-diligence/policy")
+    async def log_policy_manifest(request: PolicyManifestRequest):
+        """
+        Log policy document to manifest with version tracking.
+        
+        Tracks policy versions, approvals, and checksums for compliance.
+        """
+        try:
+            policy = dd_logger.log_policy_manifest(
+                policy_name=request.policy_name,
+                version=request.version,
+                document_path=request.document_path,
+                approver=request.approver,
+                approver_role=request.approver_role,
+                category=request.category,
+                effective_date=request.effective_date,
+                review_date=request.review_date,
+                next_review_date=request.next_review_date,
+                supersedes=request.supersedes,
+                changelog=request.changelog,
+            )
+            
+            return {
+                "policy_id": policy.policy_id,
+                "checksum": policy.checksum,
+                "message": f"Policy logged: {request.policy_name} v{request.version}",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error logging policy: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    class ReconciliationRequest(BaseModel):
+        internal_trade_id: str
+        symbol: str
+        side: str
+        internal_quantity: float
+        internal_price: float
+        internal_timestamp: str
+        broker_order_id: Optional[str] = None
+        broker_quantity: Optional[float] = None
+        broker_price: Optional[float] = None
+        broker_timestamp: Optional[str] = None
+        notes: str = ""
+    
+    @app.post("/investor/due-diligence/reconciliation")
+    async def log_trade_reconciliation(request: ReconciliationRequest):
+        """
+        Log trade reconciliation between internal logs and broker confirms.
+        
+        Matches trades with broker (Alpaca) to verify execution accuracy.
+        """
+        try:
+            record = dd_logger.log_reconciliation(
+                internal_trade_id=request.internal_trade_id,
+                symbol=request.symbol,
+                side=request.side,
+                internal_quantity=request.internal_quantity,
+                internal_price=request.internal_price,
+                internal_timestamp=request.internal_timestamp,
+                broker_order_id=request.broker_order_id,
+                broker_quantity=request.broker_quantity,
+                broker_price=request.broker_price,
+                broker_timestamp=request.broker_timestamp,
+                notes=request.notes,
+            )
+            
+            return {
+                "reconciliation_id": record.reconciliation_id,
+                "status": record.status.value,
+                "price_variance": record.price_variance,
+                "quantity_variance": record.quantity_variance,
+                "message": f"Reconciliation logged: {request.internal_trade_id}",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error logging reconciliation: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    class ConsentRequest(BaseModel):
+        consent_type: str
+        user_id: str
+        user_identifier: str
+        granted: bool
+        source: str
+        ip_address: Optional[str] = None
+        user_agent: Optional[str] = None
+        version: str = "1.0"
+    
+    @app.post("/investor/due-diligence/consent")
+    async def log_user_consent(request: ConsentRequest):
+        """
+        Log user consent for communications or data use.
+        
+        Required for TCPA (SMS), GDPR, and CCPA compliance.
+        """
+        try:
+            try:
+                consent_type = ConsentType(request.consent_type)
+            except ValueError:
+                valid_types = [e.value for e in ConsentType]
+                raise HTTPException(status_code=400, detail=f"Invalid consent_type. Must be one of: {valid_types}")
+            
+            record = dd_logger.log_consent(
+                consent_type=consent_type,
+                user_id=request.user_id,
+                user_identifier=request.user_identifier,
+                granted=request.granted,
+                source=request.source,
+                ip_address=request.ip_address,
+                user_agent=request.user_agent,
+                version=request.version,
+            )
+            
+            return {
+                "consent_id": record.consent_id,
+                "granted": record.granted,
+                "message": f"Consent logged: {request.consent_type}",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error logging consent: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    class DocumentAccessRequest(BaseModel):
+        document_id: str
+        document_name: str
+        document_category: str
+        actor_id: str
+        actor_name: str
+        actor_role: str
+        action: str
+        ip_address: Optional[str] = None
+        user_agent: Optional[str] = None
+        success: bool = True
+        failure_reason: Optional[str] = None
+    
+    @app.post("/investor/due-diligence/access")
+    async def log_document_access(request: DocumentAccessRequest):
+        """
+        Log document access for audit trail.
+        
+        Tracks who accessed what documents in the data room.
+        """
+        try:
+            try:
+                action = DocumentAccessAction(request.action)
+            except ValueError:
+                valid_actions = [e.value for e in DocumentAccessAction]
+                raise HTTPException(status_code=400, detail=f"Invalid action. Must be one of: {valid_actions}")
+            
+            record = dd_logger.log_document_access(
+                document_id=request.document_id,
+                document_name=request.document_name,
+                document_category=request.document_category,
+                actor_id=request.actor_id,
+                actor_name=request.actor_name,
+                actor_role=request.actor_role,
+                action=action,
+                ip_address=request.ip_address,
+                user_agent=request.user_agent,
+                success=request.success,
+                failure_reason=request.failure_reason,
+            )
+            
+            return {
+                "access_id": record.access_id,
+                "action": record.action.value,
+                "success": record.success,
+                "message": f"Access logged: {request.document_name}",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error logging document access: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     from src.quantracore_apex.signals import get_signal_service
     
     @app.get("/signals/live")
