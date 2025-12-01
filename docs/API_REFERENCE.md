@@ -202,6 +202,69 @@ Execute top swing trades on Alpaca paper trading.
 
 ---
 
+## Model Management Endpoints
+
+### GET /model/status
+
+Get unified model manager status with hot-reload info.
+
+**Response:**
+```json
+{
+  "status": "operational",
+  "hot_reload": true,
+  "manager": {
+    "initialized": true,
+    "models_loaded": ["big"],
+    "versions": {
+      "big": {
+        "version": 1733079600,
+        "path": "models/apexcore_v3/big",
+        "manifest": {...}
+      }
+    },
+    "subscribers_count": 2,
+    "check_interval_seconds": 30
+  },
+  "timestamp": "2025-12-01T19:57:00Z"
+}
+```
+
+---
+
+### POST /model/reload
+
+Force reload all models and notify all subscribed services.
+
+**Response:**
+```json
+{
+  "status": "reloaded",
+  "versions": {
+    "big": {...}
+  },
+  "message": "All models reloaded, services notified",
+  "timestamp": "2025-12-01T19:57:00Z"
+}
+```
+
+---
+
+### POST /model/clear-cache
+
+Clear all model caches (forces fresh load on next request).
+
+**Response:**
+```json
+{
+  "status": "cleared",
+  "message": "Model caches cleared, next request will load fresh models",
+  "timestamp": "2025-12-01T19:57:00Z"
+}
+```
+
+---
+
 ## Error Responses
 
 ### 400 Bad Request

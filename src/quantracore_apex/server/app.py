@@ -1998,6 +1998,60 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    @app.get("/model/status")
+    async def get_model_manager_status():
+        """Get unified model manager status with hot-reload info."""
+        try:
+            from src.quantracore_apex.prediction.model_manager import get_model_manager
+            manager = get_model_manager()
+            status = manager.get_status()
+            
+            return {
+                "status": "operational",
+                "hot_reload": True,
+                "manager": status,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting model manager status: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/model/reload")
+    async def force_model_reload():
+        """Force reload all models (triggers hot-reload for all services)."""
+        try:
+            from src.quantracore_apex.prediction.model_manager import get_model_manager
+            manager = get_model_manager()
+            
+            versions = manager.force_reload_all()
+            
+            return {
+                "status": "reloaded",
+                "versions": {k: v.to_dict() if v else None for k, v in versions.items()},
+                "message": "All models reloaded, services notified",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error reloading models: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/model/clear-cache")
+    async def clear_model_cache():
+        """Clear all model caches (forces fresh load on next request)."""
+        try:
+            from src.quantracore_apex.prediction.model_manager import get_model_manager
+            manager = get_model_manager()
+            manager.clear_cache()
+            
+            return {
+                "status": "cleared",
+                "message": "Model caches cleared, next request will load fresh models",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error clearing cache: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
     class BatchAdvisoryRequest(BaseModel):
         symbols: List[str]
         timeframe: str = "1d"
@@ -4857,6 +4911,10 @@ def create_app() -> FastAPI:
                 log(f"[INFO] Samples: {manifest['training_samples']}")
                 log(f"[INFO] Model saved to models/apexcore_v3/{request.model_size}")
                 
+                from src.quantracore_apex.prediction.model_manager import notify_model_updated
+                notify_model_updated(request.model_size)
+                log(f"[INFO] Hot-reload notification sent to all services")
+                
                 _training_status["progress"] = 100
                 _training_status["current_step"] = "Complete"
                 _training_status["last_training"] = datetime.utcnow().isoformat()
@@ -5082,6 +5140,10 @@ def create_app() -> FastAPI:
                 log(f"[SUCCESS] Augmented training complete!")
                 log(f"[INFO] Original: {original_count} → Augmented: {augmented_count} samples ({augmentation_factor:.2f}x)")
                 log(f"[INFO] Model saved to models/apexcore_v3/{request.model_size}")
+                
+                from src.quantracore_apex.prediction.model_manager import notify_model_updated
+                notify_model_updated(request.model_size)
+                log(f"[INFO] Hot-reload notification sent to all services")
                 
                 _training_status["progress"] = 100
                 _training_status["current_step"] = "Complete"

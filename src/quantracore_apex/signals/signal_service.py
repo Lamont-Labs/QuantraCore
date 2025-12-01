@@ -232,19 +232,20 @@ class ApexSignalService:
         self._scan_in_progress = False
         self._lock = threading.Lock()
         
-        self._model = None
+        from ..prediction.model_manager import get_model_manager
+        self._model_manager = get_model_manager()
+        self._model_manager.subscribe(self._on_model_updated)
+    
+    def _on_model_updated(self, model_size: str, version) -> None:
+        """Handle model update notification - clear cached signals."""
+        logger.info(f"[SignalService] Model updated to version {version.version}, clearing signal cache")
+        with self._lock:
+            self._signals.clear()
+            self._last_scan_time = None
     
     def _get_model(self):
-        """Lazy load the ApexCore v3 model."""
-        if self._model is None:
-            try:
-                from ..prediction.apexcore_v3 import ApexCoreV3Model
-                self._model = ApexCoreV3Model.load(str(self.model_dir))
-                logger.info(f"Loaded ApexCore v3 model from {self.model_dir}")
-            except Exception as e:
-                logger.error(f"Failed to load model: {e}")
-                raise
-        return self._model
+        """Get model from unified model manager (auto hot-reload)."""
+        return self._model_manager.get_model(model_size="big")
     
     def _fetch_latest_data(self, symbol: str) -> Optional[Dict]:
         """Fetch latest market data for a symbol."""
@@ -613,11 +614,14 @@ class ApexSignalService:
     
     def get_status(self) -> Dict:
         """Get service status."""
+        manager_status = self._model_manager.get_status()
         return {
             "signals_cached": len(self._signals),
             "last_scan": self._last_scan_time.isoformat() if self._last_scan_time else None,
             "scan_in_progress": self._scan_in_progress,
-            "model_loaded": self._model is not None,
+            "model_loaded": len(manager_status.get("models_loaded", [])) > 0,
+            "hot_reload_enabled": True,
+            "model_manager": manager_status,
             "config": {
                 "max_signals_stored": self.config.max_signals_stored,
                 "signal_ttl_hours": self.config.signal_ttl_hours,

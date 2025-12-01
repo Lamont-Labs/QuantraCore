@@ -70,13 +70,13 @@ class ApexCoreV3Manifest:
     training_samples: int
     metrics: Dict[str, float]
     feature_count: int = 0
-    heads: List[str] = None
-    accuracy_modules: List[str] = None
-    feature_names: List[str] = None
-    data_sources: Dict[str, Any] = None
+    heads: Optional[List[str]] = None
+    accuracy_modules: Optional[List[str]] = None
+    feature_names: Optional[List[str]] = None
+    data_sources: Optional[Dict[str, Any]] = None
     lookback_days: int = 0
     note: str = ""
-    augmentation: Dict[str, Any] = None
+    augmentation: Optional[Dict[str, Any]] = None
     
     def __post_init__(self):
         if self.heads is None:
