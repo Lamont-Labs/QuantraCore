@@ -4837,6 +4837,100 @@ def create_app() -> FastAPI:
         }
     
     # =========================================================================
+    # CONTINUOUS LEARNING ENDPOINTS
+    # =========================================================================
+    
+    class ContinuousLearningConfigRequest(BaseModel):
+        learning_interval_minutes: Optional[int] = None
+        min_new_samples_for_training: Optional[int] = None
+        feature_drift_threshold: Optional[float] = None
+        label_drift_threshold: Optional[float] = None
+        performance_drop_threshold: Optional[float] = None
+        lookback_days: Optional[int] = None
+        multi_pass_epochs: Optional[int] = None
+    
+    @app.post("/apexlab/continuous/start")
+    async def start_continuous_learning():
+        """
+        Start the continuous learning loop.
+        
+        Continuously ingests new data, detects drift, and triggers retraining
+        when thresholds are exceeded.
+        """
+        from src.quantracore_apex.apexlab.continuous_learning import get_orchestrator
+        
+        orchestrator = get_orchestrator()
+        result = orchestrator.start()
+        
+        return {
+            "status": "started",
+            "message": "Continuous learning loop started",
+            **result,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.post("/apexlab/continuous/stop")
+    async def stop_continuous_learning():
+        """Stop the continuous learning loop."""
+        from src.quantracore_apex.apexlab.continuous_learning import get_orchestrator
+        
+        orchestrator = get_orchestrator()
+        result = orchestrator.stop()
+        
+        return {
+            **result,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.get("/apexlab/continuous/status")
+    async def get_continuous_learning_status():
+        """Get current status of continuous learning system."""
+        from src.quantracore_apex.apexlab.continuous_learning import get_orchestrator
+        
+        orchestrator = get_orchestrator()
+        return orchestrator.get_status()
+    
+    @app.get("/apexlab/continuous/history")
+    async def get_continuous_learning_history(limit: int = 10):
+        """Get history of recent learning cycles."""
+        from src.quantracore_apex.apexlab.continuous_learning import get_orchestrator
+        
+        orchestrator = get_orchestrator()
+        return {
+            "cycles": orchestrator.get_history(limit),
+            "total_cycles": orchestrator.total_cycles,
+        }
+    
+    @app.post("/apexlab/continuous/trigger")
+    async def trigger_manual_learning_cycle():
+        """Manually trigger a single learning cycle."""
+        from src.quantracore_apex.apexlab.continuous_learning import get_orchestrator
+        
+        orchestrator = get_orchestrator()
+        result = orchestrator.trigger_manual_cycle()
+        
+        return {
+            "status": "completed",
+            "cycle": result,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.post("/apexlab/continuous/config")
+    async def update_continuous_learning_config(request: ContinuousLearningConfigRequest):
+        """Update continuous learning configuration."""
+        from src.quantracore_apex.apexlab.continuous_learning import get_orchestrator
+        
+        orchestrator = get_orchestrator()
+        
+        updates = {k: v for k, v in request.model_dump().items() if v is not None}
+        result = orchestrator.update_config(**updates)
+        
+        return {
+            **result,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    # =========================================================================
     # PREDICTION ENDPOINTS - Real model inference
     # =========================================================================
     

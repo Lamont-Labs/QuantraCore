@@ -573,6 +573,10 @@ class UnifiedTrainer:
         
         return manifest
     
+    def train_sync(self, model_size: str = "big") -> Dict[str, Any]:
+        """Synchronous training method for continuous learning integration."""
+        return self.run_full_pipeline(model_size)
+    
     def run_full_pipeline(self, model_size: str = "big") -> Dict[str, Any]:
         """Run complete multi-source training pipeline."""
         logger.info("=" * 60)
