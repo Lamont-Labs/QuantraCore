@@ -116,12 +116,42 @@ The Hyperspeed Learning System accelerates model training by replaying years of 
 | `/sec/events/{symbol}` | GET | SEC 8-K material events |
 | `/sec/status` | GET | SEC EDGAR adapter status |
 
-### SEC EDGAR Integration (NEW - No API Key Required)
+### SEC EDGAR Integration (No API Key Required)
 - **Form 4 Filings:** Insider trading transactions (buys/sells by executives)
 - **13F Filings:** Institutional holdings (what hedge funds own)
 - **8-K Filings:** Material events (earnings, acquisitions, executive changes)
 - **Rate Limit:** 10 requests/second (free government data)
 - **Adapter:** `SecEdgarAdapter` in `sec_edgar_adapter.py`
+
+### Nasdaq Data Link Integration (COT Reports)
+- **Commitment of Traders (COT):** Futures positioning by trader type
+- **Commercial Positioning:** Shows how hedgers/producers are positioned (smart money)
+- **Speculator Positioning:** How funds/trend followers are positioned
+- **Supported Symbols:** ES, NQ, GC, CL, NG, ZC, ZW, 6E, 6J, ZN, ZB, VX, BTC
+- **Rate Limit:** 50 calls/day (free tier)
+- **Environment:** `NASDAQ_DATA_LINK_API_KEY`
+- **Adapter:** `NasdaqDataLinkAdapter` in `nasdaq_data_link_adapter.py`
+
+### Financial Modeling Prep Integration (Earnings & Valuations)
+- **Earnings Calendar:** Upcoming earnings with EPS estimates
+- **DCF Valuations:** Undervalued/overvalued stock detection
+- **Company Profiles:** Sector, industry, market cap, PE ratio
+- **Dividend Calendar:** Upcoming ex-dividend dates
+- **Rate Limit:** 250 calls/day (free tier)
+- **Environment:** `FMP_API_KEY`
+- **Adapter:** `FMPAdapter` in `fmp_adapter.py`
+
+### Additional API Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/cot/{symbol}` | GET | COT positioning (ES, NQ, GC, CL, etc.) |
+| `/cot/status` | GET | Nasdaq Data Link adapter status |
+| `/earnings/calendar` | GET | Upcoming earnings releases |
+| `/earnings/{symbol}` | GET | Historical earnings for symbol |
+| `/valuation/{symbol}` | GET | DCF valuation analysis |
+| `/profile/{symbol}` | GET | Company profile and metrics |
+| `/dividends/calendar` | GET | Upcoming dividend ex-dates |
+| `/fmp/status` | GET | FMP adapter status |
 
 ## Recent Changes (December 2025)
 

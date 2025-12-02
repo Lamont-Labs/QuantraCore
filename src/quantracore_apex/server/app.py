@@ -717,6 +717,174 @@ def create_app() -> FastAPI:
             logger.error(f"SEC EDGAR status error: {e}")
             raise HTTPException(status_code=500, detail=str(e))
     
+    @app.get("/cot/{symbol}")
+    async def get_cot_report(symbol: str, weeks: int = 4):
+        """
+        Get Commitment of Traders (COT) report for futures positioning.
+        
+        Shows how commercials (smart money) vs speculators are positioned.
+        Requires NASDAQ_DATA_LINK_API_KEY.
+        
+        Supported symbols: ES, NQ, GC, CL, NG, ZC, ZW, 6E, 6J, ZN, ZB, VX, BTC
+        """
+        from src.quantracore_apex.data_layer.adapters.nasdaq_data_link_adapter import (
+            get_nasdaq_data_link_adapter
+        )
+        
+        try:
+            adapter = get_nasdaq_data_link_adapter()
+            summary = adapter.get_cot_summary(symbol.upper())
+            
+            return {
+                "symbol": summary.symbol,
+                "latest_date": summary.latest_date.strftime("%Y-%m-%d"),
+                "commercial_positioning": summary.commercial_positioning,
+                "speculator_positioning": summary.speculator_positioning,
+                "smart_money_signal": summary.smart_money_signal,
+                "net_change_weekly": summary.net_change_weekly,
+                "extreme_reading": summary.extreme_reading,
+                "confidence": summary.confidence,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"COT report error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/cot/status")
+    async def get_cot_status():
+        """Get Nasdaq Data Link (COT) adapter status."""
+        from src.quantracore_apex.data_layer.adapters.nasdaq_data_link_adapter import (
+            get_nasdaq_data_link_adapter
+        )
+        
+        try:
+            adapter = get_nasdaq_data_link_adapter()
+            status = adapter.get_status()
+            return {
+                **status,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"COT status error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/earnings/calendar")
+    async def get_earnings_calendar(days: int = 7):
+        """
+        Get upcoming earnings calendar.
+        
+        Shows companies reporting earnings with EPS estimates.
+        Requires FMP_API_KEY for real data.
+        """
+        from src.quantracore_apex.data_layer.adapters.fmp_adapter import get_fmp_adapter
+        
+        try:
+            adapter = get_fmp_adapter()
+            from_date = datetime.utcnow()
+            to_date = from_date + timedelta(days=days)
+            events = adapter.get_earnings_calendar(from_date, to_date)
+            
+            return {
+                "event_count": len(events) if events else 0,
+                "events": events[:50] if events else [],
+                "from_date": from_date.strftime("%Y-%m-%d"),
+                "to_date": to_date.strftime("%Y-%m-%d"),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Earnings calendar error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/earnings/{symbol}")
+    async def get_symbol_earnings(symbol: str):
+        """Get earnings history for a specific symbol."""
+        from src.quantracore_apex.data_layer.adapters.fmp_adapter import get_fmp_adapter
+        
+        try:
+            adapter = get_fmp_adapter()
+            history = adapter.get_earnings_history(symbol.upper())
+            
+            return {
+                "symbol": symbol.upper(),
+                "earnings_count": len(history),
+                "history": history,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Symbol earnings error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/valuation/{symbol}")
+    async def get_dcf_valuation(symbol: str):
+        """
+        Get DCF (Discounted Cash Flow) valuation for a symbol.
+        
+        Shows if stock is undervalued/overvalued based on fundamentals.
+        """
+        from src.quantracore_apex.data_layer.adapters.fmp_adapter import get_fmp_adapter
+        
+        try:
+            adapter = get_fmp_adapter()
+            valuation = adapter.get_dcf_valuation(symbol.upper())
+            return valuation
+        except Exception as e:
+            logger.error(f"DCF valuation error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/profile/{symbol}")
+    async def get_company_profile(symbol: str):
+        """Get company profile with sector, industry, and key metrics."""
+        from src.quantracore_apex.data_layer.adapters.fmp_adapter import get_fmp_adapter
+        
+        try:
+            adapter = get_fmp_adapter()
+            profile = adapter.get_company_profile(symbol.upper())
+            return {
+                **profile,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Company profile error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/dividends/calendar")
+    async def get_dividend_calendar(days: int = 14):
+        """Get upcoming dividend ex-dates."""
+        from src.quantracore_apex.data_layer.adapters.fmp_adapter import get_fmp_adapter
+        
+        try:
+            adapter = get_fmp_adapter()
+            from_date = datetime.utcnow()
+            to_date = from_date + timedelta(days=days)
+            events = adapter.get_dividend_calendar(from_date, to_date)
+            
+            return {
+                "event_count": len(events) if events else 0,
+                "events": events[:50] if events else [],
+                "from_date": from_date.strftime("%Y-%m-%d"),
+                "to_date": to_date.strftime("%Y-%m-%d"),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Dividend calendar error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/fmp/status")
+    async def get_fmp_status():
+        """Get Financial Modeling Prep adapter status."""
+        from src.quantracore_apex.data_layer.adapters.fmp_adapter import get_fmp_adapter
+        
+        try:
+            adapter = get_fmp_adapter()
+            status = adapter.get_status()
+            return {
+                **status,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"FMP status error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     @app.get("/news/{symbol}")
     async def get_news_sentiment(symbol: str, limit: int = 20):
         """Get AI-powered news sentiment for a symbol."""

@@ -232,6 +232,172 @@ class FMPAdapter(EnhancedDataAdapter):
         if filing_type:
             params["type"] = filing_type
         return self._request(f"sec_filings/{symbol}", params)
+    
+    def get_earnings_calendar(
+        self,
+        from_date: datetime = None,
+        to_date: datetime = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get earnings calendar for upcoming earnings releases.
+        
+        Returns list of upcoming earnings with EPS estimates.
+        """
+        if from_date is None:
+            from_date = datetime.utcnow()
+        if to_date is None:
+            to_date = from_date + timedelta(days=7)
+        
+        if not self.is_available():
+            return self._simulated_earnings_calendar()
+        
+        try:
+            return self._request("earning_calendar", {
+                "from": from_date.strftime("%Y-%m-%d"),
+                "to": to_date.strftime("%Y-%m-%d")
+            })
+        except Exception:
+            return self._simulated_earnings_calendar()
+    
+    def get_earnings_history(self, symbol: str, limit: int = 8) -> List[Dict[str, Any]]:
+        """Get historical earnings for a symbol."""
+        if not self.is_available():
+            return []
+        
+        try:
+            data = self._request(f"historical/earning_calendar/{symbol}")
+            return data[:limit] if data else []
+        except Exception:
+            return []
+    
+    def get_dcf_valuation(self, symbol: str) -> Dict[str, Any]:
+        """
+        Get DCF (Discounted Cash Flow) valuation for a symbol.
+        
+        Shows if stock is undervalued/overvalued based on fundamentals.
+        """
+        if not self.is_available():
+            return self._simulated_dcf(symbol)
+        
+        try:
+            data = self._request(f"discounted-cash-flow/{symbol}")
+            if data and len(data) > 0:
+                item = data[0]
+                dcf = item.get("dcf", 0)
+                price = item.get("Stock Price", 0)
+                
+                if dcf and price:
+                    upside = ((dcf - price) / price) * 100
+                    signal = "UNDERVALUED" if upside > 20 else ("OVERVALUED" if upside < -20 else "FAIR")
+                else:
+                    upside = 0
+                    signal = "UNKNOWN"
+                
+                return {
+                    "symbol": symbol.upper(),
+                    "dcf": round(dcf, 2) if dcf else None,
+                    "stock_price": round(price, 2) if price else None,
+                    "upside_percent": round(upside, 2),
+                    "valuation_signal": signal,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            return self._simulated_dcf(symbol)
+        except Exception:
+            return self._simulated_dcf(symbol)
+    
+    def get_company_profile(self, symbol: str) -> Dict[str, Any]:
+        """Get company profile with sector, industry, and key metrics."""
+        if not self.is_available():
+            return {}
+        
+        try:
+            data = self._request(f"profile/{symbol}")
+            if data and len(data) > 0:
+                item = data[0]
+                return {
+                    "symbol": symbol.upper(),
+                    "name": item.get("companyName", symbol),
+                    "sector": item.get("sector", "Unknown"),
+                    "industry": item.get("industry", "Unknown"),
+                    "market_cap": item.get("mktCap", 0),
+                    "pe_ratio": item.get("peRatio"),
+                    "beta": item.get("beta"),
+                    "dividend_yield": item.get("lastDiv"),
+                    "avg_volume": item.get("volAvg", 0),
+                    "description": item.get("description", "")[:500]
+                }
+            return {}
+        except Exception:
+            return {}
+    
+    def get_dividend_calendar(
+        self,
+        from_date: datetime = None,
+        to_date: datetime = None
+    ) -> List[Dict[str, Any]]:
+        """Get dividend calendar for upcoming ex-dividend dates."""
+        if from_date is None:
+            from_date = datetime.utcnow()
+        if to_date is None:
+            to_date = from_date + timedelta(days=14)
+        
+        if not self.is_available():
+            return []
+        
+        try:
+            return self._request("stock_dividend_calendar", {
+                "from": from_date.strftime("%Y-%m-%d"),
+                "to": to_date.strftime("%Y-%m-%d")
+            })
+        except Exception:
+            return []
+    
+    def _simulated_earnings_calendar(self) -> List[Dict[str, Any]]:
+        """Generate simulated earnings calendar data."""
+        import random
+        symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA"]
+        
+        events = []
+        for i in range(5):
+            sym = random.choice(symbols)
+            events.append({
+                "symbol": sym,
+                "date": (datetime.utcnow() + timedelta(days=i+1)).strftime("%Y-%m-%d"),
+                "epsEstimated": round(random.uniform(1.0, 5.0), 2),
+                "eps": None,
+                "revenueEstimated": round(random.uniform(10, 100) * 1e9),
+                "time": random.choice(["bmo", "amc"]),
+                "simulated": True
+            })
+        return events
+    
+    def _simulated_dcf(self, symbol: str) -> Dict[str, Any]:
+        """Generate simulated DCF valuation."""
+        import random
+        price = round(random.uniform(50, 500), 2)
+        dcf = price * random.uniform(0.7, 1.4)
+        upside = ((dcf - price) / price) * 100
+        
+        return {
+            "symbol": symbol.upper(),
+            "dcf": round(dcf, 2),
+            "stock_price": price,
+            "upside_percent": round(upside, 2),
+            "valuation_signal": "UNDERVALUED" if upside > 20 else ("OVERVALUED" if upside < -20 else "FAIR"),
+            "simulated": True,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+
+_fmp_adapter: Optional['FMPAdapter'] = None
+
+
+def get_fmp_adapter() -> 'FMPAdapter':
+    """Get singleton FMP adapter instance."""
+    global _fmp_adapter
+    if _fmp_adapter is None:
+        _fmp_adapter = FMPAdapter()
+    return _fmp_adapter
 
 
 FMP_SETUP_GUIDE = """
