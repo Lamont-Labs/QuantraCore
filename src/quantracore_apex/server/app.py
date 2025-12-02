@@ -9293,6 +9293,196 @@ def create_app() -> FastAPI:
             logger.error(f"Error generating V4 prediction: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
+    @app.get("/ml/status")
+    async def ml_models_status():
+        """Get status of loaded ML models."""
+        from src.quantracore_apex.server.ml_scanner import load_models_from_database, _model_cache
+        
+        try:
+            models = load_models_from_database()
+            
+            status = {}
+            for name, data in models.items():
+                status[name] = {
+                    "loaded": True,
+                    "metrics": data.get('metrics', {}),
+                    "loaded_at": data.get('loaded_at', datetime.now()).isoformat() if data.get('loaded_at') else None,
+                }
+            
+            return {
+                "models_loaded": len(status),
+                "models": status,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"ML status error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/scan/runners")
+    async def scan_runners(limit: int = 20):
+        """Scan for 5%+ runner candidates using trained ML model."""
+        from src.quantracore_apex.server.ml_scanner import scan_for_runners, RUNNER_UNIVERSE
+        
+        try:
+            signals = scan_for_runners(RUNNER_UNIVERSE, model_type='apex_production')
+            
+            return {
+                "model": "apex_production",
+                "target": "5%+ gains in 5 days",
+                "signals_count": len(signals),
+                "top_picks": signals[:limit],
+                "high_confidence": [s for s in signals if s['confidence'] > 0.7][:5],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Runner scan error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/scan/mega-runners")
+    async def scan_mega_runners(limit: int = 20):
+        """Scan for 10%+ mega runner candidates."""
+        from src.quantracore_apex.server.ml_scanner import scan_for_runners, RUNNER_UNIVERSE
+        
+        try:
+            signals = scan_for_runners(RUNNER_UNIVERSE, model_type='mega_runners')
+            
+            return {
+                "model": "mega_runners",
+                "target": "10%+ gains",
+                "signals_count": len(signals),
+                "top_picks": signals[:limit],
+                "high_confidence": [s for s in signals if s['confidence'] > 0.7][:5],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Mega runner scan error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/scan/moonshots")
+    async def scan_moonshots(limit: int = 20):
+        """Scan for 50%+/100%+ moonshot candidates."""
+        from src.quantracore_apex.server.ml_scanner import scan_for_runners, MOONSHOT_UNIVERSE
+        
+        try:
+            signals = scan_for_runners(MOONSHOT_UNIVERSE, model_type='moonshots')
+            
+            return {
+                "model": "moonshots",
+                "target": "50%+ / 100%+ potential",
+                "signals_count": len(signals),
+                "top_picks": signals[:limit],
+                "high_confidence": [s for s in signals if s['confidence'] > 0.3][:5],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Moonshot scan error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/portfolio")
+    async def get_ml_portfolio():
+        """Get current Alpaca paper trading portfolio with ML signals."""
+        from src.quantracore_apex.server.ml_scanner import (
+            get_alpaca_positions, get_alpaca_account, scan_for_runners
+        )
+        
+        try:
+            account = get_alpaca_account()
+            positions = get_alpaca_positions()
+            
+            position_symbols = [p['symbol'] for p in positions]
+            if position_symbols:
+                signals = scan_for_runners(position_symbols, model_type='apex_production')
+                signal_map = {s['symbol']: s['confidence'] for s in signals}
+                
+                for pos in positions:
+                    pos['ml_confidence'] = signal_map.get(pos['symbol'], 0)
+            
+            total_pl = sum(p['unrealized_pl'] for p in positions)
+            total_value = sum(p['market_value'] for p in positions)
+            
+            return {
+                "account": account,
+                "positions": positions,
+                "position_count": len(positions),
+                "total_unrealized_pl": total_pl,
+                "total_market_value": total_value,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Portfolio error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/position-size/{symbol}")
+    async def calculate_position(symbol: str, confidence: float = 0.5, max_pct: float = 0.05):
+        """Calculate recommended position size based on confidence."""
+        from src.quantracore_apex.server.ml_scanner import (
+            calculate_position_size, get_alpaca_account
+        )
+        
+        try:
+            account = get_alpaca_account()
+            if not account:
+                return {"error": "Could not get account info"}
+            
+            account_value = account.get('portfolio_value', 100000)
+            
+            sizing = calculate_position_size(
+                symbol=symbol.upper(),
+                confidence=confidence,
+                account_value=account_value,
+                max_position_pct=max_pct,
+            )
+            
+            return {
+                "symbol": symbol.upper(),
+                "account_value": account_value,
+                "sizing": sizing,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Position sizing error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/ml/trade/{symbol}")
+    async def execute_ml_trade(symbol: str, shares: int, side: str = "buy"):
+        """Execute a paper trade based on ML signals."""
+        try:
+            from alpaca.trading.client import TradingClient
+            from alpaca.trading.requests import MarketOrderRequest
+            from alpaca.trading.enums import OrderSide, TimeInForce
+            
+            api_key = os.environ.get('ALPACA_PAPER_API_KEY')
+            api_secret = os.environ.get('ALPACA_PAPER_API_SECRET')
+            
+            if not api_key or not api_secret:
+                return {"error": "Alpaca credentials not configured"}
+            
+            client = TradingClient(api_key, api_secret, paper=True)
+            
+            order_side = OrderSide.BUY if side.lower() == 'buy' else OrderSide.SELL
+            
+            order_request = MarketOrderRequest(
+                symbol=symbol.upper(),
+                qty=shares,
+                side=order_side,
+                time_in_force=TimeInForce.DAY
+            )
+            
+            order = client.submit_order(order_request)
+            
+            return {
+                "success": True,
+                "order_id": str(order.id),
+                "symbol": symbol.upper(),
+                "side": side,
+                "shares": shares,
+                "status": str(order.status),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Trade execution error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
     return app
 
 
