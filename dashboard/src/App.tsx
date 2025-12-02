@@ -17,6 +17,7 @@ import { AutoTraderPanel } from './components/AutoTraderPanel'
 import { SignalsAlertsPanel } from './components/SignalsAlertsPanel'
 import { RunnerScreenerPanel } from './components/RunnerScreenerPanel'
 import { ContinuousLearningPanel } from './components/ContinuousLearningPanel'
+import { HyperspeedPanel } from './components/HyperspeedPanel'
 import { LogsProvenancePanel } from './components/LogsProvenancePanel'
 import { OptionsFlowPanel } from './components/OptionsFlowPanel'
 import { SentimentPanel } from './components/SentimentPanel'
@@ -187,9 +188,15 @@ function AppContent() {
 
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-6">
-                  <ContinuousLearningPanel />
+                  <HyperspeedPanel />
                 </div>
                 <div className="col-span-6">
+                  <ContinuousLearningPanel />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-12">
                   <LogsProvenancePanel />
                 </div>
               </div>

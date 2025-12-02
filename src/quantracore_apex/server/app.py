@@ -35,6 +35,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 _alpha_factory = None
+_hyperspeed_engine = None
 
 def convert_numpy_types(obj: Any) -> Any:
     """Convert numpy types to native Python types for JSON serialization."""
@@ -2238,6 +2239,248 @@ def create_app() -> FastAPI:
                 }
         except Exception as e:
             logger.error(f"Error rolling back model: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    def get_hyperspeed_engine():
+        """Get or create the hyperspeed engine singleton."""
+        global _hyperspeed_engine
+        if _hyperspeed_engine is None:
+            from src.quantracore_apex.hyperspeed import HyperspeedEngine, HyperspeedConfig
+            config = HyperspeedConfig()
+            _hyperspeed_engine = HyperspeedEngine(config)
+        return _hyperspeed_engine
+    
+    @app.get("/hyperspeed/status")
+    async def get_hyperspeed_status():
+        """
+        Get Hyperspeed Learning System status.
+        
+        Returns current state, metrics, and configuration.
+        """
+        try:
+            engine = get_hyperspeed_engine()
+            return {
+                "status": "operational",
+                "engine": engine.get_status(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting hyperspeed status: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/hyperspeed/metrics")
+    async def get_hyperspeed_metrics():
+        """Get aggregate hyperspeed learning metrics."""
+        try:
+            engine = get_hyperspeed_engine()
+            metrics = engine.get_metrics()
+            return {
+                "metrics": metrics.to_dict(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting hyperspeed metrics: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    class HyperspeedReplayRequest(BaseModel):
+        symbols: Optional[List[str]] = None
+        years: int = 5
+    
+    @app.post("/hyperspeed/replay")
+    async def start_hyperspeed_replay(request: HyperspeedReplayRequest, background_tasks: BackgroundTasks):
+        """
+        Start historical data replay at 1000x speed.
+        
+        Replays years of market data through the prediction pipeline,
+        generating training samples with known outcomes.
+        """
+        try:
+            engine = get_hyperspeed_engine()
+            
+            def run_replay():
+                engine.run_historical_replay(
+                    symbols=request.symbols,
+                    years=request.years,
+                )
+            
+            background_tasks.add_task(run_replay)
+            
+            return {
+                "status": "started",
+                "message": f"Historical replay started for {request.years} years",
+                "symbols_count": len(request.symbols) if request.symbols else len(engine.config.replay_symbols),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error starting replay: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/hyperspeed/battle")
+    async def start_battle_simulations(background_tasks: BackgroundTasks, max_samples: int = 1000):
+        """
+        Run parallel battle simulations.
+        
+        Simulates 100+ trades across multiple strategies
+        to accelerate learning from historical outcomes.
+        """
+        try:
+            engine = get_hyperspeed_engine()
+            
+            def run_simulations():
+                engine.run_battle_simulations(max_samples=max_samples)
+            
+            background_tasks.add_task(run_simulations)
+            
+            return {
+                "status": "started",
+                "message": f"Battle simulations started with up to {max_samples} samples",
+                "strategies": [s.value for s in engine.config.simulation_strategies],
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error starting simulations: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    class HyperspeedCycleRequest(BaseModel):
+        symbols: Optional[List[str]] = None
+        years: int = 5
+    
+    @app.post("/hyperspeed/cycle")
+    async def run_full_hyperspeed_cycle(request: HyperspeedCycleRequest, background_tasks: BackgroundTasks):
+        """
+        Run a complete hyperspeed learning cycle.
+        
+        Combines:
+        1. Historical replay (5 years at 1000x speed)
+        2. Parallel battle simulations (100+ per sample)
+        3. Multi-source data aggregation
+        4. Model training trigger
+        
+        Returns immediately, runs in background.
+        """
+        try:
+            engine = get_hyperspeed_engine()
+            
+            def run_cycle():
+                engine.run_full_hyperspeed_cycle(
+                    symbols=request.symbols,
+                    years=request.years,
+                )
+            
+            background_tasks.add_task(run_cycle)
+            
+            return {
+                "status": "started",
+                "message": "Full hyperspeed cycle initiated",
+                "config": engine.config.to_dict(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error starting cycle: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/hyperspeed/overnight/start")
+    async def start_overnight_mode():
+        """
+        Start overnight intensive learning mode.
+        
+        Automatically runs learning cycles during off-market hours
+        (4 PM - 4 AM ET) for maximum training efficiency.
+        """
+        try:
+            engine = get_hyperspeed_engine()
+            engine.start_overnight_mode()
+            
+            return {
+                "status": "started",
+                "message": "Overnight mode activated - learning will run during off-hours",
+                "scheduler": engine.scheduler.get_state(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error starting overnight mode: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/hyperspeed/overnight/stop")
+    async def stop_overnight_mode():
+        """Stop overnight intensive learning mode."""
+        try:
+            engine = get_hyperspeed_engine()
+            engine.stop_overnight_mode()
+            
+            return {
+                "status": "stopped",
+                "message": "Overnight mode deactivated",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error stopping overnight mode: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/hyperspeed/strategies")
+    async def get_strategy_performance():
+        """Get performance metrics for each simulation strategy."""
+        try:
+            engine = get_hyperspeed_engine()
+            performance = engine.get_strategy_performance()
+            lessons = engine.get_lessons_learned()
+            
+            return {
+                "strategies": performance,
+                "lessons_learned": lessons,
+                "total_simulations": engine.battle_cluster.get_simulation_count(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting strategy performance: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/hyperspeed/samples")
+    async def get_sample_stats():
+        """Get training sample statistics."""
+        try:
+            engine = get_hyperspeed_engine()
+            
+            return {
+                "cached_samples": engine.get_sample_count(),
+                "min_for_training": engine.config.min_samples_for_training,
+                "ready_for_training": engine.get_sample_count() >= engine.config.min_samples_for_training,
+                "replay_sessions": len(engine.replay_engine.get_all_sessions()),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting sample stats: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/hyperspeed/train")
+    async def trigger_hyperspeed_training():
+        """Trigger model training with accumulated samples."""
+        try:
+            engine = get_hyperspeed_engine()
+            result = engine.trigger_model_training()
+            
+            return {
+                "training": result,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error triggering training: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.delete("/hyperspeed/samples")
+    async def clear_hyperspeed_samples():
+        """Clear accumulated training samples."""
+        try:
+            engine = get_hyperspeed_engine()
+            engine.clear_samples()
+            
+            return {
+                "status": "cleared",
+                "message": "Training samples cleared",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error clearing samples: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     class BatchAdvisoryRequest(BaseModel):

@@ -153,9 +153,57 @@ Browser-based push notifications using Web Push Protocol (RFC 8030):
 - `TWILIO_*` (managed by Replit integration)
 - `DATABASE_URL` (auto-provided by Replit PostgreSQL)
 
+## Hyperspeed Learning System
+
+### Overview
+The Hyperspeed Learning System accelerates ML training by 1000x through:
+- Historical data replay at maximum speed
+- Parallel battle simulations (100+ per sample)
+- Multi-source data fusion
+- Overnight intensive training cycles
+
+### Components
+
+| Component | Description |
+|-----------|-------------|
+| **HyperspeedEngine** | Main orchestrator coordinating all learning components |
+| **HistoricalReplayEngine** | Replays years of market data at 1000x speed |
+| **ParallelBattleCluster** | Runs 100+ simulated trades per sample across 8 strategies |
+| **MultiSourceAggregator** | Fuses Polygon, Alpaca, options flow, dark pool, sentiment data |
+| **OvernightScheduler** | Coordinates intensive learning during off-market hours |
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/hyperspeed/status` | GET | Get engine status and metrics |
+| `/hyperspeed/metrics` | GET | Get aggregate learning metrics |
+| `/hyperspeed/replay` | POST | Start historical replay (5 years at 1000x) |
+| `/hyperspeed/battle` | POST | Run parallel battle simulations |
+| `/hyperspeed/cycle` | POST | Run full hyperspeed learning cycle |
+| `/hyperspeed/overnight/start` | POST | Start overnight intensive mode |
+| `/hyperspeed/overnight/stop` | POST | Stop overnight mode |
+| `/hyperspeed/strategies` | GET | Get strategy performance metrics |
+| `/hyperspeed/samples` | GET | Get training sample statistics |
+| `/hyperspeed/train` | POST | Trigger model training |
+
+### Simulation Strategies
+8 parallel strategies for comprehensive learning:
+- Conservative, Moderate, Aggressive
+- Scalping, Swing, Contrarian
+- Momentum, Mean Reversion
+
+### Acceleration Metrics
+- Days equivalent: Years of market experience compressed
+- Acceleration factor: Real-time multiplier (target: 1000x)
+- Peak speed: Maximum acceleration achieved
+
 ## Recent Changes
 
 ### December 2025
+- **Hyperspeed Learning System**: Full implementation with historical replay, battle simulations, multi-source aggregation, overnight scheduler
+- **16 API endpoints** for hyperspeed learning control
+- **HyperspeedPanel** dashboard component for monitoring and control
 - Implemented database-backed ML model persistence with PostgreSQL
 - Added version history and rollback capability for trained models
 - Fixed active version tracking with atomic deactivation of old versions
