@@ -2,6 +2,12 @@
 Data Adapters for QuantraCore Apex.
 
 Comprehensive data ingestion layer supporting multiple providers.
+
+Free-Tier Data Sources:
+- FRED: 800,000+ economic indicators (completely free)
+- Finnhub: Social sentiment from Reddit/Twitter (60 req/min)
+- Alpha Vantage: AI news sentiment + technical indicators (500 req/day)
+- Polygon.io: OHLCV data (5 req/min free tier)
 """
 
 from .base import DataAdapter
@@ -21,7 +27,13 @@ from .base_enhanced import (
     ProviderStatus
 )
 
-from .alpha_vantage_adapter import AlphaVantageAdapter
+from .alpha_vantage_adapter import (
+    AlphaVantageAdapter,
+    NewsSentimentArticle,
+    TechnicalIndicator,
+    get_alpha_vantage_adapter,
+    ALPHA_VANTAGE_SETUP_GUIDE
+)
 from .polygon_adapter import PolygonAdapter
 from .synthetic_adapter import SyntheticAdapter
 
@@ -37,11 +49,30 @@ from .options_flow_adapter import (
     OptionsFlowAggregator
 )
 
-from .alternative_data_adapter import (
+from .finnhub_adapter import (
     FinnhubAdapter,
+    SocialSentiment,
+    NewsSentiment,
+    InsiderTransaction,
+    CompanyNews,
+    get_finnhub_adapter,
+    FINNHUB_SETUP_GUIDE
+)
+
+from .alternative_data_adapter import (
     AltIndexAdapter,
     StocktwitsAdapter,
     AlternativeDataAggregator
+)
+
+from .economic_adapter import (
+    FredAdapter,
+    EconomicIndicator,
+    EconomicDataPoint,
+    EconomicEvent,
+    MacroRegime,
+    EconomicDataAggregator,
+    ECONOMIC_SETUP_GUIDE
 )
 
 from .crypto_adapter import (
@@ -75,6 +106,10 @@ __all__ = [
     "FundamentalsData",
     "ProviderStatus",
     "AlphaVantageAdapter",
+    "NewsSentimentArticle",
+    "TechnicalIndicator",
+    "get_alpha_vantage_adapter",
+    "ALPHA_VANTAGE_SETUP_GUIDE",
     "PolygonAdapter",
     "SyntheticAdapter",
     "EODHDAdapter",
@@ -86,9 +121,22 @@ __all__ = [
     "InsiderFinanceAdapter",
     "OptionsFlowAggregator",
     "FinnhubAdapter",
+    "SocialSentiment",
+    "NewsSentiment",
+    "InsiderTransaction",
+    "CompanyNews",
+    "get_finnhub_adapter",
+    "FINNHUB_SETUP_GUIDE",
     "AltIndexAdapter",
     "StocktwitsAdapter",
     "AlternativeDataAggregator",
+    "FredAdapter",
+    "EconomicIndicator",
+    "EconomicDataPoint",
+    "EconomicEvent",
+    "MacroRegime",
+    "EconomicDataAggregator",
+    "ECONOMIC_SETUP_GUIDE",
     "BinanceAdapter",
     "CoinGeckoAdapter",
     "CryptoDataAggregator",

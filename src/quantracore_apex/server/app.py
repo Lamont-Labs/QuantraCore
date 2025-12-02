@@ -394,6 +394,311 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    @app.get("/sentiment/{symbol}")
+    async def get_sentiment(symbol: str):
+        """
+        Get unified sentiment analysis for a symbol.
+        
+        Combines data from multiple free-tier sources:
+        - Finnhub: Social sentiment (Reddit/Twitter)
+        - Alpha Vantage: AI news sentiment
+        - FRED: Economic regime context
+        """
+        from src.quantracore_apex.data_layer.adapters.sentiment_aggregator import (
+            get_sentiment_aggregator
+        )
+        
+        try:
+            aggregator = get_sentiment_aggregator()
+            sentiment = aggregator.get_unified_sentiment(symbol.upper())
+            
+            return {
+                "symbol": sentiment.symbol,
+                "combined_score": sentiment.combined_score,
+                "signal": sentiment.signal,
+                "confidence": sentiment.confidence,
+                "social": {
+                    "score": sentiment.social_score,
+                    "buzz": sentiment.social_buzz,
+                    "reddit_mentions": sentiment.reddit_mentions,
+                    "twitter_mentions": sentiment.twitter_mentions
+                },
+                "news": {
+                    "score": sentiment.news_score,
+                    "article_count": sentiment.news_articles,
+                    "bullish": sentiment.bullish_articles,
+                    "bearish": sentiment.bearish_articles
+                },
+                "economic": {
+                    "regime": sentiment.economic_regime,
+                    "risk_appetite": sentiment.risk_appetite
+                },
+                "timestamp": sentiment.timestamp.isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Sentiment error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/sentiment/batch")
+    async def get_batch_sentiment(symbols: List[str]):
+        """Get sentiment for multiple symbols."""
+        from src.quantracore_apex.data_layer.adapters.sentiment_aggregator import (
+            get_sentiment_aggregator
+        )
+        
+        try:
+            aggregator = get_sentiment_aggregator()
+            results = aggregator.get_batch_sentiment([s.upper() for s in symbols[:20]])
+            
+            return {
+                "count": len(results),
+                "results": {
+                    symbol: {
+                        "combined_score": data.combined_score,
+                        "signal": data.signal,
+                        "confidence": data.confidence,
+                        "social_score": data.social_score,
+                        "news_score": data.news_score,
+                        "regime": data.economic_regime
+                    }
+                    for symbol, data in results.items()
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Batch sentiment error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/sentiment/market")
+    async def get_market_sentiment():
+        """Get overall market sentiment snapshot."""
+        from src.quantracore_apex.data_layer.adapters.sentiment_aggregator import (
+            get_sentiment_aggregator
+        )
+        
+        try:
+            aggregator = get_sentiment_aggregator()
+            snapshot = aggregator.get_market_snapshot()
+            
+            return {
+                "overall_sentiment": snapshot.overall_sentiment,
+                "fear_greed_index": snapshot.market_fear_greed,
+                "economic_regime": {
+                    "regime": snapshot.economic_regime.regime,
+                    "risk_appetite": snapshot.economic_regime.risk_appetite,
+                    "yield_curve": snapshot.economic_regime.yield_curve,
+                    "inflation": snapshot.economic_regime.inflation_trend,
+                    "growth": snapshot.economic_regime.growth_trend,
+                    "fed_stance": snapshot.economic_regime.fed_stance,
+                    "confidence": snapshot.economic_regime.confidence
+                },
+                "trending_symbols": snapshot.trending_symbols,
+                "top_bullish": snapshot.top_bullish_symbols,
+                "top_bearish": snapshot.top_bearish_symbols,
+                "active_catalysts": snapshot.active_catalysts,
+                "timestamp": snapshot.timestamp.isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Market sentiment error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/sentiment/providers")
+    async def get_sentiment_providers():
+        """Get status of sentiment data providers."""
+        from src.quantracore_apex.data_layer.adapters.sentiment_aggregator import (
+            get_sentiment_aggregator
+        )
+        
+        try:
+            aggregator = get_sentiment_aggregator()
+            status = aggregator.get_status()
+            
+            return {
+                "providers": status,
+                "total_available": sum(1 for p in status.values() if p["available"]),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Sentiment providers error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/economic/regime")
+    async def get_economic_regime():
+        """Get current economic regime from FRED data."""
+        from src.quantracore_apex.data_layer.adapters.economic_adapter import FredAdapter
+        
+        try:
+            fred = FredAdapter()
+            regime = fred.get_current_regime()
+            
+            return {
+                "regime": regime.regime,
+                "risk_appetite": regime.risk_appetite,
+                "yield_curve": regime.yield_curve,
+                "inflation_trend": regime.inflation_trend,
+                "growth_trend": regime.growth_trend,
+                "fed_stance": regime.fed_stance,
+                "confidence": regime.confidence,
+                "timestamp": regime.timestamp.isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Economic regime error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/economic/yield_curve")
+    async def get_yield_curve():
+        """Get current US Treasury yield curve."""
+        from src.quantracore_apex.data_layer.adapters.economic_adapter import FredAdapter
+        
+        try:
+            fred = FredAdapter()
+            curve = fred.get_yield_curve()
+            
+            spread_2_10 = curve.get("10Y", 0) - curve.get("2Y", 0)
+            
+            if spread_2_10 < -0.5:
+                status = "DEEPLY_INVERTED"
+            elif spread_2_10 < 0:
+                status = "INVERTED"
+            elif spread_2_10 < 0.5:
+                status = "FLAT"
+            elif spread_2_10 < 1.5:
+                status = "NORMAL"
+            else:
+                status = "STEEP"
+            
+            return {
+                "curve": curve,
+                "spread_2_10": round(spread_2_10, 3),
+                "status": status,
+                "recession_warning": spread_2_10 < 0,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Yield curve error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/news/{symbol}")
+    async def get_news_sentiment(symbol: str, limit: int = 20):
+        """Get AI-powered news sentiment for a symbol."""
+        from src.quantracore_apex.data_layer.adapters.alpha_vantage_adapter import (
+            AlphaVantageAdapter
+        )
+        
+        try:
+            adapter = AlphaVantageAdapter()
+            articles = adapter.get_news_sentiment(tickers=[symbol.upper()], limit=limit)
+            
+            return {
+                "symbol": symbol.upper(),
+                "article_count": len(articles),
+                "articles": [
+                    {
+                        "title": a.title,
+                        "source": a.source,
+                        "sentiment_score": a.overall_sentiment_score,
+                        "sentiment_label": a.overall_sentiment_label,
+                        "relevance": a.relevance_score,
+                        "published": a.time_published.isoformat(),
+                        "url": a.url
+                    }
+                    for a in articles
+                ],
+                "average_sentiment": round(
+                    sum(a.overall_sentiment_score for a in articles) / max(1, len(articles)),
+                    4
+                ),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"News sentiment error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/social/{symbol}")
+    async def get_social_sentiment(symbol: str):
+        """Get social media sentiment (Reddit/Twitter) for a symbol."""
+        from src.quantracore_apex.data_layer.adapters.finnhub_adapter import (
+            FinnhubAdapter
+        )
+        
+        try:
+            adapter = FinnhubAdapter()
+            social = adapter.get_social_sentiment(symbol.upper())
+            
+            if social is None:
+                raise HTTPException(status_code=404, detail="No social data available")
+            
+            return {
+                "symbol": social.symbol,
+                "score": social.score,
+                "positive_score": social.positive_score,
+                "negative_score": social.negative_score,
+                "buzz": social.buzz,
+                "reddit": {
+                    "mentions": social.reddit_mentions,
+                    "positive": social.reddit_positive_mentions,
+                    "negative": social.reddit_negative_mentions
+                },
+                "twitter": {
+                    "mentions": social.twitter_mentions,
+                    "positive": social.twitter_positive_mentions,
+                    "negative": social.twitter_negative_mentions
+                },
+                "timestamp": social.timestamp.isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Social sentiment error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/insider/{symbol}")
+    async def get_insider_transactions(symbol: str):
+        """Get insider trading transactions for a symbol."""
+        from src.quantracore_apex.data_layer.adapters.finnhub_adapter import (
+            FinnhubAdapter
+        )
+        
+        try:
+            adapter = FinnhubAdapter()
+            transactions = adapter.get_insider_transactions(symbol.upper())
+            
+            total_buys = sum(t.value for t in transactions if "P" in t.transaction_type)
+            total_sells = sum(t.value for t in transactions if "S" in t.transaction_type)
+            
+            if total_buys > total_sells * 1.5:
+                insider_signal = "BULLISH"
+            elif total_sells > total_buys * 1.5:
+                insider_signal = "BEARISH"
+            else:
+                insider_signal = "NEUTRAL"
+            
+            return {
+                "symbol": symbol.upper(),
+                "transaction_count": len(transactions),
+                "transactions": [
+                    {
+                        "name": t.name,
+                        "type": t.transaction_type,
+                        "shares": t.shares,
+                        "price": t.price,
+                        "value": t.value,
+                        "date": t.transaction_date.isoformat(),
+                        "filed": t.filing_date.isoformat()
+                    }
+                    for t in transactions[:20]
+                ],
+                "summary": {
+                    "total_buy_value": round(total_buys, 2),
+                    "total_sell_value": round(total_sells, 2),
+                    "signal": insider_signal
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Insider transactions error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     @app.post("/scan_symbol", response_model=ScanResult)
     async def scan_symbol(request: ScanRequest):
         """Scan a single symbol and return Apex analysis."""
