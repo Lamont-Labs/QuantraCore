@@ -38,7 +38,8 @@
 20. [Deployment](#20-deployment)
 21. [Autonomous Trading System](#21-autonomous-trading-system)
 22. [Battle Simulator](#22-battle-simulator)
-23. [HyperLearner](#23-hyperlearner)
+23. [HyperLearner & Hyperspeed Learning](#23-hyperlearner)
+   - [23.11 Hyperspeed Learning System](#2311-hyperspeed-learning-system)
 24. [Signal & Alert Services](#24-signal--alert-services)
 25. [Vision & Roadmap](#25-vision--roadmap)
 26. [Investor Due Diligence Suite](#26-investor-due-diligence-suite)
@@ -67,7 +68,21 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 | **Paper Trading Active** | Full paper trading via Alpaca (LIVE mode disabled) |
 | **Rule Override** | Hardcoded rules always override ML predictions |
 
-### 1.3 Current System Status
+### 1.3 Hardware Requirements
+
+| Property | Value | Notes |
+|----------|-------|-------|
+| **Target Platform** | Any modern x86-64 desktop | Not tied to specific hardware |
+| **Current Dev Hardware** | GMKtec NucBox K6 | Development constraint only |
+| **Minimum RAM** | 16 GB | 32 GB recommended for full operation |
+| **CPU** | 8-core x86-64 | Intel or AMD |
+| **GPU** | Optional | System is CPU-optimized by design |
+| **Storage** | Local SSD | For logs, models, cache |
+| **Platform Restriction** | Desktop-only | Mobile/Android builds prohibited |
+
+**Design Philosophy:** The system is designed to run on commodity desktop hardware without requiring specialized GPU acceleration or cloud resources. The current development constraint (K6 NucBox) is not the target hardware specification.
+
+### 1.4 Current System Status
 
 | Metric | Value |
 |--------|-------|
@@ -78,19 +93,21 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 | **Execution Mode** | PAPER (Alpaca connected) |
 | **Symbol Universe** | 251 symbols (64 penny, 114 low-float) |
 
-### 1.4 Capability Summary
+### 1.5 Capability Summary
 
 - **145+ Protocols**: 80 Tier + 25 Learning + 20 MonsterRunner + 20 Omega
 - **QuantraScore**: 0-100 probability-weighted composite score
 - **Universal Scanner**: 7 market cap buckets × 4 scan modes
-- **Offline ML**: On-device ApexCore v3 neural models with **7 prediction heads** (including timing & runup)
+- **Offline ML**: On-device ApexCore V4 neural models with **16 prediction heads**
 - **Full Paper Trading**: Alpaca integration with all position types
+- **Hyperspeed Learning**: 1000x accelerated model training via historical replay
 - **Self-Learning**: Feedback loop → ApexLab → periodic retraining
 - **All Trading Types**: Long, short, margin, intraday, swing, scalping
 - **Low-Float Screener**: Real-time penny runner detection (114 symbols)
 - **SMS Alerts**: Twilio-powered trading signal notifications
+- **Database Model Persistence**: PostgreSQL-backed ML models survive restarts
 
-### 1.5 Trading Capabilities
+### 1.6 Trading Capabilities
 
 | Type | Status | Description |
 |------|--------|-------------|
@@ -101,7 +118,7 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 | **Swing** | Enabled | 2-10+ day holds |
 | **Scalping** | Enabled | Sub-5 minute trades |
 
-### 1.6 Risk Configuration
+### 1.7 Risk Configuration
 
 | Parameter | Value |
 |-----------|-------|
@@ -111,7 +128,7 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 | Max Leverage | 4x |
 | Risk Per Trade | 2% |
 
-### 1.7 Technology Stack
+### 1.8 Technology Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -123,7 +140,7 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 | Testing | pytest (1,145+ tests), vitest |
 | Data | Hybrid: Polygon (market data) + Alpaca (trading) + Binance (crypto)
 
-### 1.8 Performance Optimizations
+### 1.9 Performance Optimizations
 
 The system implements multiple layers of performance optimization to achieve 3x improvement in response times.
 
@@ -2696,6 +2713,66 @@ src/quantracore_apex/hyperlearner/
 │   └── meta_learner.py        # Meta-learning
 └── integration/
     └── hooks.py               # Integration decorators
+```
+
+---
+
+## 23.11 Hyperspeed Learning System
+
+The Hyperspeed Learning System accelerates model training by replaying years of historical market data through the prediction pipeline at 1000x real-time speed. This dramatically reduces the time needed for model maturity from 12+ months of live-only learning to 1-2 weeks.
+
+### Architecture
+
+| Component | Description |
+|-----------|-------------|
+| **Historical Replay Engine** | Streams 5 years of historical data through the prediction pipeline |
+| **Battle Simulator** | Runs 100 parallel strategy simulations per cycle |
+| **Multi-Source Fusion** | Aggregates data from Polygon, Alpaca, and Binance |
+| **Overnight Training** | Intensive learning during market close (4 PM - 4 AM ET) |
+| **Database Persistence** | PostgreSQL-backed model storage with version history |
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Samples per cycle | 70+ per symbol |
+| Training threshold | 5,000 samples |
+| Model storage | 12 MB in PostgreSQL |
+| Acceleration factor | ~1,000x real-time |
+| Target symbols | 50 high-momentum stocks |
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/hyperspeed/status` | GET | System status, metrics, scheduler state |
+| `/hyperspeed/cycle/sync` | POST | Run synchronous hyperspeed cycle |
+| `/hyperspeed/cycle` | POST | Start async hyperspeed cycle |
+| `/hyperspeed/train` | POST | Trigger model training |
+| `/hyperspeed/start` | POST | Start overnight scheduler |
+| `/hyperspeed/stop` | POST | Stop overnight scheduler |
+
+### Training Pipeline
+
+1. **Historical Replay**: Fetch 5 years of OHLCV data for target symbols
+2. **Window Generation**: Create 100-bar windows with known outcomes
+3. **Feature Extraction**: Compute features for each window
+4. **Battle Simulation**: Run 100 parallel strategy simulations
+5. **Sample Labeling**: Label samples with actual future outcomes
+6. **Model Training**: Train when sample threshold reached
+7. **Database Persistence**: Save updated model to PostgreSQL
+
+### Directory Structure
+
+```
+src/quantracore_apex/hyperspeed/
+├── __init__.py              # Package exports
+├── engine.py                # Main hyperspeed engine
+├── models.py                # Data models and configuration
+├── replay.py                # Historical replay engine
+├── simulator.py             # Battle simulation engine
+├── adapters.py              # Data adapters and fallbacks
+└── scheduler.py             # Overnight training scheduler
 ```
 
 ---

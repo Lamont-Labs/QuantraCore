@@ -38,8 +38,10 @@ All ApexCore models adhere to these fundamental principles:
 
 | Property | Value |
 |----------|-------|
-| Target | Desktop (K6) |
-| Hardware | GMKtec NucBox K6 |
+| Target | Any modern x86-64 desktop |
+| Current Dev Hardware | GMKtec NucBox K6 (development constraint only) |
+
+**Note:** The system is designed to run on commodity desktop hardware. The K6 represents a development constraint, not the target specification.
 
 ### 3.2 Specifications
 

@@ -37,15 +37,18 @@ This upgrade builds upon the stable v8.2 foundation with institutional-grade har
 
 ---
 
-## 3. Hardware Targets
+## 3. Hardware Requirements
 
-| Platform | Target | Notes |
+| Property | Target | Notes |
 |----------|--------|-------|
-| Workstation | GMKtec NucBox K6 | Primary development and execution platform |
-| CPU | 8-core max recommended | Intel/AMD x86-64 |
+| **Target Platform** | Any modern x86-64 desktop | Not tied to specific hardware |
+| **Current Dev Hardware** | GMKtec NucBox K6 | Development constraint only, not target spec |
+| CPU | 8-core x86-64 | Intel/AMD recommended |
 | RAM | 16-32GB recommended | 16GB minimum for full operation |
 | GPU | Optional | CPU-optimized by design |
 | Storage | Local SSD | For logs, models, cache, and proof storage |
+
+**Design Philosophy:** The system is designed to run on commodity desktop hardware without requiring specialized GPU acceleration or cloud resources. The current development hardware (GMKtec K6 NucBox) represents a development constraint, not the target hardware specification.
 
 **CRITICAL:** Mobile/Android builds are strictly prohibited. Desktop-only architecture.
 

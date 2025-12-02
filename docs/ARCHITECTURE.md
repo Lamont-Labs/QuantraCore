@@ -101,7 +101,7 @@ Master deterministic signal engine executing all structural analysis.
 
 ### 3. ApexLab (Training Factory)
 Fully autonomous offline training environment.
-- **Location:** K6 workstation
+- **Location:** Desktop workstation (any modern x86-64)
 - **Function:** Generates teacher labels, trains ApexCore models
 - **Data Windows:** 100-bar OHLCV
 - **Validation:** Strict alignment to Apex outputs

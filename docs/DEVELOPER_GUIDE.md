@@ -32,18 +32,21 @@ All development must adhere to these principles:
 
 ---
 
-## 4. Hardware Targets
+## 4. Hardware Requirements
 
-| Platform | Target | Use Case |
-|----------|--------|----------|
-| Workstation | GMKtec NucBox K6 | Development, analysis |
-| Mobile | Android | QuantraVision only |
+| Property | Target | Notes |
+|----------|--------|-------|
+| **Target Platform** | Any modern x86-64 desktop | Not tied to specific hardware |
+| **Current Dev Hardware** | GMKtec NucBox K6 | Development constraint only |
 
 **Recommended Constraints:**
-- CPU: 8-core max recommended
-- RAM: 16GB recommended
-- GPU: Optional — CPU-optimized
-- Storage: Local logs + model store
+- CPU: 8-core x86-64 (Intel/AMD)
+- RAM: 16GB minimum, 32GB recommended
+- GPU: Optional — System is CPU-optimized by design
+- Storage: Local SSD for logs, models, and cache
+- Platform: Desktop-only (no mobile/Android builds)
+
+**Note:** The GMKtec K6 is the current development hardware constraint, not the target platform specification. The system is designed to run on any modern desktop.
 
 ---
 

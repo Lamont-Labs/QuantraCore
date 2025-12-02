@@ -2,7 +2,7 @@
 
 ## Overview
 
-QuantraCore Apex is an institutional-grade, deterministic AI trading intelligence engine designed for desktop use. It integrates an offline learning ecosystem (ApexLab) and on-device neural assistant models (ApexCore V4) to deliver sophisticated, AI-driven trading. The system supports all trading types (long, short, intraday, swing, scalping) primarily through Alpaca paper trading, emphasizing determinism, accuracy optimization, and self-learning. Its purpose is to provide a robust, self-improving platform with advanced risk management, database-backed ML persistence, and comprehensive reporting for both retail and institutional users.
+QuantraCore Apex v9.0-A is an institutional-grade, deterministic AI trading intelligence engine designed for desktop use. It integrates an offline learning ecosystem (ApexLab), on-device neural assistant models (ApexCore V4 with 16 prediction heads), and a Hyperspeed Learning System for accelerated model maturity. The system supports all trading types (long, short, intraday, swing, scalping) primarily through Alpaca paper trading, emphasizing determinism, accuracy optimization, and self-learning. Its purpose is to provide a robust, self-improving platform with advanced risk management, database-backed ML persistence, and comprehensive reporting for both retail and institutional users.
 
 ## User Preferences
 
@@ -13,6 +13,12 @@ QuantraCore Apex is an institutional-grade, deterministic AI trading intelligenc
 - **Restrictions:** Do not modify folder `Z` or file `Y`
 
 ## System Architecture
+
+### Hardware Context
+- **Current Development:** GMKtec NucBox K6 (development constraint, not target hardware)
+- **Target Hardware:** Any modern x86-64 desktop with 16GB+ RAM
+- **Design Philosophy:** CPU-optimized, GPU optional, runs on commodity hardware
+- **Platform:** Desktop-only (no mobile/Android builds)
 
 ### UI/UX Decisions
 The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, employs an institutional trading terminal aesthetic and a custom design system. The ApexDesk Dashboard features 15 real-time panels for monitoring and control, offering Standard (30s), High Velocity (5s), and Turbo (2s) refresh rates. Frontend performance is optimized with request throttling and lazy loading.
@@ -33,16 +39,33 @@ The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, employs an 
 - **Offline ML (ApexCore V4):** On-device neural models with 16 prediction heads.
 - **Accuracy Optimization System:** 8-module suite for calibration, regime-gating, uncertainty quantification, and auto-retraining.
 - **Self-Learning (Alpha Factory & Continuous Learning System):** 24/7 live research loop via WebSockets.
-- **Hyperspeed Learning System:** Accelerates ML training through historical data replay (1000x speed), parallel battle simulations, multi-source data fusion, and overnight intensive training. Includes robust thread monitoring and fallback data adapters.
+- **Hyperspeed Learning System:** Accelerates ML training through historical data replay (1000x speed), parallel battle simulations, multi-source data fusion, and overnight intensive training. Targets 1-2 weeks to model maturity vs. 12+ months of live-only learning.
 - **Signal & Alert Services:** Manual Trading Signal Service, Twilio SMS alerts, and browser-based Push Notifications.
 - **Low-Float Runner Screener:** Real-time scanner for penny stocks.
-- **Protocol System:** Extensive suite of trading protocols.
+- **Protocol System:** Extensive suite of trading protocols (T01-T80, LP01-LP25, MR01-MR20, Ω01-Ω20).
 - **Investor Reporting & Logging:** Comprehensive logging for paper trades, performance metrics, and ML model training (stored in `investor_logs/`). Includes automated daily compliance attestations.
 - **Automated Swing Trade Execution (AutoTrader):** Autonomous setup scanning, position sizing, and market order execution.
 - **Model Management:** Hot Model Reload System (ModelManager) and Dual-Phase Incremental Learning (IncrementalTrainer).
 - **Trade Hold Manager:** Continuation probability-based system for active positions.
-- **Extended Market Hours Trading:** Full support for pre-market, regular, and after-hours trading.
+- **Extended Market Hours Trading:** Full support for pre-market (4:00 AM), regular (9:30 AM - 4:00 PM), and after-hours trading (8:00 PM).
 - **Multi-Source Data Ingestion:** Options flow, sentiment analysis, Level 2 data, dark pool activity, economic indicators, and alternative data feeds.
+
+### Hyperspeed Learning System (v9.0-A)
+The Hyperspeed Learning System accelerates model training by replaying years of historical data at 1000x speed:
+
+| Component | Description |
+|-----------|-------------|
+| Historical Replay Engine | Streams 5 years of data through prediction pipeline |
+| Battle Simulator | 100 parallel strategy simulations per cycle |
+| Multi-Source Fusion | Polygon, Alpaca, Binance data aggregation |
+| Overnight Training | Intensive learning during market close (4 PM - 4 AM) |
+| Database Persistence | PostgreSQL-backed model storage with version history |
+
+**Current Status:**
+- Samples per cycle: 70+ per symbol
+- Training threshold: 5,000 samples
+- Model storage: 12 MB in PostgreSQL
+- Acceleration: ~1,000x real-time
 
 ### System Design Choices
 - **Broker Layer:** Supports `NullAdapter`, `PaperSimAdapter`, and `AlpacaPaperAdapter`.
@@ -58,3 +81,11 @@ The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, employs an 
 - **Twilio:** Used for SMS alerts.
 - **Google Docs:** Integrated via Replit OAuth2 for automated reporting.
 - **PostgreSQL:** Database for ML model persistence (Replit-managed).
+
+## Recent Changes (December 2025)
+
+- **Hyperspeed Learning System:** Fully operational with 1000x acceleration
+- **Database Model Persistence:** ML models stored in PostgreSQL, survive restarts
+- **ApexCore V4 Integration:** 16 prediction heads attached to hyperspeed engine
+- **Training Pipeline:** End-to-end verified (replay → simulation → training → update)
+- **Multi-Worker Note:** Uvicorn 4-worker setup requires shared state for production metrics
