@@ -149,7 +149,7 @@ class HyperspeedEngine:
             callback=callback,
         ):
             try:
-                features = self._feature_extractor.extract_all(window)
+                features = self._feature_extractor.extract(window)
                 
                 with self._sample_lock:
                     self._training_samples.append((features, labels))

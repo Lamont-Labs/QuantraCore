@@ -19,6 +19,7 @@ import numpy as np
 from src.quantracore_apex.core.schemas import OhlcvWindow, OhlcvBar
 from src.quantracore_apex.apexlab.features import FeatureExtractor
 from .models import ReplaySession, ReplaySpeed, HyperspeedConfig
+from .adapters import FallbackDataProvider, AdapterConfig
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,11 @@ class HistoricalReplayEngine:
         
         self._bar_cache: Dict[str, List[OhlcvBar]] = {}
         
+        self._fallback_provider = FallbackDataProvider(AdapterConfig())
+        self._use_fallback = True
+        
         logger.info("[HistoricalReplay] Initialized")
+        logger.info(f"[HistoricalReplay] Fallback provider enabled: {self._use_fallback}")
     
     def _rate_limit(self):
         """Enforce rate limiting for API calls."""
@@ -68,18 +73,25 @@ class HistoricalReplayEngine:
         end_date: date,
         use_cache: bool = True,
     ) -> List[OhlcvBar]:
-        """Fetch historical OHLCV bars for a symbol."""
+        """Fetch historical OHLCV bars for a symbol with fallback support."""
         cache_key = f"{symbol}:{start_date}:{end_date}"
         
         if use_cache and cache_key in self._bar_cache:
             return self._bar_cache[cache_key]
         
+        bars = []
+        
         if self.polygon_key:
             bars = self._fetch_from_polygon(symbol, start_date, end_date)
         elif self.alpaca_key and self.alpaca_secret:
             bars = self._fetch_from_alpaca(symbol, start_date, end_date)
-        else:
-            logger.warning(f"[HistoricalReplay] No data source available for {symbol}")
+        
+        if not bars and self._use_fallback:
+            logger.info(f"[HistoricalReplay] Using fallback for {symbol}")
+            bars = self._fallback_provider.get_historical_bars(symbol, start_date, end_date)
+        
+        if not bars:
+            logger.warning(f"[HistoricalReplay] No data available for {symbol}")
             return []
         
         if use_cache and bars:
@@ -227,9 +239,8 @@ class HistoricalReplayEngine:
             
             window = OhlcvWindow(
                 symbol=symbol,
+                timeframe="1D",
                 bars=window_bars,
-                start_time=window_bars[0].timestamp,
-                end_time=window_bars[-1].timestamp,
             )
             
             labels = {
