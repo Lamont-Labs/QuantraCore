@@ -67,6 +67,24 @@ The Hyperspeed Learning System accelerates model training by replaying years of 
 - Model storage: 12 MB in PostgreSQL
 - Acceleration: ~1,000x real-time
 
+### Trained ML Models (December 2025)
+
+| Model | Purpose | Training Samples | Validation Accuracy |
+|-------|---------|------------------|---------------------|
+| **apex_production** | 5%+ runner detection | 19,019 | 77.7% accuracy, 0.766 AUC |
+| **mega_runners** | 10%+ runner detection | 11,253 | 74.7% accuracy, 94% top-50 precision |
+| **moonshots** | 50%+ / 100%+ doublers | 7,723 | 92.6% accuracy, 90% doubler precision |
+
+**Training Universe:**
+- 94 volatile stocks (penny stocks, meme stocks, crypto miners, biotech, China ADRs)
+- 1 year of historical EOD data from Alpaca
+- Features: 130+ technical indicators + momentum + volume surge
+
+**Model Persistence:**
+- Compressed models stored in PostgreSQL (`ml_models` table)
+- GZIP compression reduces 60 MB → 13 MB per model
+- Survives container restarts
+
 ### System Design Choices
 - **Broker Layer:** Supports `NullAdapter`, `PaperSimAdapter`, and `AlpacaPaperAdapter`.
 - **Data Layer:** Polygon.io for market data, Alpaca for execution, Binance for crypto.
