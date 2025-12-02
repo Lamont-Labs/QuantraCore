@@ -71,11 +71,11 @@ describe('App', () => {
 
   it('renders the navigation items', () => {
     render(<App />)
-    expect(screen.getByText('Dashboard')).toBeInTheDocument()
-    expect(screen.getByText('Research / Backtests')).toBeInTheDocument()
-    expect(screen.getByText('ApexLab')).toBeInTheDocument()
-    expect(screen.getByText('ApexCore Models')).toBeInTheDocument()
-    expect(screen.getByText('Logs & Provenance')).toBeInTheDocument()
+    expect(screen.getAllByText('Command Center').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Research / Backtests').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('ApexLab').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('ApexCore Models').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Logs & Provenance').length).toBeGreaterThan(0)
   })
 
   it('renders the Run Scan button', () => {

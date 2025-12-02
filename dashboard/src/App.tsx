@@ -25,6 +25,7 @@ import { DarkPoolPanel } from './components/DarkPoolPanel'
 import { MacroPanel } from './components/MacroPanel'
 import { DataProvidersPanel } from './components/DataProvidersPanel'
 import { PushNotificationPanel } from './components/PushNotificationPanel'
+import { LazyPanel, PanelSkeleton } from './components/LazyPanel'
 import { VelocityProvider, useVelocityMode } from './hooks/useVelocityMode'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
@@ -201,34 +202,54 @@ function AppContent() {
                 </div>
               </div>
 
-              {/* Multi-Data Intelligence Section */}
-              <div className="mt-6 mb-2">
-                <h2 className="text-sm font-semibold text-cyan-400 tracking-wider uppercase flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                  Multi-Source Data Intelligence
-                </h2>
-              </div>
+              {/* Multi-Data Intelligence Section - Lazy Loaded */}
+              <LazyPanel delay={500} fallback={
+                <div className="space-y-4 mt-6">
+                  <div className="mb-2">
+                    <h2 className="text-sm font-semibold text-cyan-400 tracking-wider uppercase flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                      Multi-Source Data Intelligence
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-4"><PanelSkeleton height="h-64" /></div>
+                    <div className="col-span-4"><PanelSkeleton height="h-64" /></div>
+                    <div className="col-span-4"><PanelSkeleton height="h-64" /></div>
+                  </div>
+                  <div className="grid grid-cols-12 gap-4">
+                    <div className="col-span-6"><PanelSkeleton height="h-48" /></div>
+                    <div className="col-span-6"><PanelSkeleton height="h-48" /></div>
+                  </div>
+                </div>
+              }>
+                <div className="mt-6 mb-2">
+                  <h2 className="text-sm font-semibold text-cyan-400 tracking-wider uppercase flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    Multi-Source Data Intelligence
+                  </h2>
+                </div>
 
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-4">
-                  <OptionsFlowPanel />
+                <div className="grid grid-cols-12 gap-4">
+                  <div className="col-span-4">
+                    <OptionsFlowPanel />
+                  </div>
+                  <div className="col-span-4">
+                    <SentimentPanel />
+                  </div>
+                  <div className="col-span-4">
+                    <DarkPoolPanel />
+                  </div>
                 </div>
-                <div className="col-span-4">
-                  <SentimentPanel />
-                </div>
-                <div className="col-span-4">
-                  <DarkPoolPanel />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-6">
-                  <MacroPanel />
+                <div className="grid grid-cols-12 gap-4 mt-4">
+                  <div className="col-span-6">
+                    <MacroPanel />
+                  </div>
+                  <div className="col-span-6">
+                    <DataProvidersPanel />
+                  </div>
                 </div>
-                <div className="col-span-6">
-                  <DataProvidersPanel />
-                </div>
-              </div>
+              </LazyPanel>
 
               {(isSmallCapMode || isExtremeRiskMode) && (
                 <div className={`p-4 rounded-lg border ${

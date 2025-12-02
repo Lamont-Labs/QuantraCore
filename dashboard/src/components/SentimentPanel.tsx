@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useVelocityMode } from '../hooks/useVelocityMode'
+import { throttledFetch } from '../lib/requestQueue'
+
+const DEFAULT_REFRESH = 60000
 
 interface NewsItem {
   title: string
@@ -26,18 +29,17 @@ export function SentimentPanel() {
   const [data, setData] = useState<SentimentData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [view, setView] = useState<'overview' | 'news'>('overview')
-  const { refreshInterval } = useVelocityMode()
+  const { config } = useVelocityMode()
+  const refreshInterval = config?.refreshIntervals?.setups || DEFAULT_REFRESH
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/data/sentiment/summary')
-      if (res.ok) {
-        const json = await res.json()
-        setData(json)
-      } else {
-        setData(null)
-      }
+      const result = await throttledFetch(async () => {
+        const res = await fetch('/api/data/sentiment/summary')
+        return res.ok ? res.json() : null
+      }, 1)
+      setData(result)
     } catch (err) {
       console.error('Failed to fetch sentiment:', err)
       setData(null)

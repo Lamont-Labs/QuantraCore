@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useVelocityMode } from '../hooks/useVelocityMode'
+import { throttledFetch } from '../lib/requestQueue'
+
+const DEFAULT_REFRESH = 60000
 
 interface DarkPoolPrint {
   symbol: string
@@ -33,18 +36,17 @@ export function DarkPoolPanel() {
   const [data, setData] = useState<DarkPoolSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [view, setView] = useState<'flow' | 'shorts'>('flow')
-  const { refreshInterval } = useVelocityMode()
+  const { config } = useVelocityMode()
+  const refreshInterval = config?.refreshIntervals?.setups || DEFAULT_REFRESH
 
   const fetchData = useCallback(async () => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/data/dark-pool/summary')
-      if (res.ok) {
-        const json = await res.json()
-        setData(json)
-      } else {
-        setData(null)
-      }
+      const result = await throttledFetch(async () => {
+        const res = await fetch('/api/data/dark-pool/summary')
+        return res.ok ? res.json() : null
+      }, 1)
+      setData(result)
     } catch (err) {
       console.error('Failed to fetch dark pool data:', err)
       setData(null)

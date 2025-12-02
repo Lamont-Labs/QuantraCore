@@ -1,3 +1,5 @@
+import { throttledFetch } from './requestQueue'
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 
 export interface HealthResponse {
@@ -507,56 +509,60 @@ export interface IncrementalLearningStatusResponse {
   timestamp: string
 }
 
-async function request<T>(endpoint: string, options?: RequestInit, retries = 2): Promise<T> {
+async function request<T>(endpoint: string, options?: RequestInit, retries = 2, priority = 0): Promise<T> {
   const url = `${API_BASE}${endpoint}`
   
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': 'apex-dev-key',
-          ...options?.headers,
-        },
-      })
+  const doFetch = async (): Promise<T> => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': 'apex-dev-key',
+            ...options?.headers,
+          },
+        })
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Request failed' }))
-        throw new Error(error.detail || `HTTP ${response.status}`)
-      }
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ detail: 'Request failed' }))
+          throw new Error(error.detail || `HTTP ${response.status}`)
+        }
 
-      return response.json()
-    } catch (err) {
-      const isLastAttempt = attempt === retries
-      
-      if (err instanceof TypeError) {
-        if (!isLastAttempt) {
+        return response.json()
+      } catch (err) {
+        const isLastAttempt = attempt === retries
+        
+        if (err instanceof TypeError) {
+          if (!isLastAttempt) {
+            await new Promise(r => setTimeout(r, 500 * (attempt + 1)))
+            continue
+          }
+          throw new Error(`Network error: ${err.message}`)
+        }
+        
+        if (!isLastAttempt && err instanceof Error && err.message.includes('Network')) {
           await new Promise(r => setTimeout(r, 500 * (attempt + 1)))
           continue
         }
-        throw new Error(`Network error: ${err.message}`)
+        
+        throw err
       }
-      
-      if (!isLastAttempt && err instanceof Error && err.message.includes('Network')) {
-        await new Promise(r => setTimeout(r, 500 * (attempt + 1)))
-        continue
-      }
-      
-      throw err
     }
+    
+    throw new Error(`Failed after ${retries + 1} attempts`)
   }
   
-  throw new Error(`Failed after ${retries + 1} attempts`)
+  return throttledFetch(doFetch, priority)
 }
 
 export const api = {
   getHealth(): Promise<HealthResponse> {
-    return request('/health')
+    return request('/health', undefined, 2, 10)
   },
 
   getMarketHours(): Promise<MarketHoursResponse> {
-    return request('/market/hours')
+    return request('/market/hours', undefined, 2, 9)
   },
 
   scanSymbol(params: ScanRequest): Promise<ScanResult> {
@@ -578,7 +584,7 @@ export const api = {
   },
 
   getPortfolioSnapshot(): Promise<PortfolioSnapshot> {
-    return request('/portfolio/status')
+    return request('/portfolio/status', undefined, 2, 8)
   },
 
   getMonsterRunner(symbol: string): Promise<MonsterRunnerResult> {
@@ -594,7 +600,7 @@ export const api = {
   },
 
   getPredictiveStatus(): Promise<PredictiveStatusResponse> {
-    return request('/predictive/status')
+    return request('/predictive/status', undefined, 2, 5)
   },
 
   getPredictiveAdvise(params: PredictiveAdvisoryRequest): Promise<PredictiveAdvisoryResponse> {
@@ -616,19 +622,19 @@ export const api = {
   },
 
   getBrokerStatus(): Promise<BrokerStatusResponse> {
-    return request('/broker/status')
+    return request('/broker/status', undefined, 2, 8)
   },
 
   getComplianceScore(): Promise<ComplianceScoreResponse> {
-    return request('/compliance/score')
+    return request('/compliance/score', undefined, 2, 7)
   },
 
   getDataProviders(): Promise<DataProvidersResponse> {
-    return request('/data_providers')
+    return request('/data_providers', undefined, 2, 3)
   },
 
   getTradingSetups(topN: number = 10, minScore: number = 50): Promise<TradingSetupsResponse> {
-    return request(`/trading/setups?top_n=${topN}&min_score=${minScore}`)
+    return request(`/trading/setups?top_n=${topN}&min_score=${minScore}`, undefined, 2, 6)
   },
 
   getRunnerScreener(): Promise<RunnerScreenerResponse> {

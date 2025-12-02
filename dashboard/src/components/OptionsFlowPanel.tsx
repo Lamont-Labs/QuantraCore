@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useVelocityMode } from '../hooks/useVelocityMode'
+import { throttledFetch } from '../lib/requestQueue'
+
+const DEFAULT_REFRESH = 60000
 
 interface OptionsFlow {
   symbol: string
@@ -31,24 +34,29 @@ export function OptionsFlowPanel() {
   const [summary, setSummary] = useState<FlowSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'unusual' | 'sweeps'>('unusual')
-  const { refreshInterval } = useVelocityMode()
+  const { config } = useVelocityMode()
+  const refreshInterval = config?.refreshIntervals?.setups || DEFAULT_REFRESH
 
   const fetchFlows = useCallback(async () => {
     setIsLoading(true)
     try {
       const [flowsRes, summaryRes] = await Promise.all([
-        fetch('/api/data/options-flow?min_premium=10000'),
-        fetch('/api/data/options-flow/summary')
+        throttledFetch(async () => {
+          const res = await fetch('/api/data/options-flow?min_premium=10000')
+          return res.ok ? res.json() : null
+        }, 1),
+        throttledFetch(async () => {
+          const res = await fetch('/api/data/options-flow/summary')
+          return res.ok ? res.json() : null
+        }, 1)
       ])
       
-      if (flowsRes.ok) {
-        const data = await flowsRes.json()
-        setFlows(data.flows || [])
+      if (flowsRes) {
+        setFlows(flowsRes.flows || [])
       }
       
-      if (summaryRes.ok) {
-        const data = await summaryRes.json()
-        setSummary(data)
+      if (summaryRes) {
+        setSummary(summaryRes)
       }
     } catch (err) {
       console.error('Failed to fetch options flow:', err)
