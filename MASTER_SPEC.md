@@ -1,7 +1,7 @@
 # QuantraCore Apex v9.0-A — Master Specification
 
 **Version:** 9.0-A (Production-Ready Paper Trading)  
-**Last Updated:** 2025-12-01  
+**Last Updated:** 2025-12-02  
 **Classification:** Technical Build Specification  
 **Purpose:** Complete technical reference for development teams  
 **Status:** Beta / Production-Ready (Paper Mode)
@@ -42,6 +42,12 @@
 24. [Signal & Alert Services](#24-signal--alert-services)
 25. [Vision & Roadmap](#25-vision--roadmap)
 26. [Investor Due Diligence Suite](#26-investor-due-diligence-suite)
+27. [Database Model Persistence System](#27-database-model-persistence-system)
+28. [Push Notification System](#28-push-notification-system)
+29. [ApexCore V4 Neural Model](#29-apexcore-v4-neural-model)
+30. [Multi-Source Data Ingestion](#30-multi-source-data-ingestion)
+31. [Extended Market Hours Trading](#31-extended-market-hours-trading)
+32. [ApexDesk Dashboard (15 Panels)](#32-apexdesk-dashboard-15-panels)
 
 ---
 
@@ -2978,6 +2984,292 @@ The Investor Due Diligence Suite is a comprehensive platform for institutional-g
 
 ---
 
+## 27. Database Model Persistence System
+
+### 27.1 Overview
+
+The DatabaseModelStore provides persistent ML model storage using PostgreSQL, ensuring trained models survive application republishes and deployments. This eliminates the need to retrain models after every deployment cycle.
+
+### 27.2 Architecture
+
+| Component | Description |
+|-----------|-------------|
+| **ml_models table** | Stores compressed model components (pkl files) with version tracking |
+| **ml_model_versions table** | Tracks version metadata, training samples, manifests, and active status |
+| **GZIP Compression** | All model data compressed before storage (60-80% size reduction) |
+| **Atomic Version Management** | New versions atomically deactivate old versions in single transaction |
+| **Lazy Initialization** | DATABASE_URL re-checked on connection to handle multi-worker timing |
+| **File Fallback** | Graceful fallback to file storage if database unavailable |
+
+### 27.3 Database Schema
+
+```sql
+-- Model components storage
+CREATE TABLE ml_models (
+    id SERIAL PRIMARY KEY,
+    model_name VARCHAR(255) NOT NULL,
+    model_size VARCHAR(50) NOT NULL,
+    component_name VARCHAR(255) NOT NULL,
+    version INTEGER NOT NULL,
+    data_compressed BYTEA NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Version metadata tracking
+CREATE TABLE ml_model_versions (
+    id SERIAL PRIMARY KEY,
+    model_name VARCHAR(255) NOT NULL,
+    model_size VARCHAR(50) NOT NULL,
+    version INTEGER NOT NULL,
+    training_samples INTEGER,
+    manifest JSONB,
+    notes TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 27.4 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/model/storage` | GET | Database connection status and storage statistics |
+| `/model/storage/versions` | GET | List all model version history with metadata |
+| `/model/storage/restore/{version_id}` | POST | Rollback to a previous model version |
+| `/model/storage/migrate` | POST | Migrate models from file storage to database |
+
+### 27.5 Version Tracking Features
+
+- Each training run creates a new version with timestamp and sample count
+- Previous versions preserved indefinitely for rollback capability
+- Active version flag managed atomically during save operations
+- Full manifest (head configurations, training metrics) stored with each version
+- Automatic loading from database on application startup
+
+### 27.6 Integration with Training Pipeline
+
+The UnifiedTrainer automatically saves to database after training:
+
+```python
+# After training completes
+db_store = get_model_store()
+if db_store:
+    version = db_store.save_model_version(
+        model_name="apex_core",
+        model_size="big",
+        training_samples=len(training_data),
+        manifest=manifest_dict,
+        notes=f"Training completed at {timestamp}"
+    )
+```
+
+---
+
+## 28. Push Notification System
+
+### 28.1 Overview
+
+Browser-based push notifications using the Web Push Protocol (RFC 8030) provide free, real-time alerts without SMS costs.
+
+### 28.2 Architecture
+
+| Component | Description |
+|-----------|-------------|
+| **Service Worker** | `dashboard/public/sw.js` handles push events and displays notifications |
+| **VAPID Keys** | Server-generated public/private keys for authentication |
+| **Subscription Storage** | Client subscriptions stored for targeted push delivery |
+| **pywebpush** | Python library for sending push notifications |
+
+### 28.3 Alert Thresholds
+
+| Alert Type | Default Threshold |
+|------------|-------------------|
+| QuantraScore Signal | 60+ score |
+| Monster Runner | 70%+ probability |
+| Volume Surge | 3x+ relative volume |
+| Breakout Detection | Protocol confirmation |
+
+### 28.4 Dual Alert Channels
+
+1. **Twilio SMS:** Traditional SMS for critical high-priority signals
+2. **Web Push:** Free browser-based notifications for real-time updates
+
+### 28.5 Subscription Flow
+
+1. User clicks "Enable Notifications" in dashboard
+2. Browser prompts for notification permission
+3. Service worker registers and generates subscription
+4. Subscription sent to server and stored
+5. Server can now push notifications to that browser
+
+---
+
+## 29. ApexCore V4 Neural Model
+
+### 29.1 Overview
+
+ApexCore V4 expands the prediction capability from 7 heads (V3) to 16 specialized prediction heads, providing comprehensive market analysis.
+
+### 29.2 16 Prediction Heads
+
+| Head | Type | Output | Purpose |
+|------|------|--------|---------|
+| **quantrascore** | Regression | 0-100 | Composite probability score |
+| **runner** | Binary | 0-1 | Monster runner probability |
+| **quality** | Multiclass | 0-4 | Setup quality tier |
+| **avoid** | Binary | 0-1 | Avoid signal detection |
+| **regime** | Multiclass | 0-4 | Market regime classification |
+| **timing** | Multiclass | 0-4 | Optimal entry timing bucket |
+| **runup** | Regression | 0-100%+ | Expected price appreciation |
+| **direction** | Binary | 0-1 | Next-bar direction prediction |
+| **volatility** | Regression | 0-1 | Expected volatility level |
+| **momentum** | Regression | -1 to 1 | Momentum strength and direction |
+| **support** | Regression | 0-1 | Support level proximity |
+| **resistance** | Regression | 0-1 | Resistance level proximity |
+| **volume** | Regression | 0-10x | Expected volume ratio |
+| **reversal** | Binary | 0-1 | Reversal probability |
+| **breakout** | Binary | 0-1 | Breakout probability |
+| **continuation** | Regression | 0-1 | Trend continuation probability |
+
+### 29.3 Training Configuration
+
+```python
+HEAD_CONFIGS = {
+    "quantrascore": {"type": "regression", "n_estimators": 100},
+    "runner": {"type": "binary", "n_estimators": 80},
+    "quality": {"type": "multiclass", "n_estimators": 80},
+    "avoid": {"type": "binary", "n_estimators": 60},
+    "regime": {"type": "multiclass", "n_estimators": 80},
+    "timing": {"type": "multiclass", "n_estimators": 80},
+    "runup": {"type": "regression", "n_estimators": 100},
+    "direction": {"type": "binary", "n_estimators": 80},
+    "volatility": {"type": "regression", "n_estimators": 80},
+    "momentum": {"type": "regression", "n_estimators": 80},
+    "support": {"type": "regression", "n_estimators": 80},
+    "resistance": {"type": "regression", "n_estimators": 80},
+    "volume": {"type": "regression", "n_estimators": 80},
+    "reversal": {"type": "binary", "n_estimators": 80},
+    "breakout": {"type": "binary", "n_estimators": 80},
+    "continuation": {"type": "regression", "n_estimators": 80}
+}
+```
+
+---
+
+## 30. Multi-Source Data Ingestion
+
+### 30.1 Overview
+
+Real-time multi-source data feeds provide comprehensive market intelligence beyond standard OHLCV data.
+
+### 30.2 Data Sources
+
+| Source | Description | Update Frequency |
+|--------|-------------|------------------|
+| **Options Flow** | Premium options activity, unusual volume, smart money tracking | Real-time |
+| **Sentiment** | Social media and news sentiment analysis | 5-minute aggregates |
+| **Dark Pool** | Institutional off-exchange activity and block trades | Near real-time |
+| **Level 2** | Order book depth, bid/ask spread, liquidity | Real-time |
+| **Economic** | Macro indicators, economic calendar, Fed data | Daily/Event-driven |
+| **Alternative** | Alternative data sources and proprietary signals | Varies |
+
+### 30.3 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/data/options-flow` | GET | Options flow with premium filtering |
+| `/api/data/options-flow/summary` | GET | Aggregated options flow summary |
+| `/api/data/sentiment/summary` | GET | Market sentiment indicators |
+| `/api/data/dark-pool/summary` | GET | Dark pool activity summary |
+| `/api/data/level2/{symbol}` | GET | Real-time Level 2 order book |
+| `/api/data/macro/summary` | GET | Economic indicators summary |
+| `/api/data/alternative` | GET | Alternative data signals |
+
+### 30.4 Data Integration
+
+All data sources integrate with ApexCore predictions:
+- Options flow enhances institutional positioning signals
+- Sentiment data gates runner predictions
+- Dark pool activity confirms accumulation patterns
+- Level 2 data validates breakout potential
+
+---
+
+## 31. Extended Market Hours Trading
+
+### 31.1 Overview
+
+Full support for extended market hours trading via Alpaca's paper trading API.
+
+### 31.2 Trading Sessions
+
+| Session | Hours (ET) | Features |
+|---------|------------|----------|
+| **Pre-Market** | 4:00 AM - 9:30 AM | Gap analysis, overnight news reaction |
+| **Regular** | 9:30 AM - 4:00 PM | Full liquidity, all order types |
+| **After-Hours** | 4:00 PM - 8:00 PM | Earnings reactions, limited liquidity |
+
+### 31.3 Extended Hours Order Types
+
+| Order Type | Pre-Market | Regular | After-Hours |
+|------------|------------|---------|-------------|
+| Market | Limited | Full | Limited |
+| Limit | Full | Full | Full |
+| Stop | No | Full | No |
+| Stop-Limit | No | Full | No |
+
+### 31.4 API Configuration
+
+```python
+# Extended hours order example
+order = alpaca_client.submit_order(
+    symbol="AAPL",
+    qty=100,
+    side="buy",
+    type="limit",
+    limit_price=150.00,
+    time_in_force="day",
+    extended_hours=True  # Enable extended hours
+)
+```
+
+---
+
+## 32. ApexDesk Dashboard (15 Panels)
+
+### 32.1 Panel Overview
+
+The institutional trading dashboard now features 15 real-time monitoring panels:
+
+| Panel | Description |
+|-------|-------------|
+| **SystemStatusPanel** | System health, market hours, broker status |
+| **PortfolioPanel** | Live Alpaca paper trading portfolio |
+| **TradingSetupsPanel** | Top opportunities ranked by QuantraScore |
+| **ModelMetricsPanel** | ApexCore V4 model performance (16 heads) |
+| **AutoTraderPanel** | Autonomous swing trade execution |
+| **SignalsAlertsPanel** | Live signals and SMS/Push alert status |
+| **RunnerScreenerPanel** | Low-float penny stock scanner |
+| **ContinuousLearningPanel** | ML training orchestrator status |
+| **LogsProvenancePanel** | System logs and audit trail |
+| **OptionsFlowPanel** | Real-time options flow activity |
+| **SentimentPanel** | Market sentiment indicators |
+| **DarkPoolPanel** | Institutional dark pool activity |
+| **MacroPanel** | Economic indicators and calendar |
+| **PushNotificationPanel** | Web push notification management |
+| **ModelStoragePanel** | Database model persistence status |
+
+### 32.2 Velocity Mode System
+
+| Mode | Refresh Rate | Use Case |
+|------|--------------|----------|
+| Standard | 30s | Research and analysis |
+| High Velocity | 5s | Active trading sessions |
+| Turbo | 2s | Scalping and rapid execution |
+
+---
+
 ## Appendix A: Version History
 
 | Version | Date | Changes |
@@ -2995,6 +3287,14 @@ The Investor Due Diligence Suite is a comprehensive platform for institutional-g
 | 9.0-A | 2025-12-01 | Added Hybrid Data Architecture: Polygon (market data) + Alpaca (trading execution) |
 | 9.0-A | 2025-12-01 | Added Section 11.2: Hybrid Data Architecture with tier-aware Polygon adapter |
 | 9.0-A | 2025-12-01 | Added `config/data_sources.yaml` for data source priority configuration |
+| 9.0-A | 2025-12-02 | Added Section 27: Database Model Persistence System with PostgreSQL storage |
+| 9.0-A | 2025-12-02 | Added Section 28: Push Notification System with Web Push Protocol |
+| 9.0-A | 2025-12-02 | Added Section 29: ApexCore V4 Neural Model with 16 prediction heads |
+| 9.0-A | 2025-12-02 | Added Section 30: Multi-Source Data Ingestion (options flow, sentiment, dark pool, etc.) |
+| 9.0-A | 2025-12-02 | Added Section 31: Extended Market Hours Trading support |
+| 9.0-A | 2025-12-02 | Added Section 32: ApexDesk Dashboard expanded to 15 panels |
+| 9.0-A | 2025-12-02 | Added 4 model storage API endpoints: /model/storage, /versions, /restore, /migrate |
+| 9.0-A | 2025-12-02 | Added 7 data ingestion API endpoints for multi-source market data |
 
 ---
 

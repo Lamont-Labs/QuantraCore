@@ -591,3 +591,127 @@ Efficient knowledge retention system for continuous market adaptation.
 - Total samples, anchor/recency split
 - Head-specific tree counts
 - Drift metrics at training time
+
+---
+
+## 21. Database Model Persistence System
+
+### 21.1 Overview
+
+The DatabaseModelStore provides persistent ML model storage using PostgreSQL, ensuring trained models survive application republishes and deployments.
+
+### 21.2 Architecture
+
+| Component | Description |
+|-----------|-------------|
+| **ml_models table** | Stores compressed model components with version tracking |
+| **ml_model_versions table** | Tracks version metadata, training samples, and active status |
+| **GZIP Compression** | 60-80% size reduction for stored model data |
+| **Atomic Version Management** | New versions atomically deactivate old versions |
+| **File Fallback** | Graceful fallback to file storage if database unavailable |
+
+### 21.3 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/model/storage` | GET | Database status and storage statistics |
+| `/model/storage/versions` | GET | List all model version history |
+| `/model/storage/restore/{version_id}` | POST | Rollback to previous version |
+| `/model/storage/migrate` | POST | Migrate from file to database storage |
+
+---
+
+## 22. Push Notification System
+
+Browser-based push notifications using Web Push Protocol (RFC 8030):
+
+| Component | Description |
+|-----------|-------------|
+| **Service Worker** | Handles push events in browser |
+| **VAPID Keys** | Server authentication for push delivery |
+| **pywebpush** | Python library for sending notifications |
+
+### Alert Thresholds
+- QuantraScore signals: 60+ score
+- Monster runner alerts: 70%+ probability
+- Volume surge notifications: 3x+ relative volume
+
+---
+
+## 23. ApexCore V4 Neural Model (16 Heads)
+
+Expanded from V3's 7 heads to 16 specialized prediction heads:
+
+| Head | Type | Output |
+|------|------|--------|
+| quantrascore | Regression | 0-100 composite score |
+| runner | Binary | Monster runner probability |
+| quality | Multiclass | Quality tier (0-4) |
+| avoid | Binary | Avoid signal |
+| regime | Multiclass | Market regime (0-4) |
+| timing | Multiclass | Move timing bucket (0-4) |
+| runup | Regression | Expected price appreciation |
+| direction | Binary | Next-bar direction |
+| volatility | Regression | Expected volatility |
+| momentum | Regression | Momentum strength |
+| support | Regression | Support level proximity |
+| resistance | Regression | Resistance level proximity |
+| volume | Regression | Expected volume ratio |
+| reversal | Binary | Reversal probability |
+| breakout | Binary | Breakout probability |
+| continuation | Regression | Trend continuation probability |
+
+---
+
+## 24. Multi-Source Data Ingestion
+
+Real-time multi-source data feeds beyond standard OHLCV:
+
+| Source | Description | Endpoint |
+|--------|-------------|----------|
+| Options Flow | Premium options activity | `/api/data/options-flow` |
+| Sentiment | Social/news sentiment | `/api/data/sentiment/summary` |
+| Dark Pool | Institutional activity | `/api/data/dark-pool/summary` |
+| Level 2 | Order book depth | `/api/data/level2/{symbol}` |
+| Economic | Macro indicators | `/api/data/macro/summary` |
+| Alternative | Alternative data signals | `/api/data/alternative` |
+
+---
+
+## 25. Extended Market Hours Trading
+
+Full support for extended hours via Alpaca:
+
+| Session | Hours (ET) | Features |
+|---------|------------|----------|
+| Pre-Market | 4:00 AM - 9:30 AM | Gap analysis, news reaction |
+| Regular | 9:30 AM - 4:00 PM | Full liquidity, all orders |
+| After-Hours | 4:00 PM - 8:00 PM | Earnings reactions |
+
+---
+
+## 26. ApexDesk Dashboard (15 Panels)
+
+| Panel | Description |
+|-------|-------------|
+| SystemStatusPanel | System health, market hours |
+| PortfolioPanel | Live Alpaca portfolio |
+| TradingSetupsPanel | QuantraScore ranked opportunities |
+| ModelMetricsPanel | ApexCore V4 performance |
+| AutoTraderPanel | Autonomous trade execution |
+| SignalsAlertsPanel | SMS/Push alert status |
+| RunnerScreenerPanel | Low-float penny scanner |
+| ContinuousLearningPanel | ML training status |
+| LogsProvenancePanel | System audit trail |
+| OptionsFlowPanel | Options flow activity |
+| SentimentPanel | Market sentiment |
+| DarkPoolPanel | Dark pool activity |
+| MacroPanel | Economic indicators |
+| PushNotificationPanel | Web push management |
+| ModelStoragePanel | Database persistence status |
+
+---
+
+**Document Version:** 9.0-A  
+**Last Updated:** 2025-12-02  
+**Status:** Active
