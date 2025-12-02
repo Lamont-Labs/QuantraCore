@@ -45,19 +45,31 @@ interface HyperspeedStatus {
   timestamp: string
 }
 
+interface CycleResult {
+  status: string
+  cycle_id?: string
+  bars_processed?: number
+  simulations?: number
+  samples?: number
+  training_triggered?: boolean
+  model_updated?: boolean
+  duration_seconds?: number
+  error?: string
+}
+
 interface HyperspeedPanelProps {
   compact?: boolean
 }
 
 export function HyperspeedPanel({ compact = false }: HyperspeedPanelProps) {
   const [status, setStatus] = useState<HyperspeedStatus | null>(null)
-  const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [lastCycleResult, setLastCycleResult] = useState<CycleResult | null>(null)
   const { config } = useVelocityMode()
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch('/api/hyperspeed/status')
+      const response = await fetch('/hyperspeed/status')
       if (response.ok) {
         const data = await response.json()
         setStatus(data)
@@ -73,15 +85,36 @@ export function HyperspeedPanel({ compact = false }: HyperspeedPanelProps) {
     return () => clearInterval(interval)
   }, [config?.refreshIntervals?.models])
 
-  const startCycle = async () => {
+  const startCycle = async (retryCount = 0) => {
     setActionLoading('cycle')
+    if (retryCount === 0) setLastCycleResult(null)
     try {
-      await fetch('/api/hyperspeed/cycle', {
+      const response = await fetch('/hyperspeed/cycle/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ years: 5 })
+        body: JSON.stringify({ years: 1, symbols: ['AAPL', 'MSFT', 'GOOGL', 'TSLA'] })
       })
-      setTimeout(fetchStatus, 1000)
+      if (!response.ok) {
+        if (retryCount < 2) {
+          setLastCycleResult({ status: 'retrying', error: `Attempt ${retryCount + 1} failed, retrying...` })
+          await new Promise(r => setTimeout(r, 500))
+          return startCycle(retryCount + 1)
+        }
+        throw new Error(`Server error: ${response.status}`)
+      }
+      const result = await response.json()
+      setLastCycleResult(result)
+      await fetchStatus()
+    } catch (err) {
+      if (retryCount < 2) {
+        setLastCycleResult({ status: 'retrying', error: `Attempt ${retryCount + 1} failed, retrying...` })
+        await new Promise(r => setTimeout(r, 500))
+        return startCycle(retryCount + 1)
+      }
+      setLastCycleResult({ 
+        status: 'error', 
+        error: `${err}. Note: In multi-worker mode, cycles may need to be triggered from the same worker instance. Try again if this fails.`
+      })
     } finally {
       setActionLoading(null)
     }
@@ -90,7 +123,7 @@ export function HyperspeedPanel({ compact = false }: HyperspeedPanelProps) {
   const startReplay = async () => {
     setActionLoading('replay')
     try {
-      await fetch('/api/hyperspeed/replay', {
+      await fetch('/hyperspeed/replay', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ years: 5 })
@@ -104,7 +137,7 @@ export function HyperspeedPanel({ compact = false }: HyperspeedPanelProps) {
   const startBattle = async () => {
     setActionLoading('battle')
     try {
-      await fetch('/api/hyperspeed/battle', {
+      await fetch('/hyperspeed/battle', {
         method: 'POST'
       })
       setTimeout(fetchStatus, 1000)
@@ -117,7 +150,7 @@ export function HyperspeedPanel({ compact = false }: HyperspeedPanelProps) {
     const isActive = status?.engine?.metrics?.overnight_mode_active
     setActionLoading('overnight')
     try {
-      await fetch(`/api/hyperspeed/overnight/${isActive ? 'stop' : 'start'}`, {
+      await fetch(`/hyperspeed/overnight/${isActive ? 'stop' : 'start'}`, {
         method: 'POST'
       })
       setTimeout(fetchStatus, 1000)
@@ -247,11 +280,11 @@ export function HyperspeedPanel({ compact = false }: HyperspeedPanelProps) {
 
       <div className="flex gap-2 flex-wrap">
         <button
-          onClick={startCycle}
+          onClick={() => startCycle()}
           disabled={actionLoading !== null || isActive}
           className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white text-xs font-medium rounded transition-colors"
         >
-          {actionLoading === 'cycle' ? 'Starting...' : 'Full Cycle'}
+          {actionLoading === 'cycle' ? 'Running...' : 'Full Cycle'}
         </button>
         <button
           onClick={startReplay}
@@ -275,6 +308,60 @@ export function HyperspeedPanel({ compact = false }: HyperspeedPanelProps) {
           {actionLoading === 'overnight' ? 'Updating...' : (overnightActive ? 'Stop Overnight' : 'Start Overnight')}
         </button>
       </div>
+
+      {lastCycleResult && (
+        <div className={`mt-3 p-3 rounded-lg border ${
+          lastCycleResult.status === 'completed' 
+            ? 'bg-green-500/10 border-green-500/30' 
+            : lastCycleResult.status === 'error'
+            ? 'bg-red-500/10 border-red-500/30'
+            : lastCycleResult.status === 'retrying'
+            ? 'bg-blue-500/10 border-blue-500/30'
+            : 'bg-yellow-500/10 border-yellow-500/30'
+        }`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-xs font-bold uppercase ${
+              lastCycleResult.status === 'completed' ? 'text-green-400' 
+              : lastCycleResult.status === 'error' ? 'text-red-400' 
+              : lastCycleResult.status === 'retrying' ? 'text-blue-400 animate-pulse'
+              : 'text-yellow-400'
+            }`}>
+              {lastCycleResult.status === 'retrying' ? 'Retrying...' : `Cycle ${lastCycleResult.status}`}
+            </span>
+            {lastCycleResult.cycle_id && (
+              <span className="text-xs text-slate-400 font-mono">{lastCycleResult.cycle_id}</span>
+            )}
+          </div>
+          {lastCycleResult.status === 'completed' && (
+            <div className="grid grid-cols-4 gap-2 text-xs">
+              <div>
+                <span className="text-slate-500">Bars</span>
+                <div className="text-cyan-400 font-medium">{formatNumber(lastCycleResult.bars_processed || 0)}</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Simulations</span>
+                <div className="text-purple-400 font-medium">{lastCycleResult.simulations}</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Samples</span>
+                <div className="text-green-400 font-medium">{lastCycleResult.samples}</div>
+              </div>
+              <div>
+                <span className="text-slate-500">Time</span>
+                <div className="text-yellow-400 font-medium">{lastCycleResult.duration_seconds?.toFixed(2)}s</div>
+              </div>
+            </div>
+          )}
+          {lastCycleResult.training_triggered && (
+            <div className="mt-2 text-xs text-green-400">
+              Training triggered - model {lastCycleResult.model_updated ? 'updated' : 'unchanged'}
+            </div>
+          )}
+          {lastCycleResult.error && (
+            <div className="mt-1 text-xs text-red-400 font-mono">{lastCycleResult.error}</div>
+          )}
+        </div>
+      )}
 
       <div className="mt-3 text-xs text-slate-500">
         Last cycle: {formatTime(metrics?.last_cycle_at || null)}

@@ -50,6 +50,7 @@ export default defineConfig({
       '/estimated_move': { target: backendTarget, changeOrigin: true },
       '/market': { target: backendTarget, changeOrigin: true },
       '/positions': { target: backendTarget, changeOrigin: true },
+      '/hyperspeed': { target: backendTarget, changeOrigin: true },
     },
   },
   build: {
