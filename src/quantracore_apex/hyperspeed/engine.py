@@ -23,7 +23,12 @@ import numpy as np
 
 from src.quantracore_apex.core.schemas import OhlcvWindow, OhlcvBar
 from src.quantracore_apex.prediction.apexcore_v3 import ApexCoreV3Model
-from src.quantracore_apex.apexlab.features import FeatureExtractor
+from src.quantracore_apex.apexlab.features import (
+    FeatureExtractor, 
+    SwingFeatureExtractor,
+    MultiHorizonLabels,
+    get_swing_extractor,
+)
 from src.quantracore_apex.core.microtraits import compute_microtraits
 from src.quantracore_apex.core.entropy import compute_entropy
 from src.quantracore_apex.core.suppression import compute_suppression
@@ -63,7 +68,17 @@ class HyperspeedEngine:
         self.scheduler = OvernightScheduler(self.config)
         
         self._feature_extractor = FeatureExtractor()
+        self._swing_extractor = SwingFeatureExtractor(
+            lookback_short=20,
+            lookback_medium=60,
+            lookback_long=120
+        )
         self._model: Optional[ApexCoreV3Model] = None
+        
+        # Enhanced swing trade configuration
+        self._swing_lookback_bars = 90  # 90 days of history for feature extraction
+        self._forward_horizon_days = 10  # Look 10 days ahead for labels
+        self._training_stride = 3  # Stride of 3 days for rolling window overlap
         
         self._metrics = HyperspeedMetrics()
         self._active = False
@@ -110,6 +125,160 @@ class HyperspeedEngine:
         """Set the ML model for predictions during simulations."""
         self._model = model
         logger.info("[HyperspeedEngine] Model attached")
+    
+    def generate_swing_samples_from_bars(
+        self, 
+        symbol: str, 
+        bars: List[OhlcvBar],
+        stride: Optional[int] = None
+    ) -> List[Tuple[OhlcvWindow, Dict[str, float]]]:
+        """
+        Generate swing trade training samples from historical bars.
+        
+        Uses rolling windows with multi-horizon forward returns for labels.
+        Optimized for EOD data with 2-10 day holding periods.
+        
+        Args:
+            symbol: Stock ticker symbol
+            bars: List of historical OHLCV bars (at least 100 bars)
+            stride: Window stride (default: self._training_stride)
+            
+        Returns:
+            List of (window, labels) tuples for training
+        """
+        stride = stride or self._training_stride
+        lookback = self._swing_lookback_bars
+        forward = self._forward_horizon_days
+        
+        min_bars_needed = lookback + forward + 10
+        if len(bars) < min_bars_needed:
+            logger.warning(f"[HyperspeedEngine] {symbol}: Insufficient bars ({len(bars)} < {min_bars_needed})")
+            return []
+        
+        samples = []
+        
+        # Generate rolling window samples with stride
+        for i in range(lookback, len(bars) - forward, stride):
+            # Extract lookback window for features
+            window_bars = bars[i - lookback:i]
+            window = OhlcvWindow(symbol=symbol, bars=window_bars, timeframe="1d")
+            
+            # Extract forward bars for labels
+            future_bars = bars[i:i + forward]
+            
+            # Compute multi-horizon labels
+            labels = self._compute_swing_labels(window_bars, future_bars)
+            
+            samples.append((window, labels))
+        
+        logger.debug(f"[HyperspeedEngine] Generated {len(samples)} swing samples for {symbol}")
+        return samples
+    
+    def _compute_swing_labels(
+        self, 
+        history_bars: List[OhlcvBar], 
+        future_bars: List[OhlcvBar]
+    ) -> Dict[str, float]:
+        """
+        Compute comprehensive swing trade labels from forward returns.
+        
+        Args:
+            history_bars: Historical bars up to prediction point
+            future_bars: Future bars (at least 10 days)
+            
+        Returns:
+            Dictionary of label values for all prediction heads
+        """
+        entry_price = history_bars[-1].close
+        
+        # Multi-horizon forward returns
+        return_3d = (future_bars[2].close - entry_price) / entry_price if len(future_bars) > 2 else 0
+        return_5d = (future_bars[4].close - entry_price) / entry_price if len(future_bars) > 4 else 0
+        return_8d = (future_bars[7].close - entry_price) / entry_price if len(future_bars) > 7 else return_5d
+        return_10d = (future_bars[9].close - entry_price) / entry_price if len(future_bars) > 9 else return_8d
+        
+        # Max adverse/favorable excursion
+        future_lows = [b.low for b in future_bars[:5]] if len(future_bars) >= 5 else [b.low for b in future_bars]
+        future_highs = [b.high for b in future_bars[:5]] if len(future_bars) >= 5 else [b.high for b in future_bars]
+        
+        max_adverse = (min(future_lows) - entry_price) / entry_price
+        max_favorable = (max(future_highs) - entry_price) / entry_price
+        
+        # QuantraScore: Composite signal based on returns and risk
+        # Higher score = better risk/reward profile
+        risk_reward = max_favorable / abs(max_adverse) if max_adverse < -0.001 else 10
+        quantrascore = 50 + (return_5d * 500) + min(risk_reward * 5, 25) + (max_favorable * 200)
+        quantrascore = max(0, min(100, quantrascore))
+        
+        # Runner detection: Strong upside with momentum continuation
+        is_runner = 1 if (return_5d > 0.05 and max_favorable > 0.08) else 0
+        
+        # Quality tier based on return profile
+        if return_5d > 0.08 and max_adverse > -0.02:
+            quality = 4  # S-tier
+        elif return_5d > 0.05 and max_adverse > -0.03:
+            quality = 3  # A-tier
+        elif return_5d > 0.02 and max_adverse > -0.04:
+            quality = 2  # B-tier
+        elif return_5d > 0:
+            quality = 1  # C-tier
+        else:
+            quality = 0  # D-tier
+        
+        # Avoid trade: Large adverse excursion or negative returns
+        avoid = 1 if (max_adverse < -0.05 or return_5d < -0.03) else 0
+        
+        # Regime detection based on trend
+        closes = np.array([b.close for b in history_bars[-20:]])
+        trend_slope = (closes[-1] - closes[0]) / closes[0] if closes[0] > 0 else 0
+        
+        if trend_slope > 0.05:
+            regime = 0  # trend_up
+        elif trend_slope < -0.05:
+            regime = 3  # trend_down
+        elif abs(trend_slope) < 0.02:
+            regime = 1  # chop
+        else:
+            regime = 2  # sideways
+        
+        # Timing bucket: When does the move happen?
+        if max_favorable > 0.03:
+            # Find when max favorable occurred
+            max_idx = future_highs.index(max(future_highs))
+            if max_idx <= 1:
+                timing = 0  # immediate
+            elif max_idx <= 2:
+                timing = 1  # very_soon
+            elif max_idx <= 3:
+                timing = 2  # soon
+            else:
+                timing = 3  # late
+        else:
+            timing = 4  # none
+        
+        # Runup percentage
+        runup = max_favorable * 100  # As percentage
+        
+        # Direction (bullish/bearish 5-day)
+        direction = 1 if return_5d > 0 else 0
+        
+        return {
+            "quantrascore": quantrascore,
+            "runner": is_runner,
+            "quality": quality,
+            "avoid": avoid,
+            "regime": regime,
+            "timing": timing,
+            "runup": runup,
+            "direction": direction,
+            # Additional labels for extended training
+            "return_3d": return_3d,
+            "return_5d": return_5d,
+            "return_8d": return_8d,
+            "return_10d": return_10d,
+            "max_adverse": max_adverse,
+            "max_favorable": max_favorable,
+        }
     
     def run_historical_replay(
         self,
@@ -571,3 +740,133 @@ class HyperspeedEngine:
         """Get current training sample count."""
         with self._sample_lock:
             return len(self._training_samples)
+    
+    def run_swing_training_cycle(
+        self,
+        symbols: Optional[List[str]] = None,
+        days_of_history: int = 365,
+        force_train: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Run enhanced swing trade training cycle using real EOD data.
+        
+        Fetches historical data from Polygon/Alpaca, generates swing trade
+        samples with multi-horizon labels, and trains the model.
+        
+        Args:
+            symbols: List of symbols to train on (default: top 50 liquid stocks)
+            days_of_history: Days of historical data to use (default: 365)
+            force_train: Force training even with fewer samples (default: False)
+            
+        Returns:
+            Training cycle results with metrics
+        """
+        from src.quantracore_apex.data_layer.adapters.polygon_adapter import PolygonAdapter
+        from src.quantracore_apex.data_layer.adapters.alpaca_data_adapter import AlpacaDataAdapter
+        from datetime import datetime, timedelta
+        
+        logger.info("[HyperspeedEngine] Starting swing trade training cycle...")
+        
+        # Default symbols: Mix of mega-caps and swing-friendly stocks
+        if symbols is None:
+            symbols = [
+                "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA",
+                "AMD", "NFLX", "CRM", "ADBE", "INTC", "QCOM", "AVGO",
+                "NOW", "PANW", "CRWD", "ZS", "NET", "DDOG",
+                "SHOP", "SQ", "PYPL", "COIN", "SOFI",
+                "JPM", "BAC", "WFC", "GS", "MS",
+                "XOM", "CVX", "COP", "SLB", "OXY",
+                "LLY", "UNH", "JNJ", "PFE", "ABBV",
+                "HD", "LOW", "TGT", "WMT", "COST",
+                "DIS", "CMCSA", "T", "VZ", "TMUS",
+            ]
+        
+        # Initialize data adapters
+        polygon = PolygonAdapter()
+        alpaca = AlpacaDataAdapter()
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days_of_history)
+        
+        total_samples = 0
+        symbols_processed = 0
+        errors = []
+        
+        logger.info(f"[HyperspeedEngine] Fetching {days_of_history} days of data for {len(symbols)} symbols...")
+        
+        for symbol in symbols:
+            try:
+                # Try Polygon first, fallback to Alpaca
+                bars = None
+                
+                if polygon.is_available():
+                    try:
+                        bars = polygon.fetch(symbol, days=days_of_history, timeframe="day")
+                        if bars:
+                            logger.debug(f"[HyperspeedEngine] {symbol}: Got {len(bars)} bars from Polygon")
+                    except Exception as e:
+                        logger.debug(f"[HyperspeedEngine] Polygon failed for {symbol}: {e}")
+                
+                if not bars and alpaca.is_available():
+                    try:
+                        bars = alpaca.fetch_ohlcv(symbol, start_date, end_date, timeframe="1d")
+                        if bars:
+                            logger.debug(f"[HyperspeedEngine] {symbol}: Got {len(bars)} bars from Alpaca")
+                    except Exception as e:
+                        logger.debug(f"[HyperspeedEngine] Alpaca failed for {symbol}: {e}")
+                
+                if not bars or len(bars) < 110:
+                    logger.debug(f"[HyperspeedEngine] {symbol}: Insufficient data ({len(bars) if bars else 0} bars)")
+                    continue
+                
+                # Generate swing samples from bars
+                samples = self.generate_swing_samples_from_bars(symbol, bars)
+                
+                if samples:
+                    with self._sample_lock:
+                        self._training_samples.extend(samples)
+                    total_samples += len(samples)
+                    symbols_processed += 1
+                    logger.info(f"[HyperspeedEngine] {symbol}: Added {len(samples)} samples (total: {total_samples})")
+                
+            except Exception as e:
+                errors.append(f"{symbol}: {str(e)}")
+                logger.debug(f"[HyperspeedEngine] Error processing {symbol}: {e}")
+        
+        logger.info(f"[HyperspeedEngine] Generated {total_samples} samples from {symbols_processed} symbols")
+        
+        # Trigger training if we have enough samples
+        training_result = {"success": False, "reason": "Not triggered"}
+        
+        if force_train or total_samples >= self.config.min_samples_for_training:
+            if force_train and total_samples < self.config.min_samples_for_training:
+                # Temporarily lower threshold
+                original_threshold = self.config.min_samples_for_training
+                self.config.min_samples_for_training = max(30, total_samples // 2)
+                training_result = self.trigger_model_training()
+                self.config.min_samples_for_training = original_threshold
+            else:
+                training_result = self.trigger_model_training()
+        
+        return {
+            "symbols_processed": symbols_processed,
+            "total_samples": total_samples,
+            "errors": errors[:10],  # Limit error list
+            "training_result": training_result,
+        }
+    
+    def extract_swing_features(self, window: OhlcvWindow) -> np.ndarray:
+        """
+        Extract enhanced swing trade features from a window.
+        
+        Args:
+            window: OhlcvWindow with at least 60 bars
+            
+        Returns:
+            numpy array with 80 swing trade features
+        """
+        return self._swing_extractor.extract(window)
+    
+    def get_swing_feature_names(self) -> List[str]:
+        """Get names of all 80 swing trade features."""
+        return self._swing_extractor.get_feature_names()
