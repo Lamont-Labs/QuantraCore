@@ -83,6 +83,7 @@ class SecEdgarAdapter:
     """
     
     BASE_URL = "https://data.sec.gov"
+    TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
     SUBMISSIONS_URL = "https://data.sec.gov/submissions"
     FULL_TEXT_SEARCH = "https://efts.sec.gov/LATEST/search-index"
     
@@ -162,11 +163,10 @@ class SecEdgarAdapter:
             return self._cik_cache[symbol]
         
         try:
-            url = f"{self.BASE_URL}/files/company_tickers.json"
             self._rate_limit_wait()
             
             with httpx.Client(timeout=30.0, headers=self.HEADERS) as client:
-                response = client.get(url)
+                response = client.get(self.TICKERS_URL)
                 response.raise_for_status()
                 data = response.json()
             

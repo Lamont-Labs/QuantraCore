@@ -3151,6 +3151,51 @@ def create_app() -> FastAPI:
             logger.error(f"Error clearing samples: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
+    @app.post("/hyperspeed/train/basic")
+    async def run_basic_training_cycle():
+        """
+        Run a basic training cycle using only Alpaca data.
+        Includes large caps + small caps (higher volatility for RunnerHunter).
+        Bypasses enrichment APIs (FRED, Finnhub, SEC) to avoid rate limits.
+        """
+        try:
+            from src.quantracore_apex.apexlab.features import SwingFeatureExtractor
+            from src.quantracore_apex.apexlab.training import run_swing_training_cycle
+            
+            symbols = [
+                # Large caps (stable, high liquidity)
+                "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA",
+                # Small/mid caps (bigger moves, better for RunnerHunter)
+                "PLTR", "SOFI", "RIVN", "LCID", "NIO", "PLUG", "SNAP", "HOOD",
+                "UPST", "AFRM", "RBLX", "DKNG", "COIN", "MARA", "RIOT",
+                "PATH", "U", "CRWD", "NET", "SNOW", "ROKU", "SHOP"
+            ]
+            
+            results = run_swing_training_cycle(
+                symbols=symbols,
+                days_back=60,
+                min_samples=100,
+                skip_enrichment=True
+            )
+            
+            return {
+                "status": "completed",
+                "symbols_processed": len(symbols),
+                "large_caps": 7,
+                "small_caps": 22,
+                "training_results": results,
+                "message": "Training completed with large caps + small caps (higher volatility for RunnerHunter)",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error in basic training: {e}")
+            import traceback
+            return {
+                "error": str(e),
+                "traceback": traceback.format_exc(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
     def get_scheduler_monitor():
         """Get or create the scheduler monitor singleton."""
         global _scheduler_monitor

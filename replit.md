@@ -204,3 +204,9 @@ FMP_API_KEY=               # Earnings & valuations
 - **ApexCore V4 Integration:** 16 prediction heads attached to hyperspeed engine
 - **Training Pipeline:** End-to-end verified (replay → simulation → training → update)
 - **Multi-Worker Note:** Uvicorn 4-worker setup requires shared state for production metrics
+- **Alpaca-Primary Training (December 2025):** Switched from Polygon to Alpaca for training data source
+  - Alpaca provides 200 requests/min vs Polygon's 5 requests/min
+  - `/hyperspeed/train/basic` endpoint for fast training without enrichment APIs
+  - `skip_enrichment=True` disables slow external APIs (Finnhub, FRED, SEC) during training
+  - Training now completes in ~5 seconds for 7 symbols vs timing out before
+  - Use enrichment APIs only for live predictions once rate limits reset

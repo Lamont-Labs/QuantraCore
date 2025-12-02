@@ -479,6 +479,169 @@ def run_training(
     return ensemble, manifest
 
 
+def run_swing_training_cycle(
+    symbols: List[str],
+    days_back: int = 60,
+    min_samples: int = 50,
+    skip_enrichment: bool = False,
+) -> Dict[str, Any]:
+    """
+    Run a swing trading training cycle using Polygon/Alpaca data.
+    
+    Args:
+        symbols: List of stock symbols to train on
+        days_back: Number of days of historical data
+        min_samples: Minimum samples required for training
+        skip_enrichment: If True, skip external API enrichment (FRED, Finnhub, SEC)
+        
+    Returns:
+        Training results dictionary
+    """
+    import logging
+    import time
+    from datetime import datetime, timedelta
+    from src.quantracore_apex.core.schemas import OhlcvBar, OhlcvWindow
+    
+    logger = logging.getLogger(__name__)
+    results = {
+        "symbols_processed": 0,
+        "samples_collected": 0,
+        "training_completed": False,
+        "models_updated": [],
+        "errors": [],
+    }
+    
+    try:
+        from src.quantracore_apex.apexlab.features import SwingFeatureExtractor
+        from src.quantracore_apex.data_layer.adapters.alpaca_data_adapter import AlpacaDataAdapter
+        
+        # Disable enrichment for faster training with Alpaca-only data
+        extractor = SwingFeatureExtractor(enable_enrichment=not skip_enrichment)
+        alpaca = AlpacaDataAdapter()
+        
+        if not alpaca.is_available():
+            results["errors"].append("Alpaca adapter not available - check API credentials")
+            return results
+        
+        all_features = []
+        all_labels = []
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days_back * 2)
+        
+        for i, symbol in enumerate(symbols):
+            try:
+                logger.info(f"Fetching data for {symbol} ({i+1}/{len(symbols)}) via Alpaca...")
+                
+                bars = alpaca.fetch_ohlcv(
+                    symbol=symbol,
+                    start=start_date,
+                    end=end_date,
+                    timeframe="1d"
+                )
+                
+                if not bars or len(bars) < 30:
+                    logger.warning(f"Insufficient data for {symbol}: {len(bars) if bars else 0} bars")
+                    continue
+                
+                window_size = min(30, len(bars) - 5)
+                for j in range(len(bars) - window_size - 5):
+                    window_bars = bars[j:j + window_size]
+                    future_bars = bars[j + window_size:j + window_size + 5]
+                    
+                    window = OhlcvWindow(
+                        symbol=symbol,
+                        timeframe="day",
+                        bars=window_bars
+                    )
+                    
+                    try:
+                        features = extractor.extract(window)
+                        
+                        current_close = window_bars[-1].close
+                        future_close = future_bars[-1].close if future_bars else current_close
+                        forward_return = (future_close - current_close) / current_close
+                        
+                        quantra_score = 0.5 + forward_return * 2
+                        quantra_score = max(0.0, min(1.0, quantra_score))
+                        
+                        runner_label = 1 if forward_return > 0.05 else 0
+                        quality_tier = 2 if forward_return > 0.03 else (1 if forward_return > 0 else 0)
+                        avoid_trade = 1 if forward_return < -0.03 else 0
+                        
+                        volatility = np.std([b.close for b in window_bars[-20:]]) / np.mean([b.close for b in window_bars[-20:]])
+                        regime_label = 0 if forward_return > 0.02 else (1 if forward_return < -0.02 else (2 if volatility > 0.02 else 3))
+                        
+                        all_features.append(features)
+                        all_labels.append({
+                            'quantra_score': quantra_score,
+                            'runner_label': runner_label,
+                            'quality_tier': quality_tier,
+                            'avoid_trade': avoid_trade,
+                            'regime_label': regime_label,
+                        })
+                        
+                    except Exception as e:
+                        logger.debug(f"Feature extraction error for {symbol} window {j}: {e}")
+                        continue
+                
+                results["symbols_processed"] += 1
+                logger.info(f"Processed {symbol}: {len(all_features)} total samples so far")
+                    
+            except Exception as e:
+                results["errors"].append(f"{symbol}: {str(e)}")
+                logger.warning(f"Error processing {symbol}: {e}")
+        
+        if all_features:
+            feature_array = np.array(all_features)
+            feature_names = extractor.get_feature_names()
+            
+            combined_df = pd.DataFrame(feature_array, columns=feature_names[:len(feature_array[0])])
+            
+            for key in ['quantra_score', 'runner_label', 'quality_tier', 'avoid_trade', 'regime_label']:
+                combined_df[key] = [l[key] for l in all_labels]
+            
+            results["samples_collected"] = len(combined_df)
+            
+            if len(combined_df) >= min_samples:
+                logger.info(f"Training with {len(combined_df)} samples...")
+                
+                config = TrainingConfig(
+                    variant="mini",
+                    ensemble_size=2,
+                    n_estimators=50,
+                    max_depth=4,
+                )
+                
+                trainer = ApexCoreV2Trainer(config)
+                
+                output_dir = Path("models/swing_basic")
+                output_dir.mkdir(parents=True, exist_ok=True)
+                
+                ensemble, manifest = trainer.train(combined_df, str(output_dir / "model"))
+                
+                results["training_completed"] = True
+                results["models_updated"] = ["swing_basic"]
+                results["manifest"] = {
+                    "version": manifest.version if manifest else "unknown",
+                    "created_at": datetime.now().isoformat(),
+                }
+                
+                logger.info("Training cycle completed successfully!")
+            else:
+                results["message"] = f"Insufficient samples: {len(combined_df)} < {min_samples}"
+        else:
+            results["message"] = "No samples collected from any symbol"
+            
+    except Exception as e:
+        import traceback
+        results["errors"].append(f"Training error: {str(e)}")
+        results["traceback"] = traceback.format_exc()
+        logger.error(f"Training cycle error: {e}")
+    
+    return results
+
+
 __all__ = [
     "TrainingConfig",
     "ApexCoreV2Trainer",
@@ -488,4 +651,5 @@ __all__ = [
     "extract_targets",
     "compute_validation_metrics",
     "run_training",
+    "run_swing_training_cycle",
 ]
