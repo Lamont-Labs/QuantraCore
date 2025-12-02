@@ -2243,12 +2243,21 @@ def create_app() -> FastAPI:
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     def get_hyperspeed_engine():
-        """Get or create the hyperspeed engine singleton."""
+        """Get or create the hyperspeed engine singleton with attached model."""
         global _hyperspeed_engine
         if _hyperspeed_engine is None:
             from src.quantracore_apex.hyperspeed import HyperspeedEngine, HyperspeedConfig
+            from src.quantracore_apex.prediction.apexcore_v3 import ApexCoreV3Model
             config = HyperspeedConfig()
             _hyperspeed_engine = HyperspeedEngine(config)
+            try:
+                model = ApexCoreV3Model.load(model_size="big")
+                _hyperspeed_engine.set_model(model)
+                logger.info("[HyperspeedEngine] ApexCore V3 model attached")
+            except FileNotFoundError:
+                logger.warning("[HyperspeedEngine] No trained model found - running without model attachment")
+            except Exception as e:
+                logger.error(f"[HyperspeedEngine] Error loading model: {e}")
         return _hyperspeed_engine
     
     @app.get("/hyperspeed/status")
