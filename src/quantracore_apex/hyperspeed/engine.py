@@ -330,7 +330,7 @@ class HyperspeedEngine:
     
     def trigger_model_training(self) -> Dict[str, Any]:
         """
-        Trigger model training with accumulated samples.
+        Trigger model training with accumulated samples and persist to database.
         
         Returns:
             Training result with accuracy metrics
@@ -350,10 +350,24 @@ class HyperspeedEngine:
         
         if self._model:
             self._metrics.total_model_updates += 1
+            
+            db_persisted = False
+            try:
+                from src.quantracore_apex.prediction.model_manager import save_model_to_database
+                model_size = getattr(self._model, 'model_size', 'big')
+                db_persisted = save_model_to_database(self._model, model_size)
+                if db_persisted:
+                    logger.info(f"[HyperspeedEngine] Model persisted to database after training")
+                else:
+                    logger.warning(f"[HyperspeedEngine] Database persistence returned False")
+            except Exception as e:
+                logger.warning(f"[HyperspeedEngine] Could not persist to database: {e}")
+            
             return {
                 "success": True,
                 "samples_used": sample_count,
                 "accuracy": {"quantrascore": 0.75, "runner": 0.68, "direction": 0.62},
+                "database_persisted": db_persisted,
             }
         
         return {
