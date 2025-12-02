@@ -23,6 +23,7 @@ import { SentimentPanel } from './components/SentimentPanel'
 import { DarkPoolPanel } from './components/DarkPoolPanel'
 import { MacroPanel } from './components/MacroPanel'
 import { DataProvidersPanel } from './components/DataProvidersPanel'
+import { PushNotificationPanel } from './components/PushNotificationPanel'
 import { VelocityProvider, useVelocityMode } from './hooks/useVelocityMode'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
@@ -170,13 +171,16 @@ function AppContent() {
               </div>
 
               <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-4">
+                <div className="col-span-3">
                   <AutoTraderPanel />
                 </div>
-                <div className="col-span-4">
+                <div className="col-span-3">
+                  <PushNotificationPanel />
+                </div>
+                <div className="col-span-3">
                   <SignalsAlertsPanel />
                 </div>
-                <div className="col-span-4">
+                <div className="col-span-3">
                   <RunnerScreenerPanel />
                 </div>
               </div>
