@@ -121,7 +121,7 @@ The system includes trained ML models such as `apex_production` (5%+ runner dete
 |-----------|--------|---------|
 | **System Health** | OPERATIONAL | Engine and data layer functional |
 | **Broker** | CONNECTED | Alpaca Paper Trading mode |
-| **Portfolio** | ACTIVE | ~$99,400 equity, 13 positions |
+| **Portfolio** | ACTIVE | ~$99,800 equity, 13 positions |
 | **AutoTrader** | ENABLED | Paper mode, min QuantraScore 65 |
 | **ML Model** | LOADED | ApexCore V4, 95% runner accuracy |
 | **Training Data** | 6,085 samples | Volatile small/mid cap universe |
@@ -135,6 +135,27 @@ The system includes trained ML models such as `apex_production` (5%+ runner dete
 | Alpha Vantage | OK | News sentiment, indicators |
 | FRED | RATE LIMITED | Economic data (fallback active) |
 | Finnhub | RATE LIMITED | Sentiment (fallback active) |
+
+### Stability Hardening (December 2025)
+
+**Backend Improvements:**
+- **Circuit Breakers:** All 5 data providers protected with configurable failure thresholds
+  - Alpaca/Polygon: 5 failures, 30s reset
+  - FRED/Finnhub/Alpha Vantage: 3 failures, 120s reset
+- **Model Preloading:** 5 ApexCore V4 heads preloaded at startup
+- **Status Caching:** 15s TTL for broker/predictive endpoints
+- **Graceful Degradation:** Endpoints return degraded status on provider failures
+
+**Frontend Improvements:**
+- **Promise.allSettled:** Prevents single API failure from breaking entire status panel
+- **Last Known Values:** Preserves previous good data during connectivity issues
+- **Connection State Tracking:** Visual indicator for connecting/degraded/online states
+- **Retry Logic:** Exponential backoff with 3 retries
+
+**New Endpoints:**
+- `/system/circuit_breakers` - View all circuit breaker states
+- `/system/preloaded_models` - View preloaded model inventory
+- Health endpoint now includes breaker states and preloaded count
 
 ### Active Portfolio Positions (Sample)
 
