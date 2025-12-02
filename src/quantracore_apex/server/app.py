@@ -2363,10 +2363,17 @@ def create_app() -> FastAPI:
             engine = get_hyperspeed_engine()
             
             def run_cycle():
-                engine.run_full_hyperspeed_cycle(
-                    symbols=request.symbols,
-                    years=request.years,
-                )
+                try:
+                    logger.info("[HyperspeedCycle] Background task started")
+                    engine.run_full_hyperspeed_cycle(
+                        symbols=request.symbols,
+                        years=request.years,
+                    )
+                    logger.info("[HyperspeedCycle] Background task completed successfully")
+                except Exception as e:
+                    logger.error(f"[HyperspeedCycle] Background task error: {e}")
+                    import traceback
+                    logger.error(f"[HyperspeedCycle] Traceback: {traceback.format_exc()}")
             
             background_tasks.add_task(run_cycle)
             
@@ -2380,6 +2387,45 @@ def create_app() -> FastAPI:
             logger.error(f"Error starting cycle: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
+    @app.post("/hyperspeed/cycle/sync")
+    async def run_hyperspeed_cycle_sync(request: HyperspeedCycleRequest):
+        """
+        Run hyperspeed cycle synchronously for debugging.
+        Returns after cycle completes.
+        """
+        try:
+            logger.info("[HyperspeedCycle] Starting SYNCHRONOUS cycle")
+            engine = get_hyperspeed_engine()
+            
+            cycle = engine.run_full_hyperspeed_cycle(
+                symbols=request.symbols,
+                years=request.years,
+            )
+            
+            logger.info(f"[HyperspeedCycle] Cycle completed: {cycle.cycle_id}")
+            
+            return {
+                "status": "completed",
+                "cycle_id": cycle.cycle_id,
+                "bars_processed": cycle.total_bars_processed,
+                "simulations": cycle.battle_simulations_count,
+                "samples": cycle.aggregated_samples_count,
+                "training_triggered": cycle.training_triggered,
+                "model_updated": cycle.model_updated,
+                "duration_seconds": cycle.actual_duration_seconds,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            import traceback
+            logger.error(f"[HyperspeedCycle] Sync error: {e}")
+            logger.error(f"[HyperspeedCycle] Traceback: {traceback.format_exc()}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "traceback": traceback.format_exc(),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
     @app.post("/hyperspeed/overnight/start")
     async def start_overnight_mode():
         """
