@@ -26,6 +26,27 @@
 
 ---
 
+## For Investors
+
+| Document | Description |
+|----------|-------------|
+| **[INVESTOR_CONCERNS_ADDRESSED.md](INVESTOR_CONCERNS_ADDRESSED.md)** | Direct response to due diligence concerns |
+| **[docs/investor/](docs/investor/)** | Complete investor portal (30+ documents) |
+| **[MASTER_SPEC.md](MASTER_SPEC.md)** | Full technical specification (3,400+ lines) |
+
+### Quick Facts for Investors
+
+| Metric | Value |
+|--------|-------|
+| **Codebase** | 102,000+ lines Python, 415 source files |
+| **Tests** | 1,145 tests, 100% pass rate |
+| **Documentation** | 50+ documents, 20,000+ lines |
+| **API Endpoints** | 148 REST endpoints |
+| **Protocols** | 145 (T01-T80, LP01-LP25, MR01-MR20, Ω01-Ω20) |
+| **Commercial Paths** | IP Acquisition, Licensing, SaaS, Mobile App |
+
+---
+
 ## System Status
 
 | Component | Status | Details |

@@ -146,3 +146,23 @@ The PostgreSQL database includes:
 - `ml_models`: Core model storage with GZIP compression
 - `ml_model_components`: Multi-head model component storage
 - Model versioning with rollback capability
+
+## Investor Readiness (December 2025)
+
+### Investor Documentation
+
+| Document | Purpose |
+|----------|---------|
+| `INVESTOR_CONCERNS_ADDRESSED.md` | Direct response to 6 key investor concerns |
+| `docs/investor/` | Complete investor portal (30+ documents) |
+| `docs/investor_due_diligence/` | Technical due diligence suite |
+| `investor_logs/` | Trade logs, compliance attestations, reports |
+
+### Addressed Investor Concerns
+
+1. **Paper Trading Only** → Track record system, path to live defined
+2. **Revenue Model** → 4 commercial paths documented (IP acquisition, licensing, SaaS, mobile)
+3. **Competitive Moat** → 7 defensibility layers documented
+4. **Scalability** → Strategic rationale + desktop-to-server-to-cloud path
+5. **API Dependencies** → 5-layer resilience architecture
+6. **Single Developer** → Comprehensive documentation for knowledge transfer
