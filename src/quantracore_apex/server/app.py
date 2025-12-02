@@ -7844,6 +7844,92 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    @app.post("/autotrader/scan")
+    async def trigger_autotrader_scan():
+        """
+        Trigger AutoTrader to scan for opportunities (no trades executed).
+        
+        Returns top trade setups based on QuantraScore analysis.
+        PAPER TRADING ONLY - Research mode, no execution.
+        """
+        try:
+            from src.quantracore_apex.trading.auto_trader import AutoTrader
+            
+            trader = AutoTrader()
+            setups = trader.scan_for_setups(top_n=10)
+            
+            return {
+                "success": True,
+                "mode": "scan_only",
+                "setups_found": len(setups),
+                "top_setups": [
+                    {
+                        "symbol": s.symbol,
+                        "quantrascore": round(s.quantrascore, 1),
+                        "price": round(s.current_price, 2),
+                        "entry": round(s.entry_price, 2),
+                        "stop_loss": round(s.stop_loss, 2),
+                        "target": round(s.target, 2),
+                        "shares": s.shares,
+                        "position_value": round(s.position_value, 2),
+                        "risk_reward": round(s.risk_reward, 2),
+                        "conviction": s.conviction,
+                        "regime": s.regime,
+                        "runner_prob": round(s.runner_prob * 100, 1),
+                    }
+                    for s in setups
+                ],
+                "compliance_note": "SCAN ONLY - No trades executed. Paper trading research.",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error in autotrader scan: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/autotrader/execute")
+    async def trigger_autotrader_execute(count: int = 1):
+        """
+        Execute AutoTrader swing trades on Alpaca PAPER account.
+        
+        IMPORTANT LEGAL NOTICE:
+        - Executes ONLY on Alpaca PAPER trading (simulated, NO REAL MONEY)
+        - All outputs are for RESEARCH purposes only
+        - NOT investment advice - past performance does not guarantee future results
+        
+        Args:
+            count: Number of trades to execute (1-3, default 1)
+        """
+        try:
+            from src.quantracore_apex.trading.auto_trader import AutoTrader
+            
+            if count < 1:
+                count = 1
+            if count > 3:
+                count = 3
+            
+            trader = AutoTrader()
+            result = trader.execute_top_swings(count=count)
+            
+            result["compliance_note"] = {
+                "mode": "PAPER TRADING ONLY",
+                "real_money_risk": False,
+                "broker": "Alpaca Paper Trading",
+                "legal_notice": "SIMULATION ONLY - This is paper trading with no real money at risk. All outputs are for research and educational purposes. This is NOT investment advice. Past performance does not guarantee future results.",
+            }
+            
+            return result
+        except Exception as e:
+            logger.error(f"Error in autotrader execute: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
     # =========================================================================
     # TRADE HOLD MANAGER ENDPOINTS
     # Continuation probability-based hold decisions
