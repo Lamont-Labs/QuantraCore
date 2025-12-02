@@ -170,13 +170,41 @@ Reusable module for historical replay and regression testing:
 
 ## 6. Data Layer & Failover
 
-### 6.1 Multi-Provider Adapters
+### 6.1 Active Data Sources (7 Connected)
 
-| Provider | Role |
-|----------|------|
-| Polygon | Primary US equities |
-| Alpha Vantage | Optional secondary |
-| CSV Bundle | Offline cached data |
+**Market Data & Execution:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| Polygon.io | EOD prices, historical data, ML training, extended hours | Developer tier | Active |
+| Alpaca | Paper trading, order execution, positions, portfolio | 200/min | Active |
+
+**Economic Indicators:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| FRED | Fed rates, CPI, GDP, unemployment, yield curve | 120/min | Active |
+
+**Sentiment & News:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| Finnhub | Reddit/Twitter social sentiment, insider transactions | 60/min | Active |
+| Alpha Vantage | AI-powered news sentiment, 50+ technical indicators | 500/day | Active |
+
+**Regulatory Filings:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| SEC EDGAR | Insider trades (Form 4), 13F holdings, 8-K events | 10/sec | Active (No API key needed) |
+
+**Crypto:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| Binance | Cryptocurrency data for Alpha Factory | 1200/min | Active |
+
+### 6.2 Ready to Activate (2 Available)
+
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| Nasdaq Data Link | COT futures positioning (ES, NQ, GC, CL, etc.) | 50/day | Needs API key |
+| FMP | Earnings calendar, DCF valuations, company profiles | 250/day | Needs API key |
 
 **Unified Interface:**
 ```python
@@ -186,13 +214,13 @@ class DataClient:
     def get_metadata(symbol) -> SymbolMetadata
 ```
 
-### 6.2 Failover Logic
+### 6.3 Failover Logic
 
-1. Try primary provider
+1. Try primary provider (Polygon for market data, Alpaca for trading)
 2. If rate-limited or partial failure: try cached bundle or secondary
 3. If no valid data: mark symbol as `data_unavailable`
 
-### 6.3 Dataset Caching & Integrity
+### 6.4 Dataset Caching & Integrity
 
 **Cache Format:** Parquet files in `data/cache/`
 
@@ -204,7 +232,7 @@ class DataClient:
 - Verify hash matches manifest
 - If mismatch: invalidate and refetch
 
-### 6.4 Symbol Universe Mapping
+### 6.5 Symbol Universe Mapping
 
 Centralized registry in `config/symbol_universe.yaml`:
 - Symbol, name, asset class, sector

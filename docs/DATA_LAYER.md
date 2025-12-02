@@ -1,14 +1,55 @@
 # QuantraCore Apex™ — Data Layer
 
-**Version:** 8.0  
+**Version:** 9.0-A  
 **Component:** Unified Data Ingestion  
-**Status:** Active
+**Status:** Active  
+**Last Updated:** December 2025
 
 ---
 
 ## Overview
 
 The Data Layer is a unified deterministic ingestion framework for all market data. It ensures reproducible datasets, strict version control, and fail-closed behavior on any data integrity issues.
+
+---
+
+## Active Data Sources (7 Connected)
+
+### Market Data & Execution
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **Polygon.io** | EOD prices, historical data, ML training, extended hours | Developer tier | Active |
+| **Alpaca** | Paper trading, order execution, positions, portfolio | 200/min | Active |
+
+### Economic Indicators
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **FRED** | Fed rates, CPI, GDP, unemployment, yield curve | 120/min | Active |
+
+### Sentiment & News
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **Finnhub** | Reddit/Twitter social sentiment, insider transactions | 60/min | Active |
+| **Alpha Vantage** | AI-powered news sentiment, 50+ technical indicators | 500/day | Active |
+
+### Regulatory Filings
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **SEC EDGAR** | Insider trades (Form 4), 13F holdings, 8-K events | 10/sec | Active (No API key needed) |
+
+### Crypto
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **Binance** | Cryptocurrency data for Alpha Factory | 1200/min | Active |
+
+---
+
+## Ready to Activate (2 Available)
+
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **Nasdaq Data Link** | COT futures positioning (ES, NQ, GC, CL, etc.) | 50/day | Needs API key |
+| **FMP** | Earnings calendar, DCF valuations, company profiles | 250/day | Needs API key |
 
 ---
 
@@ -34,27 +75,6 @@ The Data Layer is a unified deterministic ingestion framework for all market dat
 3. Data providers may be swapped without changing internal logic
 4. No direct live-trading signals may be created from data layer
 5. All raw data stored in read-only mode
-
----
-
-## Market Data Providers
-
-### Default Supported
-
-| Provider | Features |
-|----------|----------|
-| Polygon.io | Historical OHLCV, Live OHLCV, Aggregates, Tick/quote (optional) |
-| Alpaca Market Data | Historical OHLCV, Realtime streams |
-| IEX Cloud | Intraday data, Reference data |
-| Tiingo | Daily OHLCV, Fundamentals |
-| Finnhub | News (text-only), Earnings calendars, Economic data |
-
-### Optional Providers
-
-- Intrinio
-- TwelveData
-- AlphaVantage
-- Quandl
 
 ---
 

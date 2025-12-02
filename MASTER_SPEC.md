@@ -3238,38 +3238,114 @@ HEAD_CONFIGS = {
 
 ### 30.1 Overview
 
-Real-time multi-source data feeds provide comprehensive market intelligence beyond standard OHLCV data.
+QuantraCore Apex integrates 7 active data sources plus 2 ready-to-activate sources for comprehensive market intelligence.
 
-### 30.2 Data Sources
+### 30.2 Active Data Sources (7 Connected)
 
-| Source | Description | Update Frequency |
-|--------|-------------|------------------|
-| **Options Flow** | Premium options activity, unusual volume, smart money tracking | Real-time |
-| **Sentiment** | Social media and news sentiment analysis | 5-minute aggregates |
-| **Dark Pool** | Institutional off-exchange activity and block trades | Near real-time |
-| **Level 2** | Order book depth, bid/ask spread, liquidity | Real-time |
-| **Economic** | Macro indicators, economic calendar, Fed data | Daily/Event-driven |
-| **Alternative** | Alternative data sources and proprietary signals | Varies |
+**Market Data & Execution:**
+| Provider | Purpose | Rate Limit | API Key Required |
+|----------|---------|------------|------------------|
+| **Polygon.io** | EOD prices, historical data, ML training, extended hours | Developer tier | Yes |
+| **Alpaca** | Paper trading, order execution, positions, portfolio | 200/min | Yes |
 
-### 30.3 API Endpoints
+**Economic Indicators:**
+| Provider | Purpose | Rate Limit | API Key Required |
+|----------|---------|------------|------------------|
+| **FRED** | Fed rates, CPI, GDP, unemployment, yield curve | 120/min | Yes |
 
+**Sentiment & News:**
+| Provider | Purpose | Rate Limit | API Key Required |
+|----------|---------|------------|------------------|
+| **Finnhub** | Reddit/Twitter social sentiment, insider transactions | 60/min | Yes |
+| **Alpha Vantage** | AI-powered news sentiment, 50+ technical indicators | 500/day | Yes |
+
+**Regulatory Filings:**
+| Provider | Purpose | Rate Limit | API Key Required |
+|----------|---------|------------|------------------|
+| **SEC EDGAR** | Insider trades (Form 4), 13F holdings, 8-K events | 10/sec | No (free government data) |
+
+**Crypto:**
+| Provider | Purpose | Rate Limit | API Key Required |
+|----------|---------|------------|------------------|
+| **Binance** | Cryptocurrency data for Alpha Factory | 1200/min | No |
+
+### 30.3 Ready to Activate (2 Available)
+
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **Nasdaq Data Link** | COT futures positioning (ES, NQ, GC, CL, etc.) | 50/day | Needs `NASDAQ_DATA_LINK_API_KEY` |
+| **FMP** | Earnings calendar, DCF valuations, company profiles | 250/day | Needs `FMP_API_KEY` |
+
+### 30.4 Environment Variables
+
+```bash
+# Market Data & Execution (Required)
+POLYGON_API_KEY=           # Polygon.io API key
+ALPACA_PAPER_API_KEY=      # Alpaca paper trading key
+ALPACA_PAPER_API_SECRET=   # Alpaca paper trading secret
+
+# Economic & Sentiment (Active)
+FRED_API_KEY=              # Federal Reserve data
+FINNHUB_API_KEY=           # Social sentiment
+ALPHA_VANTAGE_API_KEY=     # News sentiment
+
+# Optional (Ready to Activate)
+NASDAQ_DATA_LINK_API_KEY=  # COT reports
+FMP_API_KEY=               # Earnings & valuations
+```
+
+### 30.5 Data Intelligence API Endpoints
+
+**Sentiment & News:**
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/data/options-flow` | GET | Options flow with premium filtering |
-| `/api/data/options-flow/summary` | GET | Aggregated options flow summary |
-| `/api/data/sentiment/summary` | GET | Market sentiment indicators |
-| `/api/data/dark-pool/summary` | GET | Dark pool activity summary |
-| `/api/data/level2/{symbol}` | GET | Real-time Level 2 order book |
-| `/api/data/macro/summary` | GET | Economic indicators summary |
-| `/api/data/alternative` | GET | Alternative data signals |
+| `/sentiment/{symbol}` | GET | Unified sentiment (social + news + economic) |
+| `/sentiment/batch` | POST | Batch sentiment for multiple symbols |
+| `/sentiment/market` | GET | Overall market sentiment snapshot |
+| `/sentiment/providers` | GET | Status of all data providers |
+| `/news/{symbol}` | GET | AI-powered news sentiment |
+| `/social/{symbol}` | GET | Reddit/Twitter sentiment |
 
-### 30.4 Data Integration
+**Economic Indicators:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/economic/regime` | GET | Current economic regime from FRED |
+| `/economic/yield_curve` | GET | US Treasury yield curve |
+
+**SEC Filings:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/sec/insider/{symbol}` | GET | SEC Form 4 insider trading summary |
+| `/sec/insider/{symbol}/transactions` | GET | Detailed insider transaction list |
+| `/sec/institutions/{symbol}` | GET | SEC 13F institutional holdings |
+| `/sec/events/{symbol}` | GET | SEC 8-K material events |
+| `/sec/status` | GET | SEC EDGAR adapter status |
+
+**COT Reports (Futures Positioning):**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/cot/{symbol}` | GET | COT positioning (ES, NQ, GC, CL, etc.) |
+| `/cot/status` | GET | Nasdaq Data Link adapter status |
+
+**Earnings & Valuations:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/earnings/calendar` | GET | Upcoming earnings releases |
+| `/earnings/{symbol}` | GET | Historical earnings for symbol |
+| `/valuation/{symbol}` | GET | DCF valuation analysis |
+| `/profile/{symbol}` | GET | Company profile and metrics |
+| `/dividends/calendar` | GET | Upcoming dividend ex-dates |
+| `/fmp/status` | GET | FMP adapter status |
+
+### 30.6 Data Integration
 
 All data sources integrate with ApexCore predictions:
+- FRED economic regime gates market direction predictions
+- Finnhub social sentiment enhances momentum signals
+- Alpha Vantage news sentiment validates catalyst alignment
+- SEC EDGAR insider activity confirms institutional conviction
 - Options flow enhances institutional positioning signals
-- Sentiment data gates runner predictions
 - Dark pool activity confirms accumulation patterns
-- Level 2 data validates breakout potential
 
 ---
 
@@ -3367,7 +3443,7 @@ The institutional trading dashboard now features 15 real-time monitoring panels:
 | 9.0-A | 2025-12-02 | Added Section 27: Database Model Persistence System with PostgreSQL storage |
 | 9.0-A | 2025-12-02 | Added Section 28: Push Notification System with Web Push Protocol |
 | 9.0-A | 2025-12-02 | Added Section 29: ApexCore V4 Neural Model with 16 prediction heads |
-| 9.0-A | 2025-12-02 | Added Section 30: Multi-Source Data Ingestion (options flow, sentiment, dark pool, etc.) |
+| 9.0-A | 2025-12-02 | Added Section 30: Multi-Source Data Ingestion with 7 active + 2 ready data sources |
 | 9.0-A | 2025-12-02 | Added Section 31: Extended Market Hours Trading support |
 | 9.0-A | 2025-12-02 | Added Section 32: ApexDesk Dashboard expanded to 15 panels |
 | 9.0-A | 2025-12-02 | Added 4 model storage API endpoints: /model/storage, /versions, /restore, /migrate |

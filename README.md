@@ -36,8 +36,8 @@
 | **Test Suite** | **1,145 tests passing** | Regulatory excellence + hardening + institutional |
 | **Universal Scanner** | Operational | 7 market cap buckets, 4 scan modes |
 | **Alpaca Paper Trading** | **Connected** | All position types enabled |
-| **Data Layer** | Operational | Alpaca (200/min) + Polygon (5/min) |
-| **ApexCore Models** | Operational | V3 neural models with 7 prediction heads |
+| **Data Layer** | Operational | 7 sources: Polygon, Alpaca, FRED, Finnhub, Alpha Vantage, SEC EDGAR, Binance |
+| **ApexCore Models** | Operational | V4 neural models with 16 prediction heads |
 | **Broker Layer** | Operational | Paper trading with 9-check risk engine |
 | **EEO Engine** | Operational | Entry/exit optimization, 6 strategies |
 | **Velocity Mode** | Operational | Standard (30s), High (5s), Turbo (2s) |
@@ -75,7 +75,7 @@ QuantraCore Apex is a **research and backtesting platform** that:
 - Identifies potential extreme moves via **20 MonsterRunner protocols** (MR01-MR20)
 - Trains local neural models via **ApexLab** offline learning environment (V1 + V2)
 - **ApexLab V2**: 40+ field labeling with runner/monster/safety labels
-- **ApexCore V3**: Multi-head models with 7 output heads (quantrascore, runner, quality, avoid, regime, timing, runup)
+- **ApexCore V4**: Multi-head models with 16 output heads (quantrascore, runner, quality, avoid, regime, timing, runup, direction, volatility, momentum, support, resistance, volume, reversal, breakout, continuation)
 - **PredictiveAdvisor**: Fail-closed integration with manifest verification
 - Provides deterministic, reproducible analysis with cryptographic hashing
 

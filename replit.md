@@ -73,85 +73,108 @@ The Hyperspeed Learning System accelerates model training by replaying years of 
 - **Configuration:** Parameters managed via `config/data_sources.yaml`, `config/broker.yaml`, and `config/scan_modes.yaml`.
 - **Google Docs Integration:** Uses Replit OAuth2 for automated reporting.
 
-## External Dependencies
+## Data Connections (Complete List)
 
-- **Alpaca Markets API:** Primary broker for paper trading and order execution.
-- **Polygon.io (Developer tier):** Primary data source for market data, ML training, and extended hours.
-- **Binance:** Primary source for crypto data in Alpha Factory.
-- **Twilio:** Used for SMS alerts.
-- **Google Docs:** Integrated via Replit OAuth2 for automated reporting.
-- **PostgreSQL:** Database for ML model persistence (Replit-managed).
+### Active Data Sources (7 Connected)
 
-### Free-Tier Sentiment Data Sources (NEW)
-- **FRED (Federal Reserve Economic Data):** 800,000+ economic indicators, completely free
-  - Rate limit: 120 requests/minute
-  - Coverage: Fed rates, CPI, GDP, unemployment, yield curve
-  - Environment: `FRED_API_KEY`
-  - Adapter: `FredAdapter` in `economic_adapter.py`
-- **Finnhub:** Social sentiment from Reddit/Twitter
-  - Rate limit: 60 requests/minute (free tier)
-  - Coverage: Social mentions, sentiment scores, insider transactions
-  - Environment: `FINNHUB_API_KEY`
-  - Adapter: `FinnhubAdapter` in `finnhub_adapter.py`
-- **Alpha Vantage:** AI-powered news sentiment + 50+ technical indicators
-  - Rate limit: 500 requests/day, 5/minute (free tier)
-  - Coverage: News articles with sentiment scores, RSI, MACD, etc.
-  - Environment: `ALPHA_VANTAGE_API_KEY`
-  - Adapter: `AlphaVantageAdapter` in `alpha_vantage_adapter.py`
+**Market Data & Execution:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **Polygon.io** | EOD prices, historical data, ML training, extended hours | Developer tier | Active |
+| **Alpaca** | Paper trading, order execution, positions, portfolio | 200/min | Active |
 
-### Sentiment & Alternative Data API Endpoints
+**Economic Indicators:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **FRED** | Fed rates, CPI, GDP, unemployment, yield curve | 120/min | Active |
+
+**Sentiment & News:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **Finnhub** | Reddit/Twitter social sentiment, insider transactions | 60/min | Active |
+| **Alpha Vantage** | AI-powered news sentiment, 50+ technical indicators | 500/day | Active |
+
+**Regulatory Filings:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **SEC EDGAR** | Insider trades (Form 4), 13F holdings, 8-K events | 10/sec | Active (No key needed) |
+
+**Crypto:**
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **Binance** | Cryptocurrency data for Alpha Factory | 1200/min | Active |
+
+### Ready to Activate (2 Available)
+| Provider | Purpose | Rate Limit | Status |
+|----------|---------|------------|--------|
+| **Nasdaq Data Link** | COT futures positioning (ES, NQ, GC, CL, etc.) | 50/day | Needs API key |
+| **FMP** | Earnings calendar, DCF valuations, company profiles | 250/day | Needs API key |
+
+### Environment Variables
+```bash
+# Market Data & Execution
+POLYGON_API_KEY=           # Polygon.io API key
+ALPACA_PAPER_API_KEY=      # Alpaca paper trading key
+ALPACA_PAPER_API_SECRET=   # Alpaca paper trading secret
+
+# Economic & Sentiment (Active)
+FRED_API_KEY=              # Federal Reserve data
+FINNHUB_API_KEY=           # Social sentiment
+ALPHA_VANTAGE_API_KEY=     # News sentiment
+
+# Optional (Ready to Activate)
+NASDAQ_DATA_LINK_API_KEY=  # COT reports
+FMP_API_KEY=               # Earnings & valuations
+```
+
+### API Endpoints (Data Intelligence)
+
+**Sentiment & News:**
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/sentiment/{symbol}` | GET | Unified sentiment (social + news + economic) |
 | `/sentiment/batch` | POST | Batch sentiment for multiple symbols |
 | `/sentiment/market` | GET | Overall market sentiment snapshot |
 | `/sentiment/providers` | GET | Status of all data providers |
-| `/economic/regime` | GET | Current economic regime from FRED |
-| `/economic/yield_curve` | GET | US Treasury yield curve |
 | `/news/{symbol}` | GET | AI-powered news sentiment |
 | `/social/{symbol}` | GET | Reddit/Twitter sentiment |
+
+**Economic Indicators:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/economic/regime` | GET | Current economic regime from FRED |
+| `/economic/yield_curve` | GET | US Treasury yield curve |
+
+**SEC Filings:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
 | `/sec/insider/{symbol}` | GET | SEC Form 4 insider trading summary |
 | `/sec/insider/{symbol}/transactions` | GET | Detailed insider transaction list |
 | `/sec/institutions/{symbol}` | GET | SEC 13F institutional holdings |
 | `/sec/events/{symbol}` | GET | SEC 8-K material events |
 | `/sec/status` | GET | SEC EDGAR adapter status |
 
-### SEC EDGAR Integration (No API Key Required)
-- **Form 4 Filings:** Insider trading transactions (buys/sells by executives)
-- **13F Filings:** Institutional holdings (what hedge funds own)
-- **8-K Filings:** Material events (earnings, acquisitions, executive changes)
-- **Rate Limit:** 10 requests/second (free government data)
-- **Adapter:** `SecEdgarAdapter` in `sec_edgar_adapter.py`
-
-### Nasdaq Data Link Integration (COT Reports)
-- **Commitment of Traders (COT):** Futures positioning by trader type
-- **Commercial Positioning:** Shows how hedgers/producers are positioned (smart money)
-- **Speculator Positioning:** How funds/trend followers are positioned
-- **Supported Symbols:** ES, NQ, GC, CL, NG, ZC, ZW, 6E, 6J, ZN, ZB, VX, BTC
-- **Rate Limit:** 50 calls/day (free tier)
-- **Environment:** `NASDAQ_DATA_LINK_API_KEY`
-- **Adapter:** `NasdaqDataLinkAdapter` in `nasdaq_data_link_adapter.py`
-
-### Financial Modeling Prep Integration (Earnings & Valuations)
-- **Earnings Calendar:** Upcoming earnings with EPS estimates
-- **DCF Valuations:** Undervalued/overvalued stock detection
-- **Company Profiles:** Sector, industry, market cap, PE ratio
-- **Dividend Calendar:** Upcoming ex-dividend dates
-- **Rate Limit:** 250 calls/day (free tier)
-- **Environment:** `FMP_API_KEY`
-- **Adapter:** `FMPAdapter` in `fmp_adapter.py`
-
-### Additional API Endpoints
+**COT Reports (Futures Positioning):**
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/cot/{symbol}` | GET | COT positioning (ES, NQ, GC, CL, etc.) |
 | `/cot/status` | GET | Nasdaq Data Link adapter status |
+
+**Earnings & Valuations:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
 | `/earnings/calendar` | GET | Upcoming earnings releases |
 | `/earnings/{symbol}` | GET | Historical earnings for symbol |
 | `/valuation/{symbol}` | GET | DCF valuation analysis |
 | `/profile/{symbol}` | GET | Company profile and metrics |
 | `/dividends/calendar` | GET | Upcoming dividend ex-dates |
 | `/fmp/status` | GET | FMP adapter status |
+
+## External Services
+
+- **Twilio:** SMS alerts for trading signals
+- **Google Docs:** Automated reporting via Replit OAuth2
+- **PostgreSQL:** Database for ML model persistence (Replit-managed)
 
 ## Recent Changes (December 2025)
 
