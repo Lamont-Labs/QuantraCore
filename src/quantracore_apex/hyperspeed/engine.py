@@ -24,6 +24,9 @@ import numpy as np
 from src.quantracore_apex.core.schemas import OhlcvWindow, OhlcvBar
 from src.quantracore_apex.prediction.apexcore_v3 import ApexCoreV3Model
 from src.quantracore_apex.apexlab.features import FeatureExtractor
+from src.quantracore_apex.core.microtraits import compute_microtraits
+from src.quantracore_apex.core.entropy import compute_entropy
+from src.quantracore_apex.core.suppression import compute_suppression
 
 from .models import (
     HyperspeedConfig,
@@ -66,8 +69,9 @@ class HyperspeedEngine:
         self._active = False
         self._current_cycle: Optional[TrainingCycle] = None
         
-        self._training_samples: List[Tuple[np.ndarray, Dict[str, float]]] = []
+        self._training_samples: List[Tuple[OhlcvWindow, Dict[str, float]]] = []
         self._sample_lock = threading.Lock()
+        self._total_samples_trained = 0
         
         self._register_overnight_tasks()
         
@@ -149,14 +153,13 @@ class HyperspeedEngine:
             callback=callback,
         ):
             try:
-                features = self._feature_extractor.extract(window)
-                
                 with self._sample_lock:
-                    self._training_samples.append((features, labels))
+                    self._training_samples.append((window, labels))
                 
                 samples_collected += 1
                 
                 if self._model and samples_collected % 100 == 0:
+                    features = self._feature_extractor.extract(window)
                     predictions = self._get_predictions(features)
                     session.predictions_made += 1
                 
@@ -222,10 +225,11 @@ class HyperspeedEngine:
             with self._sample_lock:
                 sample_subset = self._training_samples[:max_samples // len(self.config.simulation_strategies)]
             
-            for features, labels in sample_subset:
+            for window, labels in sample_subset:
                 predictions = labels
                 
                 if self._model:
+                    features = self._feature_extractor.extract(window)
                     predictions = self._get_predictions(features)
                 
                 sim = BattleSimulation(
@@ -328,15 +332,78 @@ class HyperspeedEngine:
         
         return cycle
     
+    def _convert_sample_to_row(self, window: OhlcvWindow, labels: Dict[str, float]) -> Dict[str, Any]:
+        """
+        Convert a Hyperspeed sample (window + labels) to ApexLabV2Row format
+        that ApexCoreV3.fit() expects.
+        """
+        bars = window.bars
+        closes = np.array([b.close for b in bars])
+        
+        microtraits = compute_microtraits(window)
+        entropy_metrics = compute_entropy(window)
+        suppression_metrics = compute_suppression(window)
+        
+        quality_map = {0: "D", 1: "C", 2: "B", 3: "A", 4: "S"}
+        quality_tier = quality_map.get(int(labels.get("quality", 0)), "C")
+        
+        regime_map = {0: "trend_up", 1: "chop", 2: "chop", 3: "trend_down", 4: "crash"}
+        regime_label = regime_map.get(int(labels.get("regime", 2)), "chop")
+        
+        timing_map = {0: "immediate", 1: "very_soon", 2: "soon", 3: "late", 4: "none"}
+        timing_bucket = timing_map.get(int(labels.get("timing", 4)), "none")
+        
+        entropy_band = "low" if entropy_metrics.combined_entropy < 0.3 else ("high" if entropy_metrics.combined_entropy > 0.7 else "mid")
+        volatility_band = "low" if microtraits.volatility_ratio < 0.5 else ("high" if microtraits.volatility_ratio > 1.5 else "mid")
+        
+        suppression_state = "none"
+        if suppression_metrics.suppression_level > 0.7:
+            suppression_state = "blocked"
+        elif suppression_metrics.suppression_level > 0.4:
+            suppression_state = "suppressed"
+        
+        ret_5d = (closes[-1] - closes[-6]) / closes[-6] if len(closes) > 5 and closes[-6] != 0 else 0
+        ret_3d = (closes[-1] - closes[-4]) / closes[-4] if len(closes) > 3 and closes[-4] != 0 else 0
+        ret_1d = (closes[-1] - closes[-2]) / closes[-2] if len(closes) > 1 and closes[-2] != 0 else 0
+        
+        return {
+            "symbol": window.symbol,
+            "quantra_score": labels.get("quantrascore", 50),
+            "entropy_band": entropy_band,
+            "suppression_state": suppression_state,
+            "regime_type": regime_label,
+            "volatility_band": volatility_band,
+            "liquidity_band": "mid",
+            "risk_tier": "medium",
+            "protocol_ids": [],
+            "ret_1d": ret_1d,
+            "ret_3d": ret_3d,
+            "ret_5d": ret_5d,
+            "max_runup_5d": labels.get("runup", 0) / 100,
+            "max_drawdown_5d": 0.0,
+            "hit_runner_threshold": int(labels.get("runner", 0)),
+            "future_quality_tier": quality_tier,
+            "avoid_trade": int(labels.get("avoid", 0)),
+            "regime_label": regime_label,
+            "timing_bucket": timing_bucket,
+            "move_direction": int(labels.get("direction", 0)),
+        }
+    
     def trigger_model_training(self) -> Dict[str, Any]:
         """
-        Trigger model training with accumulated samples and persist to database.
+        Trigger actual model training with accumulated samples and persist to database.
+        
+        This method:
+        1. Converts Hyperspeed samples to ApexLabV2Row format
+        2. Calls model.fit() to train with new data
+        3. Persists the trained model to database
         
         Returns:
             Training result with accuracy metrics
         """
         with self._sample_lock:
             sample_count = len(self._training_samples)
+            samples_to_train = list(self._training_samples)
         
         if sample_count < self.config.min_samples_for_training:
             return {
@@ -344,36 +411,70 @@ class HyperspeedEngine:
                 "reason": f"Insufficient samples: {sample_count} < {self.config.min_samples_for_training}",
             }
         
-        logger.info(f"[HyperspeedEngine] Training with {sample_count} samples")
+        logger.info(f"[HyperspeedEngine] Converting {sample_count} samples to training format...")
+        
+        training_rows = []
+        for window, labels in samples_to_train:
+            try:
+                row = self._convert_sample_to_row(window, labels)
+                training_rows.append(row)
+            except Exception as e:
+                logger.debug(f"[HyperspeedEngine] Skipping sample conversion error: {e}")
+        
+        if len(training_rows) < 30:
+            return {
+                "success": False,
+                "reason": f"Insufficient valid rows after conversion: {len(training_rows)} < 30",
+            }
+        
+        logger.info(f"[HyperspeedEngine] Training model with {len(training_rows)} rows...")
         
         self._metrics.total_training_runs += 1
+        metrics = {}
         
         if self._model:
-            self._metrics.total_model_updates += 1
+            try:
+                metrics = self._model.fit(training_rows, validation_split=0.2)
+                self._metrics.total_model_updates += 1
+                self._total_samples_trained += len(training_rows)
+                logger.info(f"[HyperspeedEngine] Model trained successfully! Metrics: {metrics}")
+            except Exception as e:
+                logger.error(f"[HyperspeedEngine] Model training failed: {e}")
+                return {
+                    "success": False,
+                    "reason": f"Training error: {e}",
+                }
             
             db_persisted = False
             try:
                 from src.quantracore_apex.prediction.model_manager import save_model_to_database
                 model_size = getattr(self._model, 'model_size', 'big')
-                db_persisted = save_model_to_database(self._model, model_size)
+                db_persisted = save_model_to_database(
+                    self._model, 
+                    model_size, 
+                    training_samples=self._total_samples_trained
+                )
                 if db_persisted:
-                    logger.info(f"[HyperspeedEngine] Model persisted to database after training")
+                    logger.info(f"[HyperspeedEngine] Model persisted to database with {self._total_samples_trained} samples")
                 else:
                     logger.warning(f"[HyperspeedEngine] Database persistence returned False")
             except Exception as e:
                 logger.warning(f"[HyperspeedEngine] Could not persist to database: {e}")
             
+            with self._sample_lock:
+                self._training_samples.clear()
+            
             return {
                 "success": True,
-                "samples_used": sample_count,
-                "accuracy": {"quantrascore": 0.75, "runner": 0.68, "direction": 0.62},
+                "samples_used": len(training_rows),
+                "total_samples_trained": self._total_samples_trained,
+                "accuracy": metrics,
                 "database_persisted": db_persisted,
             }
         
         return {
-            "success": True,
-            "samples_used": sample_count,
-            "note": "Model not attached, samples cached for later training",
+            "success": False,
+            "reason": "No model attached for training",
         }
     
     def _get_predictions(self, features: np.ndarray) -> Dict[str, float]:

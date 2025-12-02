@@ -326,7 +326,13 @@ class ModelManager:
             logger.error(f"[ModelManager] Error migrating to database: {e}")
             return False
     
-    def save_to_database(self, model: Any, model_size: str, version: Optional[str] = None) -> bool:
+    def save_to_database(
+        self, 
+        model: Any, 
+        model_size: str, 
+        version: Optional[str] = None,
+        training_samples: Optional[int] = None
+    ) -> bool:
         """
         Save a trained model to database storage.
         
@@ -336,6 +342,7 @@ class ModelManager:
             model: The trained ApexCoreV3Model instance
             model_size: Size variant ('big' or 'mini')
             version: Optional version string (defaults to current timestamp)
+            training_samples: Number of samples used for training (overrides manifest if provided)
         
         Returns:
             True if saved successfully
@@ -347,7 +354,8 @@ class ModelManager:
         try:
             manifest = model._manifest.to_dict() if hasattr(model, '_manifest') and model._manifest else None
             version = version or manifest.get("trained_at", datetime.utcnow().isoformat()) if manifest else datetime.utcnow().isoformat()
-            training_samples = manifest.get("training_samples", 0) if manifest else 0
+            if training_samples is None:
+                training_samples = manifest.get("training_samples", 0) if manifest else 0
             
             components = {
                 "quantrascore_head": model.quantrascore_head,
@@ -512,6 +520,10 @@ def notify_model_updated(model_size: str = "big") -> None:
     logger.info(f"[ModelManager] Model update notification processed for {model_size}")
 
 
-def save_model_to_database(model: Any, model_size: str = "big") -> bool:
+def save_model_to_database(
+    model: Any, 
+    model_size: str = "big", 
+    training_samples: Optional[int] = None
+) -> bool:
     """Save a trained model to database for persistent storage."""
-    return get_model_manager().save_to_database(model, model_size)
+    return get_model_manager().save_to_database(model, model_size, training_samples=training_samples)
