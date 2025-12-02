@@ -84,15 +84,27 @@ The Hyperspeed Learning System accelerates model training by replaying years of 
 
 ## Recent Changes (December 2025)
 
-- **Enhanced Swing Trade Features (NEW):** SwingFeatureExtractor with 90 features optimized for 2-10 day holding periods
+- **10x RunnerHunter System (NEW):** 150 breakout-specific features for detecting massive swing runners
+  - Squeeze Detection (20 features): Bollinger/Keltner squeeze, ATR compression, volatility percentiles
+  - Momentum Ignition (20 features): RSI breakout, MACD explosion, price acceleration
+  - Volume Surge (20 features): Climax volume, pocket pivot, accumulation days
+  - Consolidation Quality (20 features): Tight range detection, decreasing volatility, coiled spring
+  - Relative Strength (20 features): SPY comparison, sector leadership, 52-week proximity
+  - Breakout Proximity (20 features): Resistance distance, channel boundaries, pivot points
+  - Timing Signals (15 features): Intraday momentum, opening range breakout signals
+  - Catalyst Alignment (15 features): Multi-factor convergence scoring
+  - Signal Classification: IMMEDIATE (85+), IMMINENT (70-84), DEVELOPING (50-69)
+  - Engine Methods: `hunt_runners()`, `scan_immediate_breakouts()`, `get_runner_signals()`
+- **Enhanced Swing Trade Features:** SwingFeatureExtractor with 90 features optimized for 2-10 day holding periods
   - Multi-scale momentum (3/5/10/20/40 day returns, momentum slope, acceleration)
   - Volatility regime (ATR compression, HV percentiles, Bollinger/Keltner squeeze)
   - Volume texture (OBV, CMF, volume spike persistence, smart money flow)
   - Candlestick patterns (NR4, NR7, Inside Day, Engulfing, Hammer)
   - Price structure (swing highs/lows, Fibonacci levels, ADX trend strength)
-- **Multi-Horizon Labels (NEW):** 3/5/8/10 day forward returns, max adverse/favorable excursion, quality tiers
-- **Swing Training Cycle (NEW):** `run_swing_training_cycle()` fetches real EOD data from Polygon/Alpaca
+- **Multi-Horizon Labels:** 3/5/8/10 day forward returns, max adverse/favorable excursion, quality tiers
+- **Swing Training Cycle:** `run_swing_training_cycle()` fetches real EOD data from Polygon/Alpaca
 - **Training Results:** 97.3% runner accuracy, 100% regime accuracy, 80.7% quality accuracy, 0.18 QuantraScore RMSE
+- **Total Feature Coverage:** 240 features (90 swing + 150 runner) for maximum prediction accuracy
 - **Hyperspeed Learning System:** Fully operational with 1000x acceleration
 - **Database Model Persistence:** ML models stored in PostgreSQL, survive restarts
 - **ApexCore V4 Integration:** 16 prediction heads attached to hyperspeed engine
