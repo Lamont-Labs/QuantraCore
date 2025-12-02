@@ -112,3 +112,37 @@ The system includes trained ML models such as `apex_production` (5%+ runner dete
 - **PostgreSQL:** Database for ML model persistence.
 - **Nasdaq Data Link (Optional):** COT futures positioning.
 - **FMP (Optional):** Earnings calendar, DCF valuations, company profiles.
+
+## System Status (December 2025)
+
+### End-to-End Test Results
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| **System Health** | OPERATIONAL | Engine and data layer functional |
+| **Broker** | CONNECTED | Alpaca Paper Trading mode |
+| **Portfolio** | ACTIVE | ~$99,400 equity, 13 positions |
+| **AutoTrader** | ENABLED | Paper mode, min QuantraScore 65 |
+| **ML Model** | LOADED | ApexCore V4, 95% runner accuracy |
+| **Training Data** | 6,085 samples | Volatile small/mid cap universe |
+
+### Data Provider Status
+
+| Provider | Status | Purpose |
+|----------|--------|---------|
+| Polygon.io | OK | EOD prices, historical data |
+| Alpaca | OK | Trading execution, portfolio |
+| Alpha Vantage | OK | News sentiment, indicators |
+| FRED | RATE LIMITED | Economic data (fallback active) |
+| Finnhub | RATE LIMITED | Sentiment (fallback active) |
+
+### Active Portfolio Positions (Sample)
+
+The system maintains 13 active paper trading positions across volatile tech and small-cap stocks including AAPL, AMD, NVDA, TSLA, and selected small-cap runners (BBAI, CLOV, MARA, RIOT).
+
+### Database Schema
+
+The PostgreSQL database includes:
+- `ml_models`: Core model storage with GZIP compression
+- `ml_model_components`: Multi-head model component storage
+- Model versioning with rollback capability
