@@ -7291,6 +7291,258 @@ def create_app() -> FastAPI:
             }
     
     # =========================================================================
+    # PUSH NOTIFICATION ENDPOINTS
+    # Browser push notifications for trading signals (no Twilio required)
+    # =========================================================================
+    
+    @app.get("/push/vapid-key")
+    async def get_vapid_public_key():
+        """
+        Get VAPID public key for push notification subscription.
+        
+        Client uses this key to subscribe to push notifications.
+        """
+        try:
+            from src.quantracore_apex.signals.push_service import get_push_service
+            push_service = get_push_service()
+            
+            return {
+                "public_key": push_service.get_public_key(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting VAPID key: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/push/status")
+    async def get_push_status():
+        """
+        Get push notification service status.
+        
+        Returns current configuration, subscriber count, and alert statistics.
+        """
+        try:
+            from src.quantracore_apex.signals.push_service import get_push_service
+            push_service = get_push_service()
+            
+            return {
+                "status": push_service.get_status(),
+                "config": push_service.get_config(),
+                "recent_alerts": push_service.get_alert_history(limit=10),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting push status: {e}")
+            return {
+                "status": None,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    class PushSubscription(BaseModel):
+        endpoint: str
+        keys: Dict[str, str]
+        expirationTime: Optional[int] = None
+    
+    @app.post("/push/subscribe")
+    async def subscribe_to_push(subscription: PushSubscription):
+        """
+        Subscribe to push notifications.
+        
+        Client sends their push subscription object from the browser.
+        """
+        try:
+            from src.quantracore_apex.signals.push_service import get_push_service
+            push_service = get_push_service()
+            
+            sub_dict = {
+                "endpoint": subscription.endpoint,
+                "keys": subscription.keys,
+            }
+            if subscription.expirationTime:
+                sub_dict["expirationTime"] = subscription.expirationTime
+            
+            success = push_service.add_subscription(sub_dict)
+            
+            return {
+                "success": success,
+                "message": "Subscribed to push notifications" if success else "Failed to subscribe",
+                "subscribers": push_service.subscription_manager.get_subscription_count(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error subscribing to push: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/push/unsubscribe")
+    async def unsubscribe_from_push(endpoint: str):
+        """
+        Unsubscribe from push notifications.
+        
+        Client sends their push subscription endpoint to remove.
+        """
+        try:
+            from src.quantracore_apex.signals.push_service import get_push_service
+            push_service = get_push_service()
+            
+            success = push_service.remove_subscription(endpoint)
+            
+            return {
+                "success": success,
+                "message": "Unsubscribed from push notifications" if success else "Subscription not found",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error unsubscribing from push: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/push/config")
+    async def update_push_config(
+        enabled: Optional[bool] = None,
+        min_quantrascore: Optional[float] = None,
+        min_runner_probability: Optional[float] = None,
+        max_avoid_probability: Optional[float] = None,
+        min_timing_confidence: Optional[float] = None,
+        only_immediate_timing: Optional[bool] = None,
+        max_alerts_per_hour: Optional[int] = None,
+    ):
+        """
+        Update push notification configuration.
+        
+        Configure thresholds for when to receive push alerts.
+        """
+        try:
+            from src.quantracore_apex.signals.push_service import get_push_service
+            push_service = get_push_service()
+            
+            updates = {}
+            if enabled is not None:
+                updates["enabled"] = enabled
+            if min_quantrascore is not None:
+                updates["min_quantrascore"] = min_quantrascore
+            if min_runner_probability is not None:
+                updates["min_runner_probability"] = min_runner_probability
+            if max_avoid_probability is not None:
+                updates["max_avoid_probability"] = max_avoid_probability
+            if min_timing_confidence is not None:
+                updates["min_timing_confidence"] = min_timing_confidence
+            if only_immediate_timing is not None:
+                updates["only_immediate_timing"] = only_immediate_timing
+            if max_alerts_per_hour is not None:
+                updates["max_alerts_per_hour"] = max_alerts_per_hour
+            
+            if updates:
+                new_config = push_service.update_config(**updates)
+                return {
+                    "success": True,
+                    "config": new_config,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "No configuration updates provided",
+                    "current_config": push_service.get_config(),
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+        except Exception as e:
+            logger.error(f"Error updating push config: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/push/test")
+    async def send_test_push():
+        """
+        Send a test push notification.
+        
+        Verifies push notification system is working correctly.
+        """
+        try:
+            from src.quantracore_apex.signals.push_service import get_push_service
+            push_service = get_push_service()
+            
+            if push_service.subscription_manager.get_subscription_count() == 0:
+                return {
+                    "success": False,
+                    "error": "No subscribers. Enable notifications in the dashboard first.",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            result = await push_service.send_notification(
+                title="APEX Test Notification",
+                body="Push notifications are working! You'll receive alerts for high-quality trading signals.",
+                data={"type": "test", "timestamp": datetime.utcnow().isoformat()}
+            )
+            
+            return {
+                "success": result.get("success", False),
+                "sent": result.get("sent", 0),
+                "failed": result.get("failed", 0),
+                "message": "Test notification sent" if result.get("success") else "Failed to send",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error sending test push: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/push/alert")
+    async def trigger_push_for_signal(symbol: str):
+        """
+        Manually trigger push notification for a specific symbol.
+        
+        Generates signal and sends push if it passes thresholds.
+        """
+        try:
+            from src.quantracore_apex.signals.push_service import get_push_service
+            signal_svc = get_signal_service()
+            push_svc = get_push_service()
+            
+            signal = signal_svc.generate_signal(symbol)
+            
+            if not signal:
+                return {
+                    "success": False,
+                    "error": f"Could not generate signal for {symbol}",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            record = await push_svc.send_signal_alert(signal.to_dict())
+            
+            if record and record.success:
+                return {
+                    "success": True,
+                    "symbol": symbol,
+                    "signal_sent": True,
+                    "subscribers_notified": record.subscribers_notified,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            elif record:
+                return {
+                    "success": False,
+                    "symbol": symbol,
+                    "error": record.error or "Signal didn't pass thresholds",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                return {
+                    "success": False,
+                    "symbol": symbol,
+                    "message": "Signal didn't pass push alert thresholds",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+                
+        except Exception as e:
+            logger.error(f"Error triggering push for {symbol}: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    # =========================================================================
     # LOW FLOAT RUNNER SCREENER ENDPOINTS
     # Real-time scanner for penny stock runners
     # =========================================================================
