@@ -55,6 +55,49 @@ The system includes trained ML models such as `apex_production` (5%+ runner dete
 - **Data Layer:** Polygon.io for market data, Alpaca for execution, Binance for crypto.
 - **Configuration:** Parameters managed via `config/data_sources.yaml`, `config/broker.yaml`, and `config/scan_modes.yaml`.
 
+## Real-Time Data Infrastructure (December 2025)
+
+### Data Subscription Tiers
+
+| Tier | Cost | Data Refresh | Trading Types |
+|------|------|--------------|---------------|
+| **Free (EOD)** | $0/month | Once per day | Swing trades, position trades |
+| **Algo Trader Plus** | $99/month | Real-time streaming | All trading types |
+| **Alpaca Elite** | $0 (with $100K+) | Real-time streaming | All trading types |
+
+### Trading Modes by Tier
+
+| Trading Type | Free Tier | Algo Trader Plus |
+|--------------|-----------|------------------|
+| Swing Trading (2-10 days) | ACTIVE | ACTIVE |
+| Position Trading (weeks/months) | ACTIVE | ACTIVE |
+| Day Trading | UPGRADE REQUIRED | ACTIVE |
+| Scalping (1-5 min) | UPGRADE REQUIRED | ACTIVE |
+| Intraday Swing | UPGRADE REQUIRED | ACTIVE |
+
+### Real-Time Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `/ml/trading-modes` | Shows available trading types by subscription |
+| `/ml/realtime/status` | Real-time scanner status and connection info |
+| `/ml/realtime/signals` | Live signals (WebSocket when enabled) |
+| `/ml/upgrade-info` | How to upgrade for all trading types |
+
+### Enabling Real-Time Mode
+
+1. Subscribe to Alpaca Algo Trader Plus ($99/month)
+2. Set environment variable: `ALPACA_REALTIME_ENABLED=true`
+3. Restart the application
+4. All trading types now available
+
+### WebSocket Streaming (Real-Time Mode)
+
+- **Connection:** `wss://stream.data.alpaca.markets/v2/sip`
+- **Data Types:** Quotes, Trades, Bars
+- **Refresh Rate:** Sub-second
+- **Coverage:** 100% US market (SIP data)
+
 ## External Dependencies
 
 - **Polygon.io:** EOD prices, historical data, ML training.

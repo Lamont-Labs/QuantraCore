@@ -9507,6 +9507,122 @@ def create_app() -> FastAPI:
             logger.error(f"Trade execution error: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
+    @app.get("/ml/realtime/status")
+    async def get_realtime_status(api_key: str = Depends(verify_api_key)):
+        """Get real-time scanner status and capabilities."""
+        from src.quantracore_apex.server.ml_scanner import get_realtime_status
+        
+        try:
+            status = get_realtime_status()
+            return {
+                "status": status,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Realtime status error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/trading-modes")
+    async def get_trading_modes(api_key: str = Depends(verify_api_key)):
+        """
+        Get available trading modes based on data subscription tier.
+        
+        Shows which trading types are enabled (swing, day trading, scalping)
+        and how to upgrade for full functionality.
+        """
+        from src.quantracore_apex.server.ml_scanner import get_trading_modes
+        
+        try:
+            modes = get_trading_modes()
+            return {
+                "modes": modes,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Trading modes error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/realtime/signals")
+    async def get_realtime_signals(min_confidence: float = 0.5, api_key: str = Depends(verify_api_key)):
+        """
+        Get active real-time signals (requires Algo Trader Plus).
+        
+        Falls back to EOD-based scanning on free tier.
+        """
+        from src.quantracore_apex.server.realtime_scanner import get_realtime_scanner
+        
+        try:
+            scanner = get_realtime_scanner()
+            
+            if scanner.is_realtime_enabled and scanner.is_running:
+                signals = scanner.get_active_signals(min_confidence)
+                return {
+                    "mode": "realtime",
+                    "signals": [s.to_dict() for s in signals],
+                    "count": len(signals),
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                from src.quantracore_apex.server.ml_scanner import (
+                    scan_for_runners, QUICK_UNIVERSE
+                )
+                signals = scan_for_runners(QUICK_UNIVERSE, model_type='apex_production')
+                return {
+                    "mode": "eod",
+                    "signals": signals[:10],
+                    "count": len(signals),
+                    "upgrade_message": "Enable ALPACA_REALTIME_ENABLED=true with Algo Trader Plus for live signals",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+        except Exception as e:
+            logger.error(f"Realtime signals error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/upgrade-info")
+    async def get_upgrade_info(api_key: str = Depends(verify_api_key)):
+        """Get information about upgrading to real-time data for all trading types."""
+        realtime_enabled = os.getenv("ALPACA_REALTIME_ENABLED", "false").lower() in ("true", "1", "yes")
+        
+        return {
+            "current_status": {
+                "tier": "Algo Trader Plus" if realtime_enabled else "Free (EOD)",
+                "realtime_enabled": realtime_enabled,
+                "trading_types_available": ["swing", "position"] if not realtime_enabled else ["all"]
+            },
+            "upgrade_options": [
+                {
+                    "name": "Algo Trader Plus",
+                    "cost": "$99/month",
+                    "url": "https://app.alpaca.markets/brokerage/dashboard/overview",
+                    "unlocks": [
+                        "Day trading",
+                        "Scalping (1-5 min trades)",
+                        "Intraday swing trading",
+                        "Real-time WebSocket streaming",
+                        "Instant breakout alerts",
+                        "Sub-second scanner refresh"
+                    ]
+                },
+                {
+                    "name": "Alpaca Elite",
+                    "cost": "FREE with $100K+ account",
+                    "url": "https://alpaca.markets/elite",
+                    "unlocks": [
+                        "Everything in Algo Trader Plus",
+                        "Lower margin rates",
+                        "White-glove support"
+                    ]
+                }
+            ],
+            "setup_instructions": {
+                "step_1": "Subscribe to Algo Trader Plus at Alpaca",
+                "step_2": "Set environment variable: ALPACA_REALTIME_ENABLED=true",
+                "step_3": "Restart the application",
+                "step_4": "All trading types now available!"
+            },
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
     return app
 
 

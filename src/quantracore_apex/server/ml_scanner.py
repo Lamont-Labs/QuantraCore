@@ -347,3 +347,90 @@ MOONSHOT_UNIVERSE = [
     'GME', 'AMC', 'CLOV', 'OCGN', 'VXRT', 'INO', 'SNDL', 'CGC',
     'NIO', 'LCID', 'RIVN', 'XPEV', 'CHPT', 'COIN', 'HOOD', 'UPST',
 ]
+
+
+def get_realtime_status() -> Dict[str, Any]:
+    """
+    Get real-time scanner status and upgrade info.
+    
+    Returns current mode (EOD vs real-time) and what's
+    unlocked with Algo Trader Plus subscription.
+    """
+    from src.quantracore_apex.server.realtime_scanner import get_realtime_scanner
+    
+    scanner = get_realtime_scanner()
+    return scanner.get_status()
+
+
+def get_trading_modes() -> Dict[str, Any]:
+    """
+    Show available trading modes based on data subscription.
+    
+    Free tier: EOD only → Swing trades
+    Algo Trader Plus: Real-time → All trading types
+    """
+    realtime_enabled = os.getenv("ALPACA_REALTIME_ENABLED", "false").lower() in ("true", "1", "yes")
+    
+    return {
+        "current_tier": "Algo Trader Plus ($99/mo)" if realtime_enabled else "Free (EOD)",
+        "data_refresh": "Real-time streaming" if realtime_enabled else "Once per day (EOD)",
+        "trading_modes": {
+            "swing_trading": {
+                "enabled": True,
+                "description": "2-10 day holds",
+                "data_required": "EOD (free)",
+                "status": "ACTIVE"
+            },
+            "position_trading": {
+                "enabled": True,
+                "description": "Weeks to months",
+                "data_required": "EOD (free)",
+                "status": "ACTIVE"
+            },
+            "day_trading": {
+                "enabled": realtime_enabled,
+                "description": "Buy morning, sell afternoon",
+                "data_required": "Real-time ($99/mo)",
+                "status": "ACTIVE" if realtime_enabled else "UPGRADE REQUIRED"
+            },
+            "scalping": {
+                "enabled": realtime_enabled,
+                "description": "1-5 minute trades",
+                "data_required": "Real-time ($99/mo)",
+                "status": "ACTIVE" if realtime_enabled else "UPGRADE REQUIRED"
+            },
+            "intraday_swing": {
+                "enabled": realtime_enabled,
+                "description": "Multiple trades per day",
+                "data_required": "Real-time ($99/mo)",
+                "status": "ACTIVE" if realtime_enabled else "UPGRADE REQUIRED"
+            }
+        },
+        "features": {
+            "ml_scanner": {"status": "ACTIVE", "refresh": "3-30 seconds"},
+            "portfolio_tracking": {"status": "ACTIVE", "refresh": "5 seconds"},
+            "breakout_alerts": {
+                "status": "ACTIVE" if realtime_enabled else "LIMITED",
+                "refresh": "instant" if realtime_enabled else "EOD"
+            },
+            "live_streaming": {
+                "status": "ACTIVE" if realtime_enabled else "DISABLED",
+                "refresh": "sub-second" if realtime_enabled else "N/A"
+            }
+        },
+        "upgrade_path": {
+            "current_cost": "$0/month",
+            "upgrade_cost": "$99/month",
+            "upgrade_url": "https://app.alpaca.markets/brokerage/dashboard/overview",
+            "or_free_with": "$100,000+ account balance (Alpaca Elite tier)",
+            "what_you_get": [
+                "Full SIP real-time data",
+                "100% US market coverage",
+                "Unlimited API requests",
+                "WebSocket streaming",
+                "Day trading enabled",
+                "Scalping enabled",
+                "Instant breakout alerts"
+            ]
+        }
+    }
