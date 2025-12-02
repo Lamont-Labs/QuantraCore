@@ -84,6 +84,15 @@ The Hyperspeed Learning System accelerates model training by replaying years of 
 
 ## Recent Changes (December 2025)
 
+- **Enhanced Swing Trade Features (NEW):** SwingFeatureExtractor with 90 features optimized for 2-10 day holding periods
+  - Multi-scale momentum (3/5/10/20/40 day returns, momentum slope, acceleration)
+  - Volatility regime (ATR compression, HV percentiles, Bollinger/Keltner squeeze)
+  - Volume texture (OBV, CMF, volume spike persistence, smart money flow)
+  - Candlestick patterns (NR4, NR7, Inside Day, Engulfing, Hammer)
+  - Price structure (swing highs/lows, Fibonacci levels, ADX trend strength)
+- **Multi-Horizon Labels (NEW):** 3/5/8/10 day forward returns, max adverse/favorable excursion, quality tiers
+- **Swing Training Cycle (NEW):** `run_swing_training_cycle()` fetches real EOD data from Polygon/Alpaca
+- **Training Results:** 97.3% runner accuracy, 100% regime accuracy, 80.7% quality accuracy, 0.18 QuantraScore RMSE
 - **Hyperspeed Learning System:** Fully operational with 1000x acceleration
 - **Database Model Persistence:** ML models stored in PostgreSQL, survive restarts
 - **ApexCore V4 Integration:** 16 prediction heads attached to hyperspeed engine
