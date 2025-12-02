@@ -2163,6 +2163,83 @@ def create_app() -> FastAPI:
             logger.error(f"Error clearing cache: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
+    @app.get("/model/storage")
+    async def get_model_storage_info():
+        """Get model storage statistics and database persistence status."""
+        try:
+            from src.quantracore_apex.prediction.model_manager import get_model_manager
+            manager = get_model_manager()
+            
+            storage_stats = manager.get_storage_stats()
+            versions = manager.get_all_versions()
+            
+            return {
+                "status": "operational",
+                "database_persistence": storage_stats,
+                "loaded_models": versions,
+                "message": "Database persistence enables models to survive republishes" if storage_stats.get("database_available") else "File storage only - models will not survive republish",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting storage info: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/model/versions/{model_size}")
+    async def get_model_version_history(model_size: str = "big", limit: int = 10):
+        """Get version history for a model (requires database persistence)."""
+        try:
+            from src.quantracore_apex.prediction.model_manager import get_model_manager
+            manager = get_model_manager()
+            
+            history = manager.get_version_history(model_size, limit)
+            
+            if not history:
+                return {
+                    "model_size": model_size,
+                    "versions": [],
+                    "message": "No version history - database persistence may not be configured",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            return {
+                "model_size": model_size,
+                "version_count": len(history),
+                "versions": history,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error getting version history: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/model/rollback/{model_size}/{version}")
+    async def rollback_model_version(model_size: str, version: str):
+        """Rollback to a specific model version (requires database persistence)."""
+        try:
+            from src.quantracore_apex.prediction.model_manager import get_model_manager
+            manager = get_model_manager()
+            
+            success = manager.rollback_to_version(model_size, version)
+            
+            if success:
+                return {
+                    "status": "rolled_back",
+                    "model_size": model_size,
+                    "version": version,
+                    "message": f"Successfully rolled back to version {version}",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                return {
+                    "status": "failed",
+                    "model_size": model_size,
+                    "version": version,
+                    "message": "Rollback failed - version may not exist or database not available",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+        except Exception as e:
+            logger.error(f"Error rolling back model: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
     class BatchAdvisoryRequest(BaseModel):
         symbols: List[str]
         timeframe: str = "1d"

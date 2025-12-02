@@ -608,6 +608,15 @@ class UnifiedTrainer:
         
         logger.info(f"Model saved to {model_dir}")
         
+        try:
+            from ..prediction.model_manager import save_model_to_database
+            if save_model_to_database(model, model_size):
+                logger.info(f"[UnifiedTrainer] Model persisted to database for durable storage")
+            else:
+                logger.info(f"[UnifiedTrainer] Database not available - model saved to files only")
+        except Exception as e:
+            logger.warning(f"[UnifiedTrainer] Could not save to database: {e}")
+        
         return manifest
     
     def train_sync(self, model_size: str = "big") -> Dict[str, Any]:
