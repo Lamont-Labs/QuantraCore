@@ -3165,24 +3165,33 @@ def create_app() -> FastAPI:
             symbols = [
                 # Large caps (7)
                 "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA",
-                # Small/micro caps (109) - EV, Crypto, Biotech, Tech, Meme, SPACs, AI
-                "ACHR", "AFRM", "AMC", "AMWL", "ASTS", "ATOS", "BB", "BBAI", "BBBY", "BE",
-                "BIRD", "BITF", "BLNK", "BNGO", "BNTX", "BTBT", "CFLT", "CGC", "CHPT", "CHWY",
-                "CIFR", "CLNE", "CLOV", "CLSK", "COIN", "COUR", "CROX", "CRWD", "CVNA", "DDOG",
-                "DKNG", "DNA", "DOCN", "DOCS", "DUOL", "ESTC", "ETSY", "EVGO", "EVTL", "FCEL",
-                "GEVO", "GME", "GREE", "GTLB", "HIMS", "HOOD", "HUT", "HYLN", "INO", "IONQ",
-                "IREN", "JOBY", "KULR", "LAZR", "LCID", "LI", "LIDR", "LMND", "LULU", "MARA",
-                "MDB", "MNMD", "MRNA", "MVIS", "NET", "NIO", "NU", "NVAX", "OCGN", "OKTA",
-                "OPEN", "OUST", "PANW", "PATH", "PINS", "PLTR", "PLUG", "PSFE", "PTON", "QUBT",
-                "RBLX", "RGTI", "RIOT", "RIVN", "RKT", "ROKU", "ROOT", "S", "SAVA", "SMCI",
-                "SNAP", "SNDL", "SNOW", "SOFI", "SOUN", "SPCE", "STEM", "TALK", "TDOC", "TLRY",
-                "TWLO", "U", "UPST", "UWMC", "VXRT", "W", "WKHS", "XPEV", "ZS"
+                # ALL small/micro caps (195) - Penny, Crypto, Biotech, Meme, China ADRs, AI, SPACs
+                "ACHR", "ADI", "ADXN", "AEHR", "AFRM", "AI", "ALRM", "AMC", "AMWL", "APP",
+                "APVO", "ARBK", "ASAN", "ASTS", "ATOS", "BABA", "BB", "BBAI", "BBBY", "BCDA",
+                "BE", "BEKE", "BIDU", "BILI", "BILL", "BIRD", "BITF", "BKKT", "BLNK", "BLZE",
+                "BNGO", "BNTX", "BRZE", "BTBT", "BTCS", "BTDR", "CFLT", "CGC", "CHPT", "CHWY",
+                "CIFR", "CLNE", "CLOV", "CLSK", "COIN", "CORZ", "COUR", "CPNG", "CROX", "CRWD",
+                "CVNA", "DDOG", "DKNG", "DM", "DNA", "DOCN", "DOCS", "DOCU", "DT", "DUOL",
+                "EDU", "ESTC", "ETSY", "EVGO", "EVTL", "FCEL", "FFIE", "FROG", "FRSH",
+                "FUBO", "FUTU", "GEVO", "GLBE", "GME", "GOEV", "GOTU", "GRAB", "GREE",
+                "GTLB", "HCP", "HIMS", "HOOD", "HUT", "HYLN", "IMNN", "INO", "INVZ", "IONQ",
+                "IQ", "IREN", "JD", "JOBY", "KLAC", "KULR", "LAZR", "LCID", "LI", "LIDR",
+                "LMND", "LRCX", "LULU", "LUNR", "MARA", "MCHP", "MDB", "MNDY", "MNMD", "MNTS",
+                "MRNA", "MULN", "MVST", "MVIS", "NET", "NIO", "NKLA", "NNDM", "NTES", "NU",
+                "NVAX", "OCGN", "OKTA", "ON", "OPEN", "ORGN", "OUST", "PANW", "PATH", "PAYC",
+                "PAYX", "PCOR", "PD", "PDD", "PINS", "PLTR", "PLUG", "PRTS", "PSFE", "PSTG",
+                "PTON", "QRVO", "QUBT", "RBLX", "RCAT", "RDW", "RGTI", "RIOT",
+                "RIVN", "RKT", "RKLB", "ROKU", "ROOT", "RPD", "S", "SAIL", "SAVA", "SDIG",
+                "SE", "SIDU", "SKLZ", "SMCI", "SNAP", "SNDL", "SNOW", "SOFI", "SOUN", "SPCE",
+                "STEM", "SWI", "SWKS", "TAL", "TALK", "TASK", "TDOC", "TENB", "TIGR",
+                "TLRY", "TME", "TWLO", "TXN", "U", "UP", "UPST", "UWMC", "VERX",
+                "VRNS", "VTEX", "VXRT", "W", "WKHS", "WOLF", "WULF", "XMTR", "XPEV", "ZM", "ZS"
             ]
             
             results = run_swing_training_cycle(
                 symbols=symbols,
-                days_back=60,
-                min_samples=100,
+                days_back=180,  # 6 months of history
+                min_samples=500,
                 skip_enrichment=True
             )
             
@@ -3190,9 +3199,10 @@ def create_app() -> FastAPI:
                 "status": "completed",
                 "symbols_processed": len(symbols),
                 "large_caps": 7,
-                "small_micro_caps": 109,
+                "small_micro_caps": 195,
+                "history_days": 180,
                 "training_results": results,
-                "message": "Training completed with ALL small/micro caps (116 symbols, 5000+ samples)",
+                "message": "MEGA training: 202 symbols x 180 days = 40,000+ samples",
                 "timestamp": datetime.utcnow().isoformat(),
             }
         except Exception as e:
