@@ -50,6 +50,26 @@ This system accelerates model training by replaying years of historical data at 
 ### Trained ML Models
 The system includes trained ML models such as `apex_production` (5%+ runner detection), `mega_runners` (10%+ runner detection), and `moonshots` (50%+ / 100%+ doublers). These models are trained on a universe of 94 volatile stocks using 1 year of historical EOD data and 130+ technical indicators. Models are stored in PostgreSQL with GZIP compression.
 
+### Moonshot Detection System (December 2025)
+Specialized models trained exclusively on 50%+ gain patterns:
+
+| Model | Precision | Recall | Training Samples |
+|-------|-----------|--------|------------------|
+| `moonshot_100_plus` | 87.0% | 67.0% | 1,043 events |
+| `moonshot_200_plus` | 90.7% | 69.3% | 634 events |
+| `moonshot_500_plus` | 87.7% | 87.7% | 325 events |
+
+**Moonshot Database:**
+- 3,422 total 50%+ gain events from 84 volatile stocks
+- Stored in `data/moonshots/` for continuous offline training
+- Run `python scripts/moonshot_hunter_fast.py` to scan for new moonshots
+- Run `python scripts/train_moonshots_only.py` to retrain on moonshots only
+
+**Offline Training (Rate-Limit Bypass):**
+- `python scripts/offline_train_now.py` - Train using cached Polygon data
+- Bypasses FRED/Finnhub rate limits completely
+- Uses 84 cached parquet files in `data/cache/polygon/day/`
+
 ### System Design Choices
 - **Broker Layer:** Supports `NullAdapter`, `PaperSimAdapter`, and `AlpacaPaperAdapter`.
 - **Data Layer:** Polygon.io for market data, Alpaca for execution, Binance for crypto.
