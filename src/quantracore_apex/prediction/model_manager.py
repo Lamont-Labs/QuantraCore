@@ -1,9 +1,9 @@
 """
-Unified Model Manager with Hot-Reload Support.
+Unified Model Manager with Hot-Reload and Database Persistence.
 
 This module provides centralized model management with automatic hot-reload
-when new models are trained. All services should use this manager instead
-of directly loading models.
+when new models are trained. Supports both database and file-based storage
+for durable persistence across republishes.
 """
 
 import os
@@ -19,6 +19,13 @@ from dataclasses import dataclass, field
 logger = logging.getLogger(__name__)
 
 MODEL_BASE_DIR = Path("models/apexcore_v3")
+MODEL_NAME = "apexcore_v3"
+
+COMPONENT_NAMES = [
+    "quantrascore_head", "runner_head", "quality_head", "avoid_head",
+    "regime_head", "timing_head", "runup_head", "scaler",
+    "quality_encoder", "regime_encoder", "timing_encoder"
+]
 
 
 @dataclass
@@ -28,6 +35,7 @@ class ModelVersion:
     trained_at: str
     training_samples: int
     manifest_hash: str
+    storage_source: str = "file"
     loaded_at: datetime = field(default_factory=datetime.utcnow)
     
     def to_dict(self) -> Dict[str, Any]:
@@ -36,15 +44,18 @@ class ModelVersion:
             "trained_at": self.trained_at,
             "training_samples": self.training_samples,
             "manifest_hash": self.manifest_hash,
+            "storage_source": self.storage_source,
             "loaded_at": self.loaded_at.isoformat(),
         }
 
 
 class ModelManager:
     """
-    Centralized model manager with hot-reload capability.
+    Centralized model manager with hot-reload and database persistence.
     
     Features:
+    - Database storage for durable persistence (survives republishes)
+    - Automatic file-based fallback when database unavailable
     - Automatic model version tracking
     - Hot-reload when new models are detected
     - Subscriber notification on model updates
@@ -73,9 +84,24 @@ class ModelManager:
         self._cache_lock = threading.RLock()
         self._check_interval = 30
         self._last_check: Dict[str, float] = {}
+        self._db_store = None
         self._initialized = True
         
-        logger.info("[ModelManager] Initialized with hot-reload support")
+        self._init_db_store()
+        logger.info("[ModelManager] Initialized with hot-reload and database persistence")
+    
+    def _init_db_store(self) -> None:
+        """Initialize database store if available."""
+        try:
+            from ..storage import get_model_store
+            self._db_store = get_model_store()
+            if os.environ.get("DATABASE_URL"):
+                logger.info("[ModelManager] Database storage available")
+            else:
+                logger.info("[ModelManager] No database - using file storage only")
+        except Exception as e:
+            logger.warning(f"[ModelManager] Could not initialize database store: {e}")
+            self._db_store = None
     
     def _get_manifest_path(self, model_size: str = "big") -> Path:
         """Get path to model manifest."""
@@ -150,13 +176,29 @@ class ModelManager:
             return self._model_cache.get(model_size)
     
     def _load_model(self, model_size: str = "big", notify: bool = True) -> None:
-        """Load model from disk and update cache."""
+        """Load model from database or disk, with database preferred."""
+        storage_source = "file"
+        
         try:
             from .apexcore_v3 import ApexCoreV3Model, clear_model_cache
             
             clear_model_cache()
             
-            model = ApexCoreV3Model.load(model_size=model_size, use_cache=False)
+            model = None
+            
+            if self._db_store and self._db_store.has_model(MODEL_NAME, model_size):
+                model = self._load_from_database(model_size)
+                if model:
+                    storage_source = "database"
+                    logger.info(f"[ModelManager] Loaded model {model_size} from database")
+            
+            if model is None:
+                model = ApexCoreV3Model.load(model_size=model_size, use_cache=False)
+                storage_source = "file"
+                logger.info(f"[ModelManager] Loaded model {model_size} from file")
+                
+                if self._db_store and os.environ.get("DATABASE_URL"):
+                    self._migrate_to_database(model, model_size)
             
             manifest = self._load_manifest(model_size)
             if manifest:
@@ -165,6 +207,7 @@ class ModelManager:
                     trained_at=manifest.get("trained_at", "unknown"),
                     training_samples=manifest.get("training_samples", 0),
                     manifest_hash=self._compute_manifest_hash(manifest),
+                    storage_source=storage_source,
                 )
                 
                 old_version = self._version_cache.get(model_size)
@@ -181,11 +224,170 @@ class ModelManager:
                         self._notify_subscribers(model_size, version)
             
             self._model_cache[model_size] = model
-            logger.info(f"[ModelManager] Model {model_size} loaded successfully")
+            logger.info(f"[ModelManager] Model {model_size} loaded successfully from {storage_source}")
             
         except Exception as e:
             logger.error(f"[ModelManager] Error loading model {model_size}: {e}")
             raise
+    
+    def _load_from_database(self, model_size: str) -> Optional[Any]:
+        """Load model components from database and reconstruct model."""
+        try:
+            components = self._db_store.load_model_components(MODEL_NAME, model_size)
+            if not components:
+                return None
+            
+            from .apexcore_v3 import ApexCoreV3Model
+            
+            model = ApexCoreV3Model(model_size=model_size)
+            
+            if "quantrascore_head" in components:
+                model.quantrascore_head = components["quantrascore_head"]
+            if "runner_head" in components:
+                model.runner_head = components["runner_head"]
+            if "quality_head" in components:
+                model.quality_head = components["quality_head"]
+            if "avoid_head" in components:
+                model.avoid_head = components["avoid_head"]
+            if "regime_head" in components:
+                model.regime_head = components["regime_head"]
+            if "timing_head" in components:
+                model.timing_head = components["timing_head"]
+                model._timing_head_available = True
+            if "runup_head" in components:
+                model.runup_head = components["runup_head"]
+                model._runup_head_available = True
+            if "scaler" in components:
+                model.scaler = components["scaler"]
+            if "quality_encoder" in components:
+                model.quality_encoder = components["quality_encoder"]
+            if "regime_encoder" in components:
+                model.regime_encoder = components["regime_encoder"]
+            if "timing_encoder" in components:
+                model.timing_encoder = components["timing_encoder"]
+            
+            model._is_fitted = True
+            
+            manifest = self._load_manifest(model_size)
+            if manifest:
+                from .apexcore_v3 import ApexCoreV3Manifest
+                model._manifest = ApexCoreV3Manifest(**manifest)
+            
+            return model
+            
+        except Exception as e:
+            logger.error(f"[ModelManager] Error loading from database: {e}")
+            return None
+    
+    def _migrate_to_database(self, model: Any, model_size: str) -> bool:
+        """Migrate a file-based model to database storage."""
+        try:
+            if not self._db_store:
+                return False
+            
+            manifest = self._load_manifest(model_size)
+            version = manifest.get("trained_at", datetime.utcnow().isoformat()) if manifest else datetime.utcnow().isoformat()
+            training_samples = manifest.get("training_samples", 0) if manifest else 0
+            
+            components = {
+                "quantrascore_head": model.quantrascore_head,
+                "runner_head": model.runner_head,
+                "quality_head": model.quality_head,
+                "avoid_head": model.avoid_head,
+                "regime_head": model.regime_head,
+                "scaler": model.scaler,
+                "quality_encoder": model.quality_encoder,
+                "regime_encoder": model.regime_encoder,
+            }
+            
+            if hasattr(model, 'timing_head') and model.timing_head is not None:
+                components["timing_head"] = model.timing_head
+            if hasattr(model, 'timing_encoder') and model.timing_encoder is not None:
+                components["timing_encoder"] = model.timing_encoder
+            if hasattr(model, 'runup_head') and model.runup_head is not None:
+                components["runup_head"] = model.runup_head
+            
+            success = self._db_store.save_model_version(
+                model_name=MODEL_NAME,
+                model_size=model_size,
+                version=version,
+                components=components,
+                training_samples=training_samples,
+                manifest=manifest,
+                notes="Migrated from file storage"
+            )
+            
+            if success:
+                logger.info(f"[ModelManager] Migrated model {model_size} to database storage")
+            
+            return success
+            
+        except Exception as e:
+            logger.error(f"[ModelManager] Error migrating to database: {e}")
+            return False
+    
+    def save_to_database(self, model: Any, model_size: str, version: Optional[str] = None) -> bool:
+        """
+        Save a trained model to database storage.
+        
+        Call this after training completes to persist the model durably.
+        
+        Args:
+            model: The trained ApexCoreV3Model instance
+            model_size: Size variant ('big' or 'mini')
+            version: Optional version string (defaults to current timestamp)
+        
+        Returns:
+            True if saved successfully
+        """
+        if not self._db_store or not os.environ.get("DATABASE_URL"):
+            logger.warning("[ModelManager] No database available for persistence")
+            return False
+        
+        try:
+            manifest = model._manifest.to_dict() if hasattr(model, '_manifest') and model._manifest else None
+            version = version or manifest.get("trained_at", datetime.utcnow().isoformat()) if manifest else datetime.utcnow().isoformat()
+            training_samples = manifest.get("training_samples", 0) if manifest else 0
+            
+            components = {
+                "quantrascore_head": model.quantrascore_head,
+                "runner_head": model.runner_head,
+                "quality_head": model.quality_head,
+                "avoid_head": model.avoid_head,
+                "regime_head": model.regime_head,
+                "scaler": model.scaler,
+                "quality_encoder": model.quality_encoder,
+                "regime_encoder": model.regime_encoder,
+            }
+            
+            if hasattr(model, 'timing_head') and model.timing_head is not None:
+                components["timing_head"] = model.timing_head
+            if hasattr(model, 'timing_encoder') and model.timing_encoder is not None:
+                components["timing_encoder"] = model.timing_encoder
+            if hasattr(model, 'runup_head') and model.runup_head is not None:
+                components["runup_head"] = model.runup_head
+            
+            success = self._db_store.save_model_version(
+                model_name=MODEL_NAME,
+                model_size=model_size,
+                version=version,
+                components=components,
+                training_samples=training_samples,
+                manifest=manifest,
+                notes=f"Trained at {version}"
+            )
+            
+            if success:
+                logger.info(f"[ModelManager] Saved model {model_size} v{version} to database")
+                
+                if model_size in self._version_cache:
+                    self._version_cache[model_size].storage_source = "database"
+            
+            return success
+            
+        except Exception as e:
+            logger.error(f"[ModelManager] Error saving to database: {e}")
+            return False
     
     def subscribe(self, callback: Callable[[str, ModelVersion], None]) -> None:
         """Subscribe to model update notifications."""
@@ -212,7 +414,9 @@ class ModelManager:
         results = {}
         for model_size in ["big", "mini"]:
             manifest_path = self._get_manifest_path(model_size)
-            if manifest_path.exists():
+            has_db_model = self._db_store and self._db_store.has_model(MODEL_NAME, model_size)
+            
+            if manifest_path.exists() or has_db_model:
                 try:
                     self._load_model(model_size)
                     results[model_size] = self._version_cache.get(model_size)
@@ -233,6 +437,32 @@ class ModelManager:
             for size, version in self._version_cache.items()
         }
     
+    def get_version_history(self, model_size: str = "big", limit: int = 10) -> List[Dict]:
+        """Get version history from database."""
+        if not self._db_store:
+            return []
+        return self._db_store.get_version_history(MODEL_NAME, model_size, limit)
+    
+    def rollback_to_version(self, model_size: str, version: str) -> bool:
+        """Rollback to a specific model version."""
+        if not self._db_store:
+            return False
+        
+        success = self._db_store.set_active_version(MODEL_NAME, model_size, version)
+        if success:
+            self._load_model(model_size)
+            logger.info(f"[ModelManager] Rolled back {model_size} to version {version}")
+        return success
+    
+    def get_storage_stats(self) -> Dict[str, Any]:
+        """Get storage statistics."""
+        if not self._db_store:
+            return {"database_available": False}
+        
+        stats = self._db_store.get_storage_stats()
+        stats["database_available"] = bool(os.environ.get("DATABASE_URL"))
+        return stats
+    
     def clear_cache(self) -> None:
         """Clear all cached models (forces reload on next access)."""
         with self._cache_lock:
@@ -244,6 +474,8 @@ class ModelManager:
     
     def get_status(self) -> Dict[str, Any]:
         """Get comprehensive manager status."""
+        db_available = bool(os.environ.get("DATABASE_URL"))
+        
         return {
             "initialized": self._initialized,
             "models_loaded": list(self._model_cache.keys()),
@@ -251,6 +483,10 @@ class ModelManager:
             "subscribers_count": len(self._subscribers),
             "check_interval_seconds": self._check_interval,
             "last_checks": {k: datetime.fromtimestamp(v).isoformat() for k, v in self._last_check.items()},
+            "database_persistence": {
+                "available": db_available,
+                "stats": self.get_storage_stats() if db_available else None
+            }
         }
 
 
@@ -274,3 +510,8 @@ def notify_model_updated(model_size: str = "big") -> None:
     manager = get_model_manager()
     manager._load_model(model_size)
     logger.info(f"[ModelManager] Model update notification processed for {model_size}")
+
+
+def save_model_to_database(model: Any, model_size: str = "big") -> bool:
+    """Save a trained model to database for persistent storage."""
+    return get_model_manager().save_to_database(model, model_size)
