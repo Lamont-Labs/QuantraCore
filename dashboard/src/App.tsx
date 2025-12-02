@@ -18,6 +18,11 @@ import { SignalsAlertsPanel } from './components/SignalsAlertsPanel'
 import { RunnerScreenerPanel } from './components/RunnerScreenerPanel'
 import { ContinuousLearningPanel } from './components/ContinuousLearningPanel'
 import { LogsProvenancePanel } from './components/LogsProvenancePanel'
+import { OptionsFlowPanel } from './components/OptionsFlowPanel'
+import { SentimentPanel } from './components/SentimentPanel'
+import { DarkPoolPanel } from './components/DarkPoolPanel'
+import { MacroPanel } from './components/MacroPanel'
+import { DataProvidersPanel } from './components/DataProvidersPanel'
 import { VelocityProvider, useVelocityMode } from './hooks/useVelocityMode'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
@@ -182,6 +187,35 @@ function AppContent() {
                 </div>
                 <div className="col-span-6">
                   <LogsProvenancePanel />
+                </div>
+              </div>
+
+              {/* Multi-Data Intelligence Section */}
+              <div className="mt-6 mb-2">
+                <h2 className="text-sm font-semibold text-cyan-400 tracking-wider uppercase flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                  Multi-Source Data Intelligence
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-4">
+                  <OptionsFlowPanel />
+                </div>
+                <div className="col-span-4">
+                  <SentimentPanel />
+                </div>
+                <div className="col-span-4">
+                  <DarkPoolPanel />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-6">
+                  <MacroPanel />
+                </div>
+                <div className="col-span-6">
+                  <DataProvidersPanel />
                 </div>
               </div>
 

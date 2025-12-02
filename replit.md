@@ -17,27 +17,32 @@ QuantraCore Apex is an institutional-grade, deterministic AI trading intelligenc
 ### UI/UX Decisions
 The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, uses an institutional trading terminal aesthetic and a custom design system defined by `@theme` blocks.
 
-### ApexDesk Dashboard (9 Panels)
-The institutional trading dashboard provides real-time monitoring and control via 9 specialized panels:
+### ApexDesk Dashboard (14 Panels)
+The institutional trading dashboard provides real-time monitoring and control via 14 specialized panels:
 
 | Panel | Description | Key Features |
 |-------|-------------|--------------|
 | **SystemStatusPanel** | Real-time system health monitoring | Market hours, broker status, compliance score, data feeds, ApexCore model status |
 | **PortfolioPanel** | Live Alpaca paper trading portfolio | Total equity, cash, positions with P&L, real-time updates (15s intervals) |
 | **TradingSetupsPanel** | Top trading opportunities ranked by QuantraScore | Signal ranking, conviction tiers, entry/stop/target levels, timing guidance |
-| **ModelMetricsPanel** | ApexCore V3 model performance | 7 prediction heads, training samples, accuracy metrics, model reload |
+| **ModelMetricsPanel** | ApexCore V3/V4 model performance | 7/16 prediction heads, training samples, accuracy metrics, model reload |
 | **AutoTraderPanel** | Autonomous swing trade execution | Trade status, position hold decisions, continuation probability |
 | **SignalsAlertsPanel** | Live signals and SMS alert status | Active signals, Twilio SMS configuration, alert history |
 | **RunnerScreenerPanel** | Low-float penny stock scanner | 110 symbols, volume surge detection, momentum alerts |
 | **ContinuousLearningPanel** | ML training orchestrator status | Drift detection, incremental learning, training schedule |
 | **LogsProvenancePanel** | System logs and audit trail | Real-time logs, provenance tracking, compliance audit |
+| **OptionsFlowPanel** | Smart money options tracking | Unusual activity, sweeps, premium flow, put/call ratio |
+| **SentimentPanel** | News & social sentiment | Real-time news, social volume, bullish/bearish ratios |
+| **DarkPoolPanel** | Institutional flow tracking | Block trades, dark pool prints, short interest, accumulation signals |
+| **MacroPanel** | Economic regime analysis | Fed stance, yield curve, CPI, GDP, economic calendar |
+| **DataProvidersPanel** | Multi-source integration | Provider status, setup guide, cost summary |
 
 **Velocity Mode System:** Standard (30s), High Velocity (5s), and Turbo (2s) refresh rates for different trading scenarios.
 
 ### Technical Implementations
 - **Backend:** Python 3.11, FastAPI, Uvicorn for REST API services (port 8000).
 - **Frontend:** React 18.2, Vite 7.2, Tailwind CSS 4.0, TypeScript (ApexDesk Frontend on port 5000).
-- **Dashboard:** 9 real-time panels with Velocity Mode (Standard/High/Turbo refresh rates).
+- **Dashboard:** 14 real-time panels with Velocity Mode (Standard/High/Turbo refresh rates).
 - **Machine Learning:** `scikit-learn` (GradientBoosting) and `joblib`.
 - **Numerical Operations:** `NumPy` and `Pandas`.
 - **Testing:** `pytest` (backend), `vitest` (frontend).
@@ -50,7 +55,8 @@ The institutional trading dashboard provides real-time monitoring and control vi
 - **Order Types:** MARKET, LIMIT, STOP, STOP_LIMIT.
 - **Entry/Exit Strategies:** Auto-selected entries based on market conditions, comprehensive exits (ATR-based protective stops, trailing stops, profit targets, time-based).
 - **Deterministic Core:** Ensures identical outputs for identical inputs.
-- **Offline ML (ApexCore v3):** On-device neural models with 7 prediction heads (quantrascore, runner, quality, avoid, regime, timing, runup). The timing head predicts market moves across 5 buckets, and the runup head predicts price appreciation (0-100%+). Models are trained on real market data from Alpaca with swing-trade focus. Current model: 6,085 training samples, 29 diverse symbols, 32,397 15-minute intraday bars. Accuracy: runner 94.99%, quality 81.68%, avoid 99.34%, regime 85.95%, timing 88.33%.
+- **Offline ML (ApexCore V3):** On-device neural models with 7 prediction heads (quantrascore, runner, quality, avoid, regime, timing, runup). The timing head predicts market moves across 5 buckets, and the runup head predicts price appreciation (0-100%+). Models are trained on real market data from Alpaca with swing-trade focus. Current model: 6,085 training samples, 29 diverse symbols, 32,397 15-minute intraday bars. Accuracy: runner 94.99%, quality 81.68%, avoid 99.34%, regime 85.95%, timing 88.33%.
+- **ApexCore V4 (Multi-Data Extension):** Extended model with 16 total prediction heads (7 base + 9 extended). New heads: catalyst_probability, sentiment_composite, squeeze_probability, institutional_signal, momentum_burst, tape_reading, volatility_regime, options_flow, macro_regime. Requires multi-source data connections for full capability with fallback to simulated data when providers unavailable.
 - **Unified Training Pipeline:** Multi-source training (Alpaca, Polygon) to generate labels from future price movements.
 - **Simulation-Based Data Augmentation:** Multiplies training samples using real data variations (entry timing shifts, walk-forward windows, Monte Carlo bootstrapping, rare event oversampling).
 - **Accuracy Optimization System:** 8-module suite for calibration, regime-gating, uncertainty quantification, auto-retraining, and multi-horizon prediction.

@@ -7450,6 +7450,356 @@ def create_app() -> FastAPI:
             logger.error(f"Error sending runner alert for {symbol}: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
+    # =========================================================================
+    # MULTI-DATA SOURCE ENDPOINTS
+    # Options flow, sentiment, dark pool, and macro data
+    # =========================================================================
+    
+    @app.get("/api/data/options-flow")
+    async def get_options_flow(
+        symbol: Optional[str] = None,
+        limit: int = 50,
+        min_premium: float = 10000
+    ):
+        """Get options flow data from available providers."""
+        try:
+            from src.quantracore_apex.data_layer.adapters.options_flow_adapter import OptionsFlowAggregator
+            
+            agg = OptionsFlowAggregator()
+            flows = agg.get_all_flow(symbol, min_premium=min_premium)
+            if flows and limit:
+                flows = flows[:limit]
+            
+            return {
+                "flows": [
+                    {
+                        "symbol": f.symbol,
+                        "timestamp": f.timestamp.isoformat(),
+                        "option_type": f.option_type,
+                        "strike": f.strike,
+                        "expiry": f.expiry.isoformat() if f.expiry else None,
+                        "premium": f.premium,
+                        "size": f.size,
+                        "is_unusual": f.is_unusual,
+                        "is_sweep": f.is_sweep,
+                        "implied_volatility": f.implied_volatility,
+                        "sentiment": f.sentiment,
+                    } for f in (flows or [])
+                ],
+                "count": len(flows) if flows else 0,
+                "providers_available": agg.is_available(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching options flow: {e}")
+            return {"error": str(e), "flows": [], "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/api/data/options-flow/summary")
+    async def get_options_flow_summary():
+        """Get options flow summary statistics."""
+        try:
+            from src.quantracore_apex.data_layer.adapters.options_flow_adapter import OptionsFlowAggregator
+            
+            agg = OptionsFlowAggregator()
+            flows = agg.get_all_flow(None, min_premium=10000)
+            if flows:
+                flows = flows[:200]
+            
+            if not flows:
+                return {
+                    "total_premium": 0,
+                    "call_premium": 0,
+                    "put_premium": 0,
+                    "put_call_ratio": 1.0,
+                    "unusual_count": 0,
+                    "sweep_count": 0,
+                    "bullish_flow_pct": 50.0,
+                    "top_symbols": [],
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            calls = [f for f in flows if f.option_type.upper() == "CALL"]
+            puts = [f for f in flows if f.option_type.upper() == "PUT"]
+            
+            call_premium = sum(f.premium for f in calls)
+            put_premium = sum(f.premium for f in puts)
+            total_premium = call_premium + put_premium
+            
+            symbol_premiums = {}
+            for f in flows:
+                if f.symbol not in symbol_premiums:
+                    symbol_premiums[f.symbol] = {"premium": 0, "calls": 0, "puts": 0}
+                symbol_premiums[f.symbol]["premium"] += f.premium
+                if f.option_type.upper() == "CALL":
+                    symbol_premiums[f.symbol]["calls"] += 1
+                else:
+                    symbol_premiums[f.symbol]["puts"] += 1
+            
+            top_symbols = sorted(symbol_premiums.items(), key=lambda x: x[1]["premium"], reverse=True)[:5]
+            
+            return {
+                "total_premium": total_premium,
+                "call_premium": call_premium,
+                "put_premium": put_premium,
+                "put_call_ratio": put_premium / max(call_premium, 1),
+                "unusual_count": sum(1 for f in flows if f.is_unusual),
+                "sweep_count": sum(1 for f in flows if f.is_sweep),
+                "bullish_flow_pct": (call_premium / max(total_premium, 1)) * 100,
+                "top_symbols": [
+                    {
+                        "symbol": sym,
+                        "premium": data["premium"],
+                        "direction": "BULLISH" if data["calls"] > data["puts"] else "BEARISH" if data["puts"] > data["calls"] else "NEUTRAL"
+                    } for sym, data in top_symbols
+                ],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching options flow summary: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/api/data/sentiment/summary")
+    async def get_sentiment_summary():
+        """Get aggregated sentiment data from all sources."""
+        try:
+            from src.quantracore_apex.data_layer.adapters.alternative_data_adapter import AlternativeDataAggregator
+            
+            agg = AlternativeDataAggregator()
+            
+            sentiment = agg.get_combined_sentiment(None) if agg.is_available() else {}
+            
+            news = []
+            for provider in agg.providers:
+                try:
+                    if hasattr(provider, 'fetch_news'):
+                        provider_news = provider.fetch_news(limit=10)
+                        news.extend(provider_news or [])
+                except Exception:
+                    continue
+            
+            return {
+                "overall_score": sentiment.get("average_score", 0.5) if sentiment else 0.5,
+                "trend": "BULLISH" if sentiment.get("average_score", 0.5) > 0.6 else "BEARISH" if sentiment.get("average_score", 0.5) < 0.4 else "NEUTRAL",
+                "news_count": len(news),
+                "social_volume": sentiment.get("social_volume", 0),
+                "bullish_pct": sentiment.get("bullish_pct", 50.0),
+                "bearish_pct": sentiment.get("bearish_pct", 25.0),
+                "neutral_pct": 100 - sentiment.get("bullish_pct", 50.0) - sentiment.get("bearish_pct", 25.0),
+                "top_mentions": sentiment.get("top_mentions", []),
+                "recent_news": [
+                    {
+                        "title": n.headline if hasattr(n, 'headline') else str(n),
+                        "source": getattr(n, 'source', 'Unknown'),
+                        "timestamp": getattr(n, 'timestamp', datetime.utcnow()).isoformat() if hasattr(getattr(n, 'timestamp', None), 'isoformat') else datetime.utcnow().isoformat(),
+                        "sentiment": getattr(n, 'sentiment_score', 0.5),
+                        "symbols": getattr(n, 'symbols', []),
+                    } for n in (news[:10] if news else [])
+                ],
+                "providers_active": agg.is_available(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching sentiment summary: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/api/data/dark-pool/summary")
+    async def get_dark_pool_summary(symbol: Optional[str] = None):
+        """Get dark pool flow summary."""
+        try:
+            from src.quantracore_apex.data_layer.adapters.dark_pool_adapter import DarkPoolAggregator
+            
+            agg = DarkPoolAggregator()
+            
+            prints = agg.fetch_dark_pool_prints(symbol)
+            blocks = agg.fetch_block_trades(symbol)
+            
+            if symbol:
+                accumulation = agg.get_accumulation_signals(symbol)
+                short_data = agg.fetch_short_interest(symbol)
+                high_short_interest = [{
+                    "symbol": symbol,
+                    "short_percent_float": short_data.short_percent_float,
+                    "days_to_cover": short_data.days_to_cover,
+                    "cost_to_borrow": 0.0
+                }]
+            else:
+                accumulation = {"signal": "NEUTRAL", "buy_ratio": 0.5}
+                high_short_interest = []
+            
+            total_value = sum(p.value for p in prints) if prints else 0
+            above_ask = sum(1 for p in prints if p.is_above_ask)
+            below_bid = sum(1 for p in prints if p.is_below_bid)
+            total_prints = len(prints) if prints else 1
+            
+            return {
+                "total_volume": sum(p.size for p in prints) if prints else 0,
+                "total_value": total_value,
+                "buy_ratio": above_ask / max(total_prints, 1),
+                "net_flow": accumulation.get("signal", "NEUTRAL"),
+                "block_count": len(blocks) if blocks else 0,
+                "top_prints": [
+                    {
+                        "symbol": p.symbol,
+                        "timestamp": p.timestamp.isoformat(),
+                        "price": p.price,
+                        "size": p.size,
+                        "value": p.value,
+                        "is_above_ask": p.is_above_ask,
+                        "is_below_bid": p.is_below_bid,
+                    } for p in (prints[:10] if prints else [])
+                ],
+                "high_short_interest": high_short_interest,
+                "accumulation_signals": [
+                    {
+                        "symbol": accumulation.get("symbol", symbol or "MARKET"),
+                        "signal": accumulation.get("signal", "NEUTRAL"),
+                        "confidence": accumulation.get("confidence", 0.5)
+                    }
+                ] if accumulation else [],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching dark pool summary: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/api/data/macro/summary")
+    async def get_macro_summary():
+        """Get macroeconomic regime summary."""
+        try:
+            from src.quantracore_apex.data_layer.adapters.economic_adapter import EconomicDataAggregator, EconomicIndicator
+            
+            agg = EconomicDataAggregator()
+            
+            regime = agg.get_current_regime()
+            calendar = agg.fetch_calendar()
+            
+            key_indicators = []
+            indicator_names = [
+                (EconomicIndicator.FED_FUNDS_RATE, "Fed Funds Rate", "%"),
+                (EconomicIndicator.TREASURY_10Y, "10Y Treasury", "%"),
+                (EconomicIndicator.TREASURY_2Y, "2Y Treasury", "%"),
+                (EconomicIndicator.CPI, "CPI YoY", "%"),
+                (EconomicIndicator.UNEMPLOYMENT, "Unemployment", "%"),
+                (EconomicIndicator.VIX, "VIX", ""),
+            ]
+            
+            for indicator, name, unit in indicator_names:
+                try:
+                    data = agg.fetch_indicator(indicator)
+                    if data:
+                        latest = data[-1]
+                        prev = data[-2] if len(data) > 1 else latest
+                        change = latest.value - prev.value
+                        trend = "UP" if change > 0 else "DOWN" if change < 0 else "STABLE"
+                        key_indicators.append({
+                            "name": name,
+                            "value": latest.value,
+                            "previous": prev.value,
+                            "change": change,
+                            "unit": unit,
+                            "trend": trend
+                        })
+                except Exception:
+                    pass
+            
+            yield_data = []
+            try:
+                yield_curve = agg.providers[0].get_yield_curve() if hasattr(agg.providers[0], 'get_yield_curve') else {}
+                for maturity, yld in yield_curve.items():
+                    yield_data.append({"maturity": maturity, "yield": yld})
+            except Exception:
+                pass
+            
+            return {
+                "regime": regime.regime,
+                "risk_appetite": regime.risk_appetite,
+                "yield_curve": regime.yield_curve,
+                "inflation_trend": regime.inflation_trend,
+                "growth_trend": regime.growth_trend,
+                "fed_stance": regime.fed_stance,
+                "confidence": regime.confidence,
+                "key_indicators": key_indicators,
+                "upcoming_events": [
+                    {
+                        "name": e.name,
+                        "datetime": e.datetime.isoformat(),
+                        "importance": e.importance.upper(),
+                        "forecast": e.forecast,
+                        "previous": e.previous,
+                        "actual": e.actual,
+                    } for e in (calendar[:10] if calendar else [])
+                ],
+                "yield_curve_data": yield_data,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching macro summary: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/api/data/providers/status")
+    async def get_data_providers_status():
+        """Get status of all data providers."""
+        try:
+            from src.quantracore_apex.data_layer.adapters.data_registry import get_registry
+            
+            registry = get_registry()
+            status = registry.get_all_status()
+            costs = registry.get_cost_summary()
+            
+            providers = {}
+            for name, provider_status in status.items():
+                providers[name] = {
+                    "name": provider_status.name,
+                    "available": provider_status.available,
+                    "connected": provider_status.connected,
+                    "subscription_tier": provider_status.subscription_tier or "N/A",
+                    "data_types": [dt.value for dt in (provider_status.data_types or [])],
+                    "last_error": provider_status.last_error,
+                    "cost_per_month": costs["active_providers"].get(name, 0)
+                }
+            
+            return {
+                "active_count": len([p for p in providers.values() if p["connected"]]),
+                "total_count": len(providers),
+                "active_cost": costs["active_total"],
+                "potential_cost": costs["full_suite_cost"],
+                "providers": providers,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching provider status: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/api/data/apexcore-v4/predict")
+    async def apexcore_v4_predict(symbol: str):
+        """Get ApexCore V4 prediction with multi-data features."""
+        try:
+            from src.quantracore_apex.prediction.apexcore_v4 import get_apexcore_v4
+            
+            model = get_apexcore_v4()
+            
+            if not model._is_fitted:
+                return {
+                    "error": "ApexCore V4 not trained. Use V3 predictions or train V4 first.",
+                    "recommendation": "Run /apexlab/train to train the model",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            row = {"symbol": symbol, "quantra_score": 50}
+            prediction = model.predict_extended(row, symbol=symbol)
+            
+            return {
+                "symbol": symbol,
+                "prediction": prediction.to_dict(),
+                "multi_data_consensus": prediction.multi_data_consensus,
+                "data_sources_used": prediction.data_sources_used,
+                "provider_status": model.get_data_provider_status(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Error generating V4 prediction: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
     return app
 
 
