@@ -40,6 +40,7 @@ export default defineConfig({
       '/autotrader': { target: backendTarget, changeOrigin: true },
       '/screener': { target: backendTarget, changeOrigin: true },
       '/sms': { target: backendTarget, changeOrigin: true },
+      '/push': { target: backendTarget, changeOrigin: true },
       '/backtest': { target: backendTarget, changeOrigin: true },
       '/logs': { target: backendTarget, changeOrigin: true },
       '/drift': { target: backendTarget, changeOrigin: true },
