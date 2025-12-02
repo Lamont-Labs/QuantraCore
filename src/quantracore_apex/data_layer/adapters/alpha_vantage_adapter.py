@@ -97,11 +97,14 @@ class AlphaVantageAdapter(DataAdapter):
         """
         Fetch OHLCV data from Alpha Vantage.
         
-        Note: Free tier has limitations on requests per minute.
+        Note: Free tier has limitations (5 requests/minute, 500/day).
+        Rate limiting is enforced.
         """
         if not self.is_available():
             logger.warning("Alpha Vantage API key not set")
             return []
+        
+        self._rate_limit_wait()
         
         try:
             function = "TIME_SERIES_DAILY" if timeframe == "1d" else "TIME_SERIES_INTRADAY"

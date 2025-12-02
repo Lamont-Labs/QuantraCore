@@ -142,9 +142,9 @@ class FinnhubAdapter(EnhancedDataAdapter):
             last_error=None if self.is_available() else "FINNHUB_API_KEY not set"
         )
     
-    def _request(self, endpoint: str, params: Dict[str, Any] = None) -> Dict:
+    def _request(self, endpoint: str, params: Dict[str, Any] = None) -> Optional[Dict]:
         if not self.is_available():
-            raise ValueError("FINNHUB_API_KEY not set")
+            return None
         
         elapsed = time.time() - self._last_request
         if elapsed < self._rate_limit_delay:
@@ -161,28 +161,32 @@ class FinnhubAdapter(EnhancedDataAdapter):
             self._last_request = time.time()
             return response.json()
         except requests.exceptions.RequestException as e:
-            logger.error(f"[Finnhub] API error: {e}")
-            raise
+            logger.warning(f"[Finnhub] API error (falling back to simulated): {e}")
+            return None
+        except Exception as e:
+            logger.warning(f"[Finnhub] Unexpected error: {e}")
+            return None
     
     def get_social_sentiment(self, symbol: str) -> Optional[SocialSentiment]:
         """
         Get social media sentiment for a symbol.
         
         Returns Reddit and Twitter mention counts and sentiment scores.
+        Falls back to simulated data if API is unavailable.
         """
-        if not self.is_available():
-            return self._simulated_social_sentiment(symbol)
-        
         cache_key = f"social_{symbol}"
         if cache_key in self._cache:
             cached, timestamp = self._cache[cache_key]
             if time.time() - timestamp < self._cache_ttl:
                 return cached
         
+        if not self.is_available():
+            return self._simulated_social_sentiment(symbol)
+        
         try:
             data = self._request("stock/social-sentiment", {"symbol": symbol})
             
-            if not data or "reddit" not in data:
+            if data is None or "reddit" not in data:
                 return self._simulated_social_sentiment(symbol)
             
             reddit = data.get("reddit", [])

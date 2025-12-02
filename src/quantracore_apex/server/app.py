@@ -394,51 +394,6 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
-    @app.get("/sentiment/{symbol}")
-    async def get_sentiment(symbol: str):
-        """
-        Get unified sentiment analysis for a symbol.
-        
-        Combines data from multiple free-tier sources:
-        - Finnhub: Social sentiment (Reddit/Twitter)
-        - Alpha Vantage: AI news sentiment
-        - FRED: Economic regime context
-        """
-        from src.quantracore_apex.data_layer.adapters.sentiment_aggregator import (
-            get_sentiment_aggregator
-        )
-        
-        try:
-            aggregator = get_sentiment_aggregator()
-            sentiment = aggregator.get_unified_sentiment(symbol.upper())
-            
-            return {
-                "symbol": sentiment.symbol,
-                "combined_score": sentiment.combined_score,
-                "signal": sentiment.signal,
-                "confidence": sentiment.confidence,
-                "social": {
-                    "score": sentiment.social_score,
-                    "buzz": sentiment.social_buzz,
-                    "reddit_mentions": sentiment.reddit_mentions,
-                    "twitter_mentions": sentiment.twitter_mentions
-                },
-                "news": {
-                    "score": sentiment.news_score,
-                    "article_count": sentiment.news_articles,
-                    "bullish": sentiment.bullish_articles,
-                    "bearish": sentiment.bearish_articles
-                },
-                "economic": {
-                    "regime": sentiment.economic_regime,
-                    "risk_appetite": sentiment.risk_appetite
-                },
-                "timestamp": sentiment.timestamp.isoformat()
-            }
-        except Exception as e:
-            logger.error(f"Sentiment error for {symbol}: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
-    
     @app.post("/sentiment/batch")
     async def get_batch_sentiment(symbols: List[str]):
         """Get sentiment for multiple symbols."""
@@ -520,6 +475,51 @@ def create_app() -> FastAPI:
             }
         except Exception as e:
             logger.error(f"Sentiment providers error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/sentiment/{symbol}")
+    async def get_sentiment(symbol: str):
+        """
+        Get unified sentiment analysis for a symbol.
+        
+        Combines data from multiple free-tier sources:
+        - Finnhub: Social sentiment (Reddit/Twitter)
+        - Alpha Vantage: AI news sentiment
+        - FRED: Economic regime context
+        """
+        from src.quantracore_apex.data_layer.adapters.sentiment_aggregator import (
+            get_sentiment_aggregator
+        )
+        
+        try:
+            aggregator = get_sentiment_aggregator()
+            sentiment = aggregator.get_unified_sentiment(symbol.upper())
+            
+            return {
+                "symbol": sentiment.symbol,
+                "combined_score": sentiment.combined_score,
+                "signal": sentiment.signal,
+                "confidence": sentiment.confidence,
+                "social": {
+                    "score": sentiment.social_score,
+                    "buzz": sentiment.social_buzz,
+                    "reddit_mentions": sentiment.reddit_mentions,
+                    "twitter_mentions": sentiment.twitter_mentions
+                },
+                "news": {
+                    "score": sentiment.news_score,
+                    "article_count": sentiment.news_articles,
+                    "bullish": sentiment.bullish_articles,
+                    "bearish": sentiment.bearish_articles
+                },
+                "economic": {
+                    "regime": sentiment.economic_regime,
+                    "risk_appetite": sentiment.risk_appetite
+                },
+                "timestamp": sentiment.timestamp.isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Sentiment error for {symbol}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
     
     @app.get("/economic/regime")

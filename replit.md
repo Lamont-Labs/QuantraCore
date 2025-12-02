@@ -82,6 +82,36 @@ The Hyperspeed Learning System accelerates model training by replaying years of 
 - **Google Docs:** Integrated via Replit OAuth2 for automated reporting.
 - **PostgreSQL:** Database for ML model persistence (Replit-managed).
 
+### Free-Tier Sentiment Data Sources (NEW)
+- **FRED (Federal Reserve Economic Data):** 800,000+ economic indicators, completely free
+  - Rate limit: 120 requests/minute
+  - Coverage: Fed rates, CPI, GDP, unemployment, yield curve
+  - Environment: `FRED_API_KEY`
+  - Adapter: `FredAdapter` in `economic_adapter.py`
+- **Finnhub:** Social sentiment from Reddit/Twitter
+  - Rate limit: 60 requests/minute (free tier)
+  - Coverage: Social mentions, sentiment scores, insider transactions
+  - Environment: `FINNHUB_API_KEY`
+  - Adapter: `FinnhubAdapter` in `finnhub_adapter.py`
+- **Alpha Vantage:** AI-powered news sentiment + 50+ technical indicators
+  - Rate limit: 500 requests/day, 5/minute (free tier)
+  - Coverage: News articles with sentiment scores, RSI, MACD, etc.
+  - Environment: `ALPHA_VANTAGE_API_KEY`
+  - Adapter: `AlphaVantageAdapter` in `alpha_vantage_adapter.py`
+
+### Sentiment API Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/sentiment/{symbol}` | GET | Unified sentiment (social + news + economic) |
+| `/sentiment/batch` | POST | Batch sentiment for multiple symbols |
+| `/sentiment/market` | GET | Overall market sentiment snapshot |
+| `/sentiment/providers` | GET | Status of sentiment data providers |
+| `/economic/regime` | GET | Current economic regime from FRED |
+| `/economic/yield_curve` | GET | US Treasury yield curve |
+| `/news/{symbol}` | GET | AI-powered news sentiment |
+| `/social/{symbol}` | GET | Reddit/Twitter sentiment |
+| `/insider/{symbol}` | GET | Insider trading transactions |
+
 ## Recent Changes (December 2025)
 
 - **10x RunnerHunter System (NEW):** 150 breakout-specific features for detecting massive swing runners
