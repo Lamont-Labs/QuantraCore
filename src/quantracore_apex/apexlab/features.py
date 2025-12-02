@@ -920,3 +920,977 @@ def get_swing_extractor() -> SwingFeatureExtractor:
     if _swing_extractor is None:
         _swing_extractor = SwingFeatureExtractor()
     return _swing_extractor
+
+
+@dataclass
+class RunnerSignals:
+    """Container for breakout runner signals."""
+    breakout_score: float  # 0-100 composite breakout probability
+    timing_score: float    # 0-100 immediacy of expected move
+    magnitude_score: float # 0-100 expected magnitude of move
+    confidence: float      # 0-1 signal confidence
+    signal_type: str       # 'immediate', 'imminent', 'developing', 'none'
+    primary_catalyst: str  # Main driver of the signal
+    secondary_catalysts: List[str]  # Supporting signals
+    
+    
+class RunnerHunter:
+    """
+    10x ENHANCED RUNNER DETECTION SYSTEM
+    
+    Specialized detector for massive swing runners that break out immediately.
+    Combines 150+ signals across 8 categories for maximum breakout probability.
+    
+    Categories:
+    1. SQUEEZE DETECTION - Volatility compression before explosion
+    2. MOMENTUM IGNITION - Early momentum signals before the crowd
+    3. VOLUME SURGE - Institutional accumulation patterns
+    4. CONSOLIDATION QUALITY - Base building and coiling patterns
+    5. RELATIVE STRENGTH - Leadership vs market and sector
+    6. BREAKOUT PROXIMITY - Distance to key resistance levels
+    7. TIMING SIGNALS - Immediate move probability
+    8. CATALYST ALIGNMENT - Multiple signal convergence
+    """
+    
+    # Thresholds for runner classification
+    RUNNER_THRESHOLDS = {
+        'immediate': 85,   # Break out within 1-2 days
+        'imminent': 70,    # Break out within 3-5 days
+        'developing': 55,  # Break out within 5-10 days
+    }
+    
+    # Feature names for all 150 runner-specific signals
+    RUNNER_FEATURE_NAMES = [
+        # Squeeze Detection (20 features)
+        "bollinger_squeeze_intensity", "keltner_squeeze_intensity", "squeeze_duration_days",
+        "squeeze_tightness_ratio", "volatility_percentile_20d", "volatility_percentile_60d",
+        "atr_compression_5_20", "atr_compression_10_40", "range_compression_intensity",
+        "historical_vol_floor", "implied_vol_ratio", "squeeze_fire_imminent",
+        "tight_range_count", "narrowest_range_5d", "narrowest_range_10d",
+        "vol_expansion_potential", "spring_compression", "energy_buildup",
+        "pre_explosion_signal", "squeeze_quality_score",
+        
+        # Momentum Ignition (20 features)
+        "rsi_breakout_signal", "rsi_thrust_intensity", "rsi_divergence_bullish",
+        "macd_histogram_expansion", "macd_zero_cross_imminent", "macd_signal_strength",
+        "price_acceleration_1d", "price_acceleration_3d", "price_acceleration_5d",
+        "momentum_thrust_5d", "momentum_thrust_10d", "momentum_divergence",
+        "rate_of_change_breakout", "velocity_increasing", "acceleration_positive",
+        "force_index_surge", "elder_impulse_bullish", "william_ad_breakout",
+        "tsi_breakout", "momentum_ignition_score",
+        
+        # Volume Surge (20 features)
+        "volume_breakout_ratio", "volume_climax_signal", "pocket_pivot_signal",
+        "accumulation_day_count", "distribution_day_count", "up_down_volume_ratio",
+        "obv_breakout_signal", "obv_new_high", "volume_dry_up_signal",
+        "smart_money_accumulation", "institutional_buying_signal", "volume_thrust",
+        "relative_volume_1d", "relative_volume_3d", "relative_volume_5d",
+        "volume_price_confirmation", "volume_precedes_price", "churn_signal",
+        "volume_contraction_quality", "volume_surge_score",
+        
+        # Consolidation Quality (20 features)
+        "base_length_days", "base_depth_percent", "tight_closes_count",
+        "volatility_contraction_quality", "handle_formation", "cup_formation",
+        "flat_base_score", "ascending_base_score", "double_bottom_score",
+        "higher_lows_streak", "support_touch_count", "resistance_test_count",
+        "consolidation_volume_pattern", "shakeout_recovery", "undercut_and_rally",
+        "base_failure_count", "constructive_action", "tight_area_count",
+        "orderly_pullback", "consolidation_quality_score",
+        
+        # Relative Strength (20 features)
+        "rs_vs_spy_20d", "rs_vs_spy_60d", "rs_new_high_signal",
+        "rs_breakout_signal", "rs_above_70_days", "sector_rs_rank",
+        "industry_rs_rank", "rs_acceleration", "rs_momentum",
+        "outperformance_streak", "relative_strength_line_slope", "rs_divergence",
+        "sector_rotation_leader", "market_leader_signal", "institutional_sponsorship",
+        "fund_ownership_increasing", "smart_money_flow_rs", "relative_volume_vs_sector",
+        "alpha_generation", "relative_strength_score",
+        
+        # Breakout Proximity (20 features)
+        "distance_to_52w_high", "distance_to_resistance", "distance_to_pivot",
+        "breakout_pivot_distance", "prior_base_high_distance", "fibonacci_resistance_distance",
+        "trendline_resistance_distance", "gap_resistance_distance", "round_number_distance",
+        "overhead_supply_thin", "resistance_cluster_strength", "breakout_attempt_count",
+        "failed_breakout_count", "successful_breakout_count", "breakout_success_rate",
+        "price_ceiling_proximity", "clean_breakout_setup", "resistance_weakening",
+        "buy_point_distance", "breakout_proximity_score",
+        
+        # Timing Signals (15 features)
+        "earnings_catalyst_near", "sector_rotation_timing", "market_breadth_improving",
+        "risk_on_environment", "seasonality_bullish", "day_of_week_optimal",
+        "opening_range_breakout", "first_hour_strength", "gap_and_go_setup",
+        "immediate_follow_through", "momentum_continuation", "breakout_day_volume",
+        "institutional_participation", "confirmation_pending", "timing_score",
+        
+        # Catalyst Alignment (15 features)
+        "signal_convergence_count", "multi_timeframe_alignment", "price_volume_confirmation",
+        "indicator_confluence", "pattern_recognition_confidence", "setup_quality",
+        "risk_reward_ratio", "expected_magnitude", "probability_weighted_return",
+        "catalyst_strength", "bullish_signal_count", "bearish_signal_count",
+        "net_signal_strength", "overall_conviction", "composite_runner_score",
+    ]
+    
+    def __init__(self):
+        """Initialize the Runner Hunter system."""
+        self.feature_dim = len(self.RUNNER_FEATURE_NAMES)
+        self._swing_extractor = SwingFeatureExtractor()
+        logger.info(f"[RunnerHunter] Initialized with {self.feature_dim} runner-specific features")
+    
+    def hunt(self, window: OhlcvWindow) -> Tuple[RunnerSignals, np.ndarray]:
+        """
+        Hunt for massive swing runners in the given window.
+        
+        Args:
+            window: OhlcvWindow with at least 60 bars
+            
+        Returns:
+            Tuple of (RunnerSignals, feature_array)
+        """
+        features = self.extract_runner_features(window)
+        signals = self._compute_runner_signals(features)
+        return signals, features
+    
+    def extract_runner_features(self, window: OhlcvWindow) -> np.ndarray:
+        """
+        Extract all 150 runner-specific features from the window.
+        
+        Args:
+            window: OhlcvWindow with at least 60 bars
+            
+        Returns:
+            numpy array with 150 runner features
+        """
+        bars = window.bars
+        if len(bars) < 60:
+            logger.warning(f"[RunnerHunter] Insufficient bars: {len(bars)} < 60")
+            return np.zeros(self.feature_dim)
+        
+        # Extract base price/volume arrays
+        opens = np.array([b.open for b in bars])
+        highs = np.array([b.high for b in bars])
+        lows = np.array([b.low for b in bars])
+        closes = np.array([b.close for b in bars])
+        volumes = np.array([b.volume for b in bars])
+        
+        # Extract each category of features
+        squeeze_features = self._extract_squeeze_features(opens, highs, lows, closes, volumes)
+        momentum_features = self._extract_momentum_ignition_features(opens, highs, lows, closes, volumes)
+        volume_features = self._extract_volume_surge_features(opens, highs, lows, closes, volumes)
+        consolidation_features = self._extract_consolidation_features(opens, highs, lows, closes, volumes)
+        rs_features = self._extract_relative_strength_features(opens, highs, lows, closes, volumes)
+        proximity_features = self._extract_breakout_proximity_features(opens, highs, lows, closes, volumes)
+        timing_features = self._extract_timing_features(opens, highs, lows, closes, volumes)
+        alignment_features = self._extract_catalyst_alignment_features(
+            squeeze_features, momentum_features, volume_features, 
+            consolidation_features, rs_features, proximity_features, timing_features
+        )
+        
+        # Combine all features
+        all_features = np.concatenate([
+            squeeze_features,      # 20
+            momentum_features,     # 20
+            volume_features,       # 20
+            consolidation_features,# 20
+            rs_features,           # 20
+            proximity_features,    # 20
+            timing_features,       # 15
+            alignment_features,    # 15
+        ])
+        
+        return all_features
+    
+    def _extract_squeeze_features(self, opens, highs, lows, closes, volumes) -> np.ndarray:
+        """Extract 20 squeeze detection features."""
+        features = np.zeros(20)
+        
+        # Bollinger Bands
+        sma_20 = np.mean(closes[-20:])
+        std_20 = np.std(closes[-20:])
+        bb_upper = sma_20 + 2 * std_20
+        bb_lower = sma_20 - 2 * std_20
+        bb_width = (bb_upper - bb_lower) / sma_20 if sma_20 > 0 else 0
+        
+        # Keltner Channels (using simplified True Range)
+        tr = np.maximum(highs[-20:] - lows[-20:], 
+                       np.abs(highs[-20:] - closes[-21:-1]))
+        atr_20 = np.mean(tr) if len(tr) > 0 else np.mean(highs[-20:] - lows[-20:])
+        kc_upper = sma_20 + 1.5 * atr_20
+        kc_lower = sma_20 - 1.5 * atr_20
+        kc_width = (kc_upper - kc_lower) / sma_20 if sma_20 > 0 else 0
+        
+        # Squeeze detection
+        squeeze_on = bb_width < kc_width
+        features[0] = 1.0 if squeeze_on else 0.0  # bollinger_squeeze_intensity
+        features[1] = min(kc_width / bb_width, 2.0) if bb_width > 0 else 0  # keltner_squeeze_intensity
+        
+        # Squeeze duration
+        squeeze_days = 0
+        for i in range(min(20, len(closes))):
+            idx = -(i+1)
+            sma = np.mean(closes[idx-20:idx]) if idx-20 >= -len(closes) else sma_20
+            std = np.std(closes[idx-20:idx]) if idx-20 >= -len(closes) else std_20
+            if std < atr_20 * 0.75:
+                squeeze_days += 1
+            else:
+                break
+        features[2] = min(squeeze_days / 10.0, 2.0)  # squeeze_duration_days
+        
+        # Tightness ratio
+        range_20 = max(highs[-20:]) - min(lows[-20:])
+        range_5 = max(highs[-5:]) - min(lows[-5:])
+        features[3] = 1 - (range_5 / range_20) if range_20 > 0 else 0  # squeeze_tightness_ratio
+        
+        # Volatility percentiles
+        returns = np.diff(np.log(closes[-60:]))
+        vol_20 = np.std(returns[-20:]) * np.sqrt(252) if len(returns) >= 20 else 0
+        vol_60 = np.std(returns) * np.sqrt(252) if len(returns) >= 20 else 0
+        features[4] = min(vol_20 / 0.5, 1.0)  # volatility_percentile_20d
+        features[5] = min(vol_60 / 0.5, 1.0)  # volatility_percentile_60d
+        
+        # ATR compression ratios
+        atr_5 = np.mean(np.maximum(highs[-5:] - lows[-5:], 0))
+        atr_10 = np.mean(np.maximum(highs[-10:] - lows[-10:], 0))
+        atr_40 = np.mean(np.maximum(highs[-40:] - lows[-40:], 0)) if len(highs) >= 40 else atr_20
+        features[6] = 1 - (atr_5 / atr_20) if atr_20 > 0 else 0  # atr_compression_5_20
+        features[7] = 1 - (atr_10 / atr_40) if atr_40 > 0 else 0  # atr_compression_10_40
+        
+        # Range compression
+        daily_ranges = highs - lows
+        avg_range_5 = np.mean(daily_ranges[-5:])
+        avg_range_20 = np.mean(daily_ranges[-20:])
+        features[8] = 1 - (avg_range_5 / avg_range_20) if avg_range_20 > 0 else 0  # range_compression_intensity
+        
+        # Historical volatility floor
+        vol_min = np.min([np.std(returns[i:i+10]) for i in range(len(returns)-10)]) if len(returns) >= 20 else vol_20
+        features[9] = 1 if np.std(returns[-10:]) <= vol_min * 1.1 else 0  # historical_vol_floor
+        
+        # Implied vol ratio (approximate)
+        features[10] = 0.5  # implied_vol_ratio (placeholder - needs options data)
+        
+        # Squeeze fire imminent
+        squeeze_firing = squeeze_on and (features[2] > 0.5) and (features[3] > 0.6)
+        features[11] = 1.0 if squeeze_firing else 0.0  # squeeze_fire_imminent
+        
+        # Tight range counts
+        nr_count = sum(1 for i in range(-5, 0) if (highs[i] - lows[i]) < np.mean(daily_ranges[-20:-5]) * 0.7)
+        features[12] = min(nr_count / 3.0, 1.0)  # tight_range_count
+        
+        # Narrowest range signals
+        range_5d_min = min(daily_ranges[-5:])
+        range_10d_min = min(daily_ranges[-10:])
+        features[13] = 1 if range_5d_min == min(daily_ranges[-20:]) else 0  # narrowest_range_5d
+        features[14] = 1 if range_10d_min == min(daily_ranges[-30:]) else 0  # narrowest_range_10d
+        
+        # Volatility expansion potential
+        vol_compression = 1 - (vol_20 / vol_60) if vol_60 > 0 else 0
+        features[15] = max(0, vol_compression)  # vol_expansion_potential
+        
+        # Spring compression (price coiling)
+        price_range_ratio = range_5 / (closes[-1] * 0.1) if closes[-1] > 0 else 0
+        features[16] = max(0, 1 - price_range_ratio)  # spring_compression
+        
+        # Energy buildup
+        volume_compression = 1 - (np.mean(volumes[-5:]) / np.mean(volumes[-20:])) if np.mean(volumes[-20:]) > 0 else 0
+        energy = max(0, features[3] * 0.4 + features[16] * 0.3 + volume_compression * 0.3)
+        features[17] = energy  # energy_buildup
+        
+        # Pre-explosion signal
+        features[18] = 1.0 if (features[11] > 0 and features[17] > 0.6) else 0.0  # pre_explosion_signal
+        
+        # Composite squeeze quality score
+        features[19] = np.mean([features[0], features[3], features[11], features[16], features[17]])  # squeeze_quality_score
+        
+        return features
+    
+    def _extract_momentum_ignition_features(self, opens, highs, lows, closes, volumes) -> np.ndarray:
+        """Extract 20 momentum ignition features."""
+        features = np.zeros(20)
+        
+        # RSI calculations
+        rsi = self._compute_rsi(closes, 14)
+        rsi_5d_ago = self._compute_rsi(closes[:-5], 14) if len(closes) > 19 else rsi
+        
+        # RSI breakout signals
+        features[0] = 1 if (rsi > 60 and rsi_5d_ago < 50) else 0  # rsi_breakout_signal
+        features[1] = max(0, (rsi - rsi_5d_ago) / 20)  # rsi_thrust_intensity
+        
+        # RSI divergence (price lower low, RSI higher low)
+        price_ll = closes[-1] < min(closes[-10:-1])
+        rsi_hl = rsi > self._compute_rsi(closes[:-5], 14)
+        features[2] = 1 if (price_ll and rsi_hl) else 0  # rsi_divergence_bullish
+        
+        # MACD calculations
+        ema_12 = self._compute_ema(closes, 12)
+        ema_26 = self._compute_ema(closes, 26)
+        macd_line = ema_12 - ema_26
+        signal_line = self._compute_ema(np.array([macd_line]), 9) if isinstance(macd_line, (int, float)) else macd_line
+        histogram = macd_line - signal_line if isinstance(signal_line, (int, float)) else 0
+        
+        features[3] = max(0, histogram / (closes[-1] * 0.01)) if closes[-1] > 0 else 0  # macd_histogram_expansion
+        features[4] = 1 if (macd_line < 0 and macd_line > -closes[-1] * 0.01) else 0  # macd_zero_cross_imminent
+        features[5] = max(0, macd_line / (closes[-1] * 0.02)) if closes[-1] > 0 else 0  # macd_signal_strength
+        
+        # Price acceleration
+        ret_1d = (closes[-1] - closes[-2]) / closes[-2] if closes[-2] > 0 else 0
+        ret_3d = (closes[-1] - closes[-4]) / closes[-4] if closes[-4] > 0 else 0
+        ret_5d = (closes[-1] - closes[-6]) / closes[-6] if closes[-6] > 0 else 0
+        
+        features[6] = max(-1, min(1, ret_1d * 20))  # price_acceleration_1d
+        features[7] = max(-1, min(1, ret_3d * 10))  # price_acceleration_3d
+        features[8] = max(-1, min(1, ret_5d * 5))   # price_acceleration_5d
+        
+        # Momentum thrust
+        ret_10d = (closes[-1] - closes[-11]) / closes[-11] if len(closes) > 10 and closes[-11] > 0 else 0
+        features[9] = max(-1, min(1, ret_5d * 10))   # momentum_thrust_5d
+        features[10] = max(-1, min(1, ret_10d * 5))  # momentum_thrust_10d
+        
+        # Momentum divergence
+        price_trend = (closes[-1] - closes[-10]) / closes[-10] if len(closes) > 10 and closes[-10] > 0 else 0
+        mom_trend = ret_5d - (closes[-6] - closes[-11]) / closes[-11] if len(closes) > 10 and closes[-11] > 0 else 0
+        features[11] = max(0, mom_trend) if price_trend < 0 else 0  # momentum_divergence
+        
+        # Rate of change breakout
+        roc_10 = ret_10d * 100
+        roc_breakout = roc_10 > 5  # 5% breakout threshold
+        features[12] = 1 if roc_breakout else 0  # rate_of_change_breakout
+        
+        # Velocity and acceleration
+        velocity = ret_5d - (closes[-6] - closes[-11]) / closes[-11] if len(closes) > 10 and closes[-11] > 0 else 0
+        features[13] = 1 if velocity > 0.02 else 0  # velocity_increasing
+        features[14] = 1 if (velocity > 0 and ret_1d > ret_3d / 3) else 0  # acceleration_positive
+        
+        # Force index
+        force = ret_1d * volumes[-1] / np.mean(volumes[-20:]) if np.mean(volumes[-20:]) > 0 else 0
+        features[15] = max(0, min(1, force))  # force_index_surge
+        
+        # Elder impulse
+        elder_bullish = (ema_12 > ema_26) and (histogram > 0 if isinstance(histogram, (int, float)) else True)
+        features[16] = 1 if elder_bullish else 0  # elder_impulse_bullish
+        
+        # Williams AD breakout
+        features[17] = 1 if (closes[-1] > closes[-2] and volumes[-1] > np.mean(volumes[-5:])) else 0  # william_ad_breakout
+        
+        # TSI breakout (approximate)
+        features[18] = 1 if (ret_5d > 0.03 and ret_1d > 0.01) else 0  # tsi_breakout
+        
+        # Composite momentum ignition score
+        features[19] = np.mean([features[0], features[3], features[6], features[9], features[12], features[16]])  # momentum_ignition_score
+        
+        return features
+    
+    def _extract_volume_surge_features(self, opens, highs, lows, closes, volumes) -> np.ndarray:
+        """Extract 20 volume surge features."""
+        features = np.zeros(20)
+        
+        avg_vol_5 = np.mean(volumes[-5:])
+        avg_vol_20 = np.mean(volumes[-20:])
+        avg_vol_50 = np.mean(volumes[-50:]) if len(volumes) >= 50 else avg_vol_20
+        
+        # Volume breakout ratio
+        features[0] = volumes[-1] / avg_vol_50 if avg_vol_50 > 0 else 1  # volume_breakout_ratio
+        
+        # Climax volume (unusually high)
+        features[1] = 1 if volumes[-1] > avg_vol_20 * 2 else 0  # volume_climax_signal
+        
+        # Pocket pivot (volume surge on up day after consolidation)
+        up_day = closes[-1] > closes[-2]
+        vol_surge = volumes[-1] > max(volumes[-10:-1])
+        features[2] = 1 if (up_day and vol_surge) else 0  # pocket_pivot_signal
+        
+        # Accumulation/Distribution day counts
+        acc_days = sum(1 for i in range(-20, 0) 
+                      if closes[i] > closes[i-1] and volumes[i] > avg_vol_20)
+        dist_days = sum(1 for i in range(-20, 0) 
+                       if closes[i] < closes[i-1] and volumes[i] > avg_vol_20)
+        features[3] = acc_days / 10.0  # accumulation_day_count
+        features[4] = dist_days / 10.0  # distribution_day_count
+        
+        # Up/down volume ratio
+        up_vol = sum(volumes[i] for i in range(-10, 0) if closes[i] > closes[i-1])
+        down_vol = sum(volumes[i] for i in range(-10, 0) if closes[i] < closes[i-1])
+        features[5] = up_vol / (down_vol + 1)  # up_down_volume_ratio
+        
+        # OBV signals
+        obv = np.cumsum(np.where(np.diff(closes[-30:]) > 0, volumes[-29:], 
+                                np.where(np.diff(closes[-30:]) < 0, -volumes[-29:], 0)))
+        obv_slope = (obv[-1] - obv[-10]) / (np.std(obv) + 1) if len(obv) >= 10 else 0
+        features[6] = max(-1, min(1, obv_slope))  # obv_breakout_signal
+        features[7] = 1 if obv[-1] == max(obv) else 0  # obv_new_high
+        
+        # Volume dry-up (low volume before breakout)
+        vol_ratio = avg_vol_5 / avg_vol_20 if avg_vol_20 > 0 else 1
+        features[8] = 1 if vol_ratio < 0.7 else 0  # volume_dry_up_signal
+        
+        # Smart money accumulation
+        close_location = (closes[-1] - lows[-1]) / (highs[-1] - lows[-1]) if (highs[-1] - lows[-1]) > 0 else 0.5
+        smart_money = close_location * volumes[-1] / avg_vol_20 if avg_vol_20 > 0 else 0
+        features[9] = min(smart_money, 2.0)  # smart_money_accumulation
+        
+        # Institutional buying signal
+        features[10] = 1 if (volumes[-1] > avg_vol_20 * 1.5 and closes[-1] > opens[-1]) else 0  # institutional_buying_signal
+        
+        # Volume thrust
+        vol_thrust = (volumes[-1] - avg_vol_5) / avg_vol_20 if avg_vol_20 > 0 else 0
+        features[11] = max(0, vol_thrust)  # volume_thrust
+        
+        # Relative volumes
+        features[12] = volumes[-1] / avg_vol_20 if avg_vol_20 > 0 else 1  # relative_volume_1d
+        features[13] = avg_vol_5 / avg_vol_20 if avg_vol_20 > 0 else 1   # relative_volume_3d (using 5d)
+        features[14] = avg_vol_5 / avg_vol_50 if avg_vol_50 > 0 else 1   # relative_volume_5d
+        
+        # Volume-price confirmation
+        price_up = closes[-1] > closes[-2]
+        vol_up = volumes[-1] > volumes[-2]
+        features[15] = 1 if (price_up and vol_up) else 0  # volume_price_confirmation
+        
+        # Volume precedes price
+        vol_expanding = avg_vol_5 > avg_vol_20
+        price_flat = abs(closes[-1] - closes[-5]) / closes[-5] < 0.02 if closes[-5] > 0 else True
+        features[16] = 1 if (vol_expanding and price_flat) else 0  # volume_precedes_price
+        
+        # Churn (high volume, small price change)
+        churn = volumes[-1] / avg_vol_20 / (abs(closes[-1] - closes[-2]) / closes[-2] + 0.001) if closes[-2] > 0 else 0
+        features[17] = min(churn / 100, 1.0)  # churn_signal
+        
+        # Volume contraction quality
+        vol_contraction = 1 - (avg_vol_5 / avg_vol_20) if avg_vol_20 > 0 else 0
+        features[18] = max(0, vol_contraction)  # volume_contraction_quality
+        
+        # Composite volume surge score
+        features[19] = np.mean([features[0]/2, features[2], features[5]/3, features[9]/2, features[10]])  # volume_surge_score
+        
+        return features
+    
+    def _extract_consolidation_features(self, opens, highs, lows, closes, volumes) -> np.ndarray:
+        """Extract 20 consolidation quality features."""
+        features = np.zeros(20)
+        
+        # Find consolidation base
+        high_20 = max(highs[-20:])
+        low_20 = min(lows[-20:])
+        range_20 = high_20 - low_20
+        
+        # Base metrics
+        features[0] = 20 / 60  # base_length_days (normalized)
+        features[1] = range_20 / closes[-1] if closes[-1] > 0 else 0  # base_depth_percent
+        
+        # Tight closes count (closes within 1% of each other)
+        tight_closes = 0
+        for i in range(-10, -1):
+            if abs(closes[i] - closes[i+1]) / closes[i] < 0.01:
+                tight_closes += 1
+        features[2] = tight_closes / 9.0  # tight_closes_count
+        
+        # Volatility contraction quality
+        vol_early = np.std(closes[-20:-10])
+        vol_late = np.std(closes[-10:])
+        features[3] = 1 - (vol_late / vol_early) if vol_early > 0 else 0  # volatility_contraction_quality
+        
+        # Pattern detection (simplified)
+        features[4] = 0.5  # handle_formation (placeholder)
+        features[5] = 0.5  # cup_formation (placeholder)
+        
+        # Base types
+        flat_score = 1 - (range_20 / closes[-1] / 0.15) if closes[-1] > 0 else 0
+        features[6] = max(0, min(1, flat_score))  # flat_base_score
+        
+        # Ascending base (higher lows)
+        low_5 = min(lows[-5:])
+        low_10 = min(lows[-10:-5])
+        low_15 = min(lows[-15:-10])
+        ascending = (low_5 > low_10) and (low_10 > low_15)
+        features[7] = 1 if ascending else 0  # ascending_base_score
+        
+        # Double bottom
+        features[8] = 0.5  # double_bottom_score (placeholder)
+        
+        # Higher lows streak
+        hl_streak = 0
+        for i in range(-1, -10, -1):
+            if lows[i] > lows[i-1]:
+                hl_streak += 1
+            else:
+                break
+        features[9] = hl_streak / 5.0  # higher_lows_streak
+        
+        # Support/resistance touches
+        support_level = low_20
+        resistance_level = high_20
+        support_touches = sum(1 for l in lows[-20:] if abs(l - support_level) / support_level < 0.01)
+        resistance_touches = sum(1 for h in highs[-20:] if abs(h - resistance_level) / resistance_level < 0.01)
+        features[10] = min(support_touches / 3.0, 1.0)    # support_touch_count
+        features[11] = min(resistance_touches / 3.0, 1.0)  # resistance_test_count
+        
+        # Consolidation volume pattern
+        vol_trend = (np.mean(volumes[-5:]) - np.mean(volumes[-20:-5])) / np.mean(volumes[-20:-5]) if np.mean(volumes[-20:-5]) > 0 else 0
+        features[12] = max(-1, min(1, -vol_trend))  # consolidation_volume_pattern (declining is good)
+        
+        # Shakeout recovery
+        features[13] = 0.5  # shakeout_recovery (placeholder)
+        
+        # Undercut and rally
+        features[14] = 0.5  # undercut_and_rally (placeholder)
+        
+        # Base failure count
+        features[15] = 0.0  # base_failure_count
+        
+        # Constructive action
+        constructive = features[3] > 0.3 and features[9] > 0.4
+        features[16] = 1 if constructive else 0  # constructive_action
+        
+        # Tight areas
+        features[17] = features[2]  # tight_area_count
+        
+        # Orderly pullback
+        pullback_orderly = vol_late < vol_early * 0.8
+        features[18] = 1 if pullback_orderly else 0  # orderly_pullback
+        
+        # Composite consolidation quality
+        features[19] = np.mean([features[3], features[6], features[7], features[9], features[16]])  # consolidation_quality_score
+        
+        return features
+    
+    def _extract_relative_strength_features(self, opens, highs, lows, closes, volumes) -> np.ndarray:
+        """Extract 20 relative strength features."""
+        features = np.zeros(20)
+        
+        # Calculate returns for RS
+        ret_20d = (closes[-1] - closes[-21]) / closes[-21] if len(closes) > 20 and closes[-21] > 0 else 0
+        ret_60d = (closes[-1] - closes[-60]) / closes[-60] if len(closes) >= 60 and closes[-60] > 0 else ret_20d
+        
+        # Assume market return (SPY proxy - in production, use actual SPY data)
+        market_ret_20d = 0.02  # Placeholder
+        market_ret_60d = 0.05  # Placeholder
+        
+        # Relative strength vs market
+        features[0] = ret_20d - market_ret_20d  # rs_vs_spy_20d
+        features[1] = ret_60d - market_ret_60d  # rs_vs_spy_60d
+        
+        # RS new high
+        features[2] = 1 if closes[-1] > max(closes[-60:-1]) else 0  # rs_new_high_signal
+        
+        # RS breakout
+        rs_20d_prev = (closes[-6] - closes[-26]) / closes[-26] if len(closes) > 25 and closes[-26] > 0 else 0
+        features[3] = 1 if (ret_20d > rs_20d_prev + 0.05) else 0  # rs_breakout_signal
+        
+        # RS above 70 days
+        days_above = sum(1 for i in range(-20, 0) if closes[i] > closes[i-1])
+        features[4] = days_above / 20.0  # rs_above_70_days (approximation)
+        
+        # Sector/Industry RS (placeholders - need sector data)
+        features[5] = 0.7  # sector_rs_rank
+        features[6] = 0.7  # industry_rs_rank
+        
+        # RS acceleration
+        rs_accel = ret_20d - rs_20d_prev
+        features[7] = max(-0.5, min(0.5, rs_accel))  # rs_acceleration
+        
+        # RS momentum
+        features[8] = max(-1, min(1, ret_20d * 5))  # rs_momentum
+        
+        # Outperformance streak
+        streak = sum(1 for i in range(-10, 0) if (closes[i] - closes[i-1]) / closes[i-1] > 0.001)
+        features[9] = streak / 10.0  # outperformance_streak
+        
+        # RS line slope
+        rs_slope = (ret_20d - (closes[-11] - closes[-31]) / closes[-31]) if len(closes) > 30 and closes[-31] > 0 else 0
+        features[10] = max(-1, min(1, rs_slope * 10))  # relative_strength_line_slope
+        
+        # RS divergence
+        features[11] = 0.5  # rs_divergence (placeholder)
+        
+        # Leadership signals
+        features[12] = 1 if ret_20d > 0.08 else 0  # sector_rotation_leader
+        features[13] = 1 if (ret_20d > 0.1 and ret_60d > 0.2) else 0  # market_leader_signal
+        
+        # Institutional sponsorship (approximation based on volume)
+        avg_vol = np.mean(volumes[-20:])
+        avg_vol_60 = np.mean(volumes[-60:]) if len(volumes) >= 60 else avg_vol
+        features[14] = min(avg_vol / avg_vol_60, 2.0) if avg_vol_60 > 0 else 1  # institutional_sponsorship
+        
+        # Fund ownership (placeholder)
+        features[15] = 0.5  # fund_ownership_increasing
+        
+        # Smart money flow RS
+        up_vol = sum(volumes[i] for i in range(-10, 0) if closes[i] > closes[i-1])
+        total_vol = sum(volumes[-10:])
+        features[16] = up_vol / total_vol if total_vol > 0 else 0.5  # smart_money_flow_rs
+        
+        # Relative volume vs sector (placeholder)
+        features[17] = 1.0  # relative_volume_vs_sector
+        
+        # Alpha generation
+        features[18] = max(0, ret_20d - market_ret_20d)  # alpha_generation
+        
+        # Composite RS score
+        features[19] = np.mean([features[0]+0.5, features[2], features[3], features[8]+0.5, features[13]])  # relative_strength_score
+        
+        return features
+    
+    def _extract_breakout_proximity_features(self, opens, highs, lows, closes, volumes) -> np.ndarray:
+        """Extract 20 breakout proximity features."""
+        features = np.zeros(20)
+        
+        current_price = closes[-1]
+        high_52w = max(highs[-252:]) if len(highs) >= 252 else max(highs)
+        high_20d = max(highs[-20:])
+        high_10d = max(highs[-10:])
+        
+        # Distance to highs
+        features[0] = 1 - (current_price / high_52w) if high_52w > 0 else 0  # distance_to_52w_high
+        features[1] = 1 - (current_price / high_20d) if high_20d > 0 else 0  # distance_to_resistance
+        features[2] = 1 - (current_price / high_10d) if high_10d > 0 else 0  # distance_to_pivot
+        
+        # Breakout pivot distance
+        pivot = (max(highs[-5:]) + min(lows[-5:]) + closes[-1]) / 3
+        features[3] = (pivot - current_price) / current_price if current_price > 0 else 0  # breakout_pivot_distance
+        
+        # Prior base high
+        features[4] = features[1]  # prior_base_high_distance
+        
+        # Fibonacci resistance (approximate)
+        range_20 = max(highs[-20:]) - min(lows[-20:])
+        fib_382 = min(lows[-20:]) + range_20 * 0.382
+        fib_618 = min(lows[-20:]) + range_20 * 0.618
+        features[5] = abs(current_price - fib_382) / current_price if current_price > 0 else 0  # fibonacci_resistance_distance
+        features[6] = abs(current_price - fib_618) / current_price if current_price > 0 else 0  # fib_618_distance
+        
+        # Trendline resistance (simplified)
+        features[7] = features[1]  # trendline_resistance_distance
+        
+        # Gap resistance
+        gaps = []
+        for i in range(-20, -1):
+            gap = opens[i+1] - closes[i]
+            if abs(gap) / closes[i] > 0.02:
+                gaps.append(opens[i+1])
+        if gaps:
+            nearest_gap = min(gaps, key=lambda x: abs(x - current_price))
+            features[8] = abs(current_price - nearest_gap) / current_price if current_price > 0 else 0
+        else:
+            features[8] = 0.1  # gap_resistance_distance
+        
+        # Round number distance
+        round_num = round(current_price, -1) if current_price >= 10 else round(current_price)
+        features[9] = abs(current_price - round_num) / current_price if current_price > 0 else 0  # round_number_distance
+        
+        # Overhead supply thin
+        above_price_volume = sum(volumes[i] for i in range(-20, 0) if closes[i] > current_price)
+        total_vol = sum(volumes[-20:])
+        features[10] = 1 - (above_price_volume / total_vol) if total_vol > 0 else 0.5  # overhead_supply_thin
+        
+        # Resistance cluster strength
+        resistance_tests = sum(1 for h in highs[-20:] if abs(h - high_20d) / high_20d < 0.01)
+        features[11] = min(resistance_tests / 5.0, 1.0)  # resistance_cluster_strength
+        
+        # Breakout attempts
+        breakout_attempts = sum(1 for h in highs[-10:] if h > high_20d * 0.99)
+        features[12] = min(breakout_attempts / 3.0, 1.0)  # breakout_attempt_count
+        
+        # Failed breakouts
+        failed = sum(1 for i in range(-10, 0) if highs[i] > high_20d * 0.99 and closes[i] < high_20d * 0.98)
+        features[13] = min(failed / 2.0, 1.0)  # failed_breakout_count
+        
+        # Successful breakouts
+        features[14] = max(0, features[12] - features[13])  # successful_breakout_count
+        
+        # Breakout success rate
+        features[15] = features[14] / (features[12] + 0.1)  # breakout_success_rate
+        
+        # Price ceiling proximity
+        features[16] = 1 - features[0]  # price_ceiling_proximity
+        
+        # Clean breakout setup
+        clean = features[10] > 0.7 and features[3] < 0.03
+        features[17] = 1 if clean else 0  # clean_breakout_setup
+        
+        # Resistance weakening
+        features[18] = 1 if features[12] > 0.3 and features[13] < 0.3 else 0  # resistance_weakening
+        
+        # Buy point distance
+        features[19] = max(0, 1 - features[1] * 10)  # buy_point_distance (closer = higher)
+        
+        return features
+    
+    def _extract_timing_features(self, opens, highs, lows, closes, volumes) -> np.ndarray:
+        """Extract 15 timing features."""
+        features = np.zeros(15)
+        
+        # Earnings catalyst (placeholder)
+        features[0] = 0.5  # earnings_catalyst_near
+        
+        # Sector rotation timing
+        features[1] = 0.5  # sector_rotation_timing
+        
+        # Market breadth (approximation)
+        up_days = sum(1 for i in range(-10, 0) if closes[i] > closes[i-1])
+        features[2] = up_days / 10.0  # market_breadth_improving
+        
+        # Risk environment
+        vol_ratio = np.std(closes[-10:]) / np.std(closes[-30:]) if np.std(closes[-30:]) > 0 else 1
+        features[3] = 1 if vol_ratio < 1.2 else 0  # risk_on_environment
+        
+        # Seasonality (placeholder)
+        features[4] = 0.5  # seasonality_bullish
+        
+        # Day of week (placeholder)
+        features[5] = 0.5  # day_of_week_optimal
+        
+        # Opening range breakout
+        orb = closes[-1] > highs[-2] and volumes[-1] > np.mean(volumes[-5:])
+        features[6] = 1 if orb else 0  # opening_range_breakout
+        
+        # First hour strength (approximation)
+        first_move = (closes[-1] - opens[-1]) / opens[-1] if opens[-1] > 0 else 0
+        features[7] = max(0, min(1, first_move * 10))  # first_hour_strength
+        
+        # Gap and go
+        gap = (opens[-1] - closes[-2]) / closes[-2] if closes[-2] > 0 else 0
+        gap_and_go = gap > 0.02 and closes[-1] > opens[-1]
+        features[8] = 1 if gap_and_go else 0  # gap_and_go_setup
+        
+        # Immediate follow through
+        strong_close = closes[-1] > (highs[-1] + lows[-1]) / 2
+        vol_confirm = volumes[-1] > np.mean(volumes[-5:])
+        features[9] = 1 if (strong_close and vol_confirm) else 0  # immediate_follow_through
+        
+        # Momentum continuation
+        mom_cont = closes[-1] > closes[-2] > closes[-3]
+        features[10] = 1 if mom_cont else 0  # momentum_continuation
+        
+        # Breakout day volume
+        features[11] = volumes[-1] / np.mean(volumes[-20:]) if np.mean(volumes[-20:]) > 0 else 1  # breakout_day_volume
+        
+        # Institutional participation
+        features[12] = 1 if features[11] > 1.5 else 0  # institutional_participation
+        
+        # Confirmation pending
+        near_breakout = closes[-1] > max(highs[-20:-1]) * 0.98
+        features[13] = 1 if near_breakout else 0  # confirmation_pending
+        
+        # Composite timing score
+        features[14] = np.mean([features[6], features[8], features[9], features[10], features[13]])  # timing_score
+        
+        return features
+    
+    def _extract_catalyst_alignment_features(
+        self, squeeze, momentum, volume, consolidation, rs, proximity, timing
+    ) -> np.ndarray:
+        """Extract 15 catalyst alignment features."""
+        features = np.zeros(15)
+        
+        # Signal convergence count
+        signals = [
+            squeeze[19] > 0.6,   # squeeze quality
+            momentum[19] > 0.5,  # momentum ignition
+            volume[19] > 0.5,    # volume surge
+            consolidation[19] > 0.5,  # consolidation quality
+            rs[19] > 0.5,        # relative strength
+            proximity[19] > 0.7, # breakout proximity
+            timing[14] > 0.5,    # timing score
+        ]
+        features[0] = sum(signals) / 7.0  # signal_convergence_count
+        
+        # Multi-timeframe alignment
+        features[1] = (momentum[9] + momentum[10]) / 2  # multi_timeframe_alignment
+        
+        # Price-volume confirmation
+        features[2] = volume[15]  # volume_price_confirmation
+        
+        # Indicator confluence
+        confluence = sum([
+            1 if squeeze[11] > 0 else 0,  # squeeze firing
+            1 if momentum[0] > 0 else 0,   # RSI breakout
+            1 if volume[2] > 0 else 0,     # pocket pivot
+            1 if proximity[17] > 0 else 0, # clean setup
+        ])
+        features[3] = confluence / 4.0  # indicator_confluence
+        
+        # Pattern recognition confidence
+        features[4] = consolidation[19]  # pattern_recognition_confidence
+        
+        # Setup quality
+        features[5] = np.mean([squeeze[19], consolidation[19], proximity[17]])  # setup_quality
+        
+        # Risk/reward ratio
+        potential_gain = proximity[16]  # price ceiling proximity
+        potential_loss = 1 - consolidation[6]  # base depth risk
+        features[6] = potential_gain / (potential_loss + 0.1)  # risk_reward_ratio
+        
+        # Expected magnitude
+        features[7] = np.mean([momentum[19], rs[19], proximity[16]])  # expected_magnitude
+        
+        # Probability-weighted return
+        prob = features[0]  # signal convergence as probability
+        features[8] = prob * features[7]  # probability_weighted_return
+        
+        # Catalyst strength
+        features[9] = max(squeeze[19], momentum[19], volume[19])  # catalyst_strength
+        
+        # Bullish signal count
+        bullish = sum([
+            squeeze[11] > 0, squeeze[18] > 0,
+            momentum[0] > 0, momentum[12] > 0, momentum[16] > 0,
+            volume[2] > 0, volume[10] > 0,
+            rs[13] > 0,
+            proximity[17] > 0,
+            timing[6] > 0, timing[8] > 0,
+        ])
+        features[10] = bullish / 11.0  # bullish_signal_count
+        
+        # Bearish signal count
+        bearish = sum([
+            volume[4] > 0.3,  # distribution days
+            rs[0] < -0.05,    # underperformance
+        ])
+        features[11] = bearish / 2.0  # bearish_signal_count
+        
+        # Net signal strength
+        features[12] = features[10] - features[11]  # net_signal_strength
+        
+        # Overall conviction
+        features[13] = np.mean([features[0], features[5], features[10]])  # overall_conviction
+        
+        # COMPOSITE RUNNER SCORE (the main output)
+        composite = (
+            squeeze[19] * 0.15 +      # Squeeze quality
+            momentum[19] * 0.20 +     # Momentum ignition
+            volume[19] * 0.15 +       # Volume surge
+            consolidation[19] * 0.10 + # Consolidation quality
+            rs[19] * 0.15 +           # Relative strength
+            proximity[19] * 0.15 +    # Breakout proximity
+            timing[14] * 0.10         # Timing score
+        )
+        features[14] = composite  # composite_runner_score
+        
+        return features
+    
+    def _compute_runner_signals(self, features: np.ndarray) -> RunnerSignals:
+        """Compute final runner signals from extracted features."""
+        
+        # Extract key scores
+        squeeze_score = features[19]       # squeeze_quality_score
+        momentum_score = features[39]      # momentum_ignition_score
+        volume_score = features[59]        # volume_surge_score
+        consolidation_score = features[79] # consolidation_quality_score
+        rs_score = features[99]            # relative_strength_score
+        proximity_score = features[119]    # breakout_proximity_score
+        timing_score = features[134]       # timing_score
+        composite_score = features[149]    # composite_runner_score
+        
+        # Convert to 0-100 scale
+        breakout_score = composite_score * 100
+        timing_score_100 = timing_score * 100
+        magnitude_score = (momentum_score + rs_score + proximity_score) / 3 * 100
+        
+        # Determine signal type
+        if breakout_score >= self.RUNNER_THRESHOLDS['immediate']:
+            signal_type = 'immediate'
+        elif breakout_score >= self.RUNNER_THRESHOLDS['imminent']:
+            signal_type = 'imminent'
+        elif breakout_score >= self.RUNNER_THRESHOLDS['developing']:
+            signal_type = 'developing'
+        else:
+            signal_type = 'none'
+        
+        # Identify primary catalyst
+        scores = {
+            'squeeze': squeeze_score,
+            'momentum': momentum_score,
+            'volume': volume_score,
+            'consolidation': consolidation_score,
+            'relative_strength': rs_score,
+            'proximity': proximity_score,
+            'timing': timing_score,
+        }
+        primary_catalyst = max(scores, key=scores.get)
+        
+        # Get secondary catalysts (top 3 excluding primary)
+        sorted_catalysts = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        secondary_catalysts = [c[0] for c in sorted_catalysts[1:4]]
+        
+        # Confidence based on signal convergence
+        confidence = features[135] / 0.7  # Normalize convergence count
+        confidence = min(1.0, max(0.0, confidence))
+        
+        return RunnerSignals(
+            breakout_score=breakout_score,
+            timing_score=timing_score_100,
+            magnitude_score=magnitude_score,
+            confidence=confidence,
+            signal_type=signal_type,
+            primary_catalyst=primary_catalyst,
+            secondary_catalysts=secondary_catalysts,
+        )
+    
+    def _compute_rsi(self, closes: np.ndarray, period: int = 14) -> float:
+        """Compute RSI indicator."""
+        if len(closes) < period + 1:
+            return 50.0
+        
+        deltas = np.diff(closes[-(period+1):])
+        gains = np.where(deltas > 0, deltas, 0)
+        losses = np.where(deltas < 0, -deltas, 0)
+        
+        avg_gain = np.mean(gains)
+        avg_loss = np.mean(losses)
+        
+        if avg_loss == 0:
+            return 100.0
+        
+        rs = avg_gain / avg_loss
+        return 100 - (100 / (1 + rs))
+    
+    def _compute_ema(self, data: np.ndarray, period: int) -> float:
+        """Compute EMA of data."""
+        if len(data) < period:
+            return float(data[-1]) if len(data) > 0 else 0.0
+        
+        multiplier = 2 / (period + 1)
+        ema = data[-period]
+        for price in data[-period+1:]:
+            ema = (price - ema) * multiplier + ema
+        return float(ema)
+    
+    def get_feature_names(self) -> List[str]:
+        """Get list of all runner feature names."""
+        return self.RUNNER_FEATURE_NAMES.copy()
+    
+    def scan_for_runners(
+        self, 
+        windows: List[OhlcvWindow],
+        min_score: float = 70.0
+    ) -> List[Tuple[str, RunnerSignals, np.ndarray]]:
+        """
+        Scan multiple windows for potential runners.
+        
+        Args:
+            windows: List of OhlcvWindow to scan
+            min_score: Minimum breakout score to include (default: 70)
+            
+        Returns:
+            List of (symbol, signals, features) tuples for qualifying stocks
+        """
+        runners = []
+        
+        for window in windows:
+            signals, features = self.hunt(window)
+            if signals.breakout_score >= min_score:
+                runners.append((window.symbol, signals, features))
+        
+        # Sort by breakout score descending
+        runners.sort(key=lambda x: x[1].breakout_score, reverse=True)
+        
+        return runners
+
+
+# Module-level runner hunter instance
+_runner_hunter = None
+
+
+def get_runner_hunter() -> RunnerHunter:
+    """Get the singleton RunnerHunter instance."""
+    global _runner_hunter
+    if _runner_hunter is None:
+        _runner_hunter = RunnerHunter()
+    return _runner_hunter

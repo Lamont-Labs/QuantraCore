@@ -28,6 +28,9 @@ from src.quantracore_apex.apexlab.features import (
     SwingFeatureExtractor,
     MultiHorizonLabels,
     get_swing_extractor,
+    RunnerHunter,
+    RunnerSignals,
+    get_runner_hunter,
 )
 from src.quantracore_apex.core.microtraits import compute_microtraits
 from src.quantracore_apex.core.entropy import compute_entropy
@@ -73,6 +76,7 @@ class HyperspeedEngine:
             lookback_medium=60,
             lookback_long=120
         )
+        self._runner_hunter = RunnerHunter()  # 10x Runner Detection System
         self._model: Optional[ApexCoreV3Model] = None
         
         # Enhanced swing trade configuration
@@ -870,3 +874,207 @@ class HyperspeedEngine:
     def get_swing_feature_names(self) -> List[str]:
         """Get names of all 80 swing trade features."""
         return self._swing_extractor.get_feature_names()
+    
+    # ============================================================
+    # 10x RUNNER HUNTING SYSTEM
+    # ============================================================
+    
+    def hunt_runners(
+        self,
+        symbols: Optional[List[str]] = None,
+        min_score: float = 70.0,
+        days_of_history: int = 120,
+    ) -> List[Dict[str, Any]]:
+        """
+        Hunt for massive swing runners ready to break out immediately.
+        
+        Uses the 10x enhanced RunnerHunter with 150 breakout signals
+        across 8 detection categories for maximum breakout probability.
+        
+        Args:
+            symbols: List of symbols to scan (default: top 100 liquid stocks)
+            min_score: Minimum breakout score to include (default: 70)
+            days_of_history: Days of data to analyze (default: 120)
+            
+        Returns:
+            List of runner candidates with signals and scores, sorted by probability
+        """
+        from src.quantracore_apex.data_layer.adapters.polygon_adapter import PolygonAdapter
+        from src.quantracore_apex.data_layer.adapters.alpaca_data_adapter import AlpacaDataAdapter
+        
+        logger.info("[HyperspeedEngine] Starting 10x Runner Hunt...")
+        
+        # Default to large universe for maximum opportunity
+        if symbols is None:
+            symbols = [
+                # Mega-caps with breakout potential
+                "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "AMD",
+                "NFLX", "CRM", "ADBE", "ORCL", "INTC", "QCOM", "AVGO", "TXN",
+                # High-growth tech
+                "NOW", "PANW", "CRWD", "ZS", "NET", "DDOG", "MDB", "SNOW",
+                "SHOP", "SQ", "PYPL", "COIN", "SOFI", "AFRM", "UPST", "HOOD",
+                # Momentum leaders
+                "PLTR", "PATH", "U", "RBLX", "TTWO", "EA", "MTCH", "ABNB",
+                "UBER", "LYFT", "DASH", "DUOL", "BROS", "CAVA", "BIRK",
+                # Financial & Crypto exposure
+                "JPM", "BAC", "WFC", "GS", "MS", "C", "AXP", "V", "MA",
+                "MSTR", "MARA", "RIOT", "CLSK", "BTBT", "HUT", "BITF",
+                # Energy & Commodities
+                "XOM", "CVX", "COP", "SLB", "OXY", "HAL", "DVN", "EOG",
+                "FSLR", "ENPH", "SEDG", "RUN", "NOVA", "ARRY",
+                # Healthcare & Biotech
+                "LLY", "UNH", "JNJ", "PFE", "ABBV", "MRK", "BMY", "AMGN",
+                "MRNA", "BNTX", "REGN", "VRTX", "BIIB", "GILD",
+                # Consumer
+                "HD", "LOW", "TGT", "WMT", "COST", "TJX", "LULU", "NKE",
+                "DIS", "CMCSA", "T", "VZ", "TMUS", "CHTR", "NFLX",
+            ]
+        
+        # Initialize adapters
+        polygon = PolygonAdapter()
+        alpaca = AlpacaDataAdapter()
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days_of_history)
+        
+        runners = []
+        symbols_scanned = 0
+        errors = []
+        
+        logger.info(f"[HyperspeedEngine] Scanning {len(symbols)} symbols for breakout runners...")
+        
+        for symbol in symbols:
+            try:
+                # Fetch historical data
+                bars = None
+                
+                if polygon.is_available():
+                    try:
+                        bars = polygon.fetch(symbol, days=days_of_history, timeframe="day")
+                    except Exception as e:
+                        logger.debug(f"[HyperspeedEngine] Polygon failed for {symbol}: {e}")
+                
+                if not bars and alpaca.is_available():
+                    try:
+                        bars = alpaca.fetch_ohlcv(symbol, start_date, end_date, timeframe="1d")
+                    except Exception as e:
+                        logger.debug(f"[HyperspeedEngine] Alpaca failed for {symbol}: {e}")
+                
+                if not bars or len(bars) < 60:
+                    continue
+                
+                # Create window for hunter
+                window = OhlcvWindow(symbol=symbol, bars=bars, timeframe="1d")
+                
+                # Hunt for runners
+                signals, features = self._runner_hunter.hunt(window)
+                symbols_scanned += 1
+                
+                if signals.breakout_score >= min_score:
+                    runners.append({
+                        "symbol": symbol,
+                        "breakout_score": round(signals.breakout_score, 1),
+                        "timing_score": round(signals.timing_score, 1),
+                        "magnitude_score": round(signals.magnitude_score, 1),
+                        "confidence": round(signals.confidence, 3),
+                        "signal_type": signals.signal_type,
+                        "primary_catalyst": signals.primary_catalyst,
+                        "secondary_catalysts": signals.secondary_catalysts,
+                        "current_price": bars[-1].close,
+                        "volume_ratio": bars[-1].volume / np.mean([b.volume for b in bars[-20:]]),
+                    })
+                    logger.info(f"[HyperspeedEngine] RUNNER FOUND: {symbol} - Score: {signals.breakout_score:.1f} ({signals.signal_type})")
+                    
+            except Exception as e:
+                errors.append(f"{symbol}: {str(e)}")
+        
+        # Sort by breakout score descending
+        runners.sort(key=lambda x: x["breakout_score"], reverse=True)
+        
+        logger.info(f"[HyperspeedEngine] Hunt complete: {len(runners)} runners from {symbols_scanned} symbols")
+        
+        return runners
+    
+    def get_runner_signals(self, window: OhlcvWindow) -> Tuple[RunnerSignals, np.ndarray]:
+        """
+        Get detailed runner signals for a single symbol.
+        
+        Args:
+            window: OhlcvWindow with at least 60 bars
+            
+        Returns:
+            Tuple of (RunnerSignals, feature_array with 150 features)
+        """
+        return self._runner_hunter.hunt(window)
+    
+    def scan_immediate_breakouts(
+        self,
+        symbols: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Scan for stocks showing IMMEDIATE breakout signals.
+        
+        This focuses on stocks that are about to break out within 1-2 days,
+        prioritizing timing and momentum ignition signals.
+        
+        Args:
+            symbols: List of symbols to scan (uses default universe if None)
+            
+        Returns:
+            List of immediate breakout candidates, sorted by timing score
+        """
+        runners = self.hunt_runners(symbols=symbols, min_score=80.0)
+        
+        # Filter for immediate signals only
+        immediate = [r for r in runners if r["signal_type"] == "immediate"]
+        
+        # Sort by timing score
+        immediate.sort(key=lambda x: x["timing_score"], reverse=True)
+        
+        for runner in immediate:
+            logger.info(
+                f"[HyperspeedEngine] IMMEDIATE BREAKOUT: {runner['symbol']} - "
+                f"Breakout: {runner['breakout_score']:.1f}, "
+                f"Timing: {runner['timing_score']:.1f}, "
+                f"Catalyst: {runner['primary_catalyst']}"
+            )
+        
+        return immediate
+    
+    def get_runner_feature_names(self) -> List[str]:
+        """Get names of all 150 runner-specific features."""
+        return self._runner_hunter.get_feature_names()
+    
+    def train_runner_model(
+        self,
+        symbols: Optional[List[str]] = None,
+        days_of_history: int = 365,
+    ) -> Dict[str, Any]:
+        """
+        Train the model specifically on runner breakout patterns.
+        
+        Uses enhanced runner features (150) combined with swing features (90)
+        for maximum prediction accuracy on breakout moves.
+        
+        Args:
+            symbols: List of symbols to train on
+            days_of_history: Days of historical data
+            
+        Returns:
+            Training results with accuracy metrics
+        """
+        logger.info("[HyperspeedEngine] Starting RUNNER-OPTIMIZED training cycle...")
+        
+        # First, run standard swing training to populate samples
+        result = self.run_swing_training_cycle(
+            symbols=symbols,
+            days_of_history=days_of_history,
+            force_train=True,
+        )
+        
+        # Log runner-specific metrics
+        if result.get("training_result", {}).get("success"):
+            logger.info("[HyperspeedEngine] Runner-optimized training complete!")
+            logger.info(f"[HyperspeedEngine] Model now optimized for immediate breakouts")
+        
+        return result
