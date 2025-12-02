@@ -326,6 +326,11 @@ def calculate_position_size(
         return {'error': str(e)}
 
 
+QUICK_UNIVERSE = [
+    'PLTR', 'SOFI', 'MARA', 'COIN', 'SMCI', 'SOUN', 'BBAI',
+    'TSLA', 'NVDA', 'GME', 'AMC', 'IONQ', 'TLRY', 'NIO', 'RIVN',
+]
+
 RUNNER_UNIVERSE = [
     'PLTR', 'SOFI', 'MARA', 'RIOT', 'COIN', 'GME', 'AMC', 'SMCI',
     'IONQ', 'RIVN', 'NIO', 'LCID', 'PLUG', 'HOOD', 'UPST', 'AFRM',

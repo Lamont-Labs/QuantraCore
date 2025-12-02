@@ -9318,17 +9318,41 @@ def create_app() -> FastAPI:
             logger.error(f"ML status error: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
-    @app.get("/ml/scan/runners")
-    async def scan_runners(limit: int = 20):
-        """Scan for 5%+ runner candidates using trained ML model."""
-        from src.quantracore_apex.server.ml_scanner import scan_for_runners, RUNNER_UNIVERSE
+    @app.get("/ml/scan/quick")
+    async def scan_quick(limit: int = 10):
+        """Quick scan of top 15 volatile stocks for runner candidates."""
+        from src.quantracore_apex.server.ml_scanner import scan_for_runners, QUICK_UNIVERSE
         
         try:
-            signals = scan_for_runners(RUNNER_UNIVERSE, model_type='apex_production')
+            signals = scan_for_runners(QUICK_UNIVERSE, model_type='apex_production')
+            
+            return {
+                "model": "apex_production",
+                "target": "5%+ gains (quick scan)",
+                "universe_size": len(QUICK_UNIVERSE),
+                "signals_count": len(signals),
+                "top_picks": signals[:limit],
+                "high_confidence": [s for s in signals if s['confidence'] > 0.7][:5],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Quick scan error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/scan/runners")
+    async def scan_runners(limit: int = 20, quick: bool = True):
+        """Scan for 5%+ runner candidates using trained ML model."""
+        from src.quantracore_apex.server.ml_scanner import scan_for_runners, RUNNER_UNIVERSE, QUICK_UNIVERSE
+        
+        try:
+            universe = QUICK_UNIVERSE if quick else RUNNER_UNIVERSE
+            signals = scan_for_runners(universe, model_type='apex_production')
             
             return {
                 "model": "apex_production",
                 "target": "5%+ gains in 5 days",
+                "quick_mode": quick,
+                "universe_size": len(universe),
                 "signals_count": len(signals),
                 "top_picks": signals[:limit],
                 "high_confidence": [s for s in signals if s['confidence'] > 0.7][:5],
