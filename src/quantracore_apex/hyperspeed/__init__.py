@@ -13,6 +13,19 @@ from .replay import HistoricalReplayEngine
 from .battle_cluster import ParallelBattleCluster
 from .aggregator import MultiSourceAggregator
 from .scheduler import OvernightScheduler
+from .adapters import (
+    LocalCacheAdapter,
+    SyntheticDataAdapter,
+    FallbackDataProvider,
+    AdapterConfig,
+)
+from .monitoring import (
+    SchedulerMonitor,
+    ThreadState,
+    AlertLevel,
+    ThreadHealthMetrics,
+    HealthAlert,
+)
 from .models import (
     HyperspeedConfig,
     ReplaySession,
@@ -28,6 +41,15 @@ __all__ = [
     "ParallelBattleCluster",
     "MultiSourceAggregator",
     "OvernightScheduler",
+    "LocalCacheAdapter",
+    "SyntheticDataAdapter",
+    "FallbackDataProvider",
+    "AdapterConfig",
+    "SchedulerMonitor",
+    "ThreadState",
+    "AlertLevel",
+    "ThreadHealthMetrics",
+    "HealthAlert",
     "HyperspeedConfig",
     "ReplaySession",
     "BattleSimulation",

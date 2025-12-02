@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 _alpha_factory = None
 _hyperspeed_engine = None
+_scheduler_monitor = None
 
 def convert_numpy_types(obj: Any) -> Any:
     """Convert numpy types to native Python types for JSON serialization."""
@@ -2481,6 +2482,145 @@ def create_app() -> FastAPI:
             }
         except Exception as e:
             logger.error(f"Error clearing samples: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    def get_scheduler_monitor():
+        """Get or create the scheduler monitor singleton."""
+        global _scheduler_monitor
+        if _scheduler_monitor is None:
+            from src.quantracore_apex.hyperspeed.monitoring import SchedulerMonitor
+            engine = get_hyperspeed_engine()
+            _scheduler_monitor = SchedulerMonitor(scheduler=engine.scheduler)
+            _scheduler_monitor.register_thread(
+                "overnight_scheduler",
+                "Overnight Training Scheduler",
+                heartbeat_interval=60,
+            )
+            _scheduler_monitor.start_monitoring(check_interval=30)
+        return _scheduler_monitor
+    
+    @app.get("/hyperspeed/monitor/health")
+    async def get_hyperspeed_health():
+        """Get health status of all hyperspeed threads and components."""
+        try:
+            monitor = get_scheduler_monitor()
+            health = monitor.get_all_health()
+            
+            engine = get_hyperspeed_engine()
+            engine_status = {
+                "mode": engine.mode.value,
+                "active": engine._active,
+                "cached_samples": engine.get_cached_samples_count(),
+            }
+            
+            return {
+                "engine": engine_status,
+                "threads": health,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting hyperspeed health: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/hyperspeed/monitor/alerts")
+    async def get_hyperspeed_alerts(
+        level: Optional[str] = None,
+        unacknowledged_only: bool = False,
+    ):
+        """Get monitoring alerts for hyperspeed system."""
+        try:
+            monitor = get_scheduler_monitor()
+            
+            alert_level = None
+            if level:
+                from src.quantracore_apex.hyperspeed.monitoring import AlertLevel
+                try:
+                    alert_level = AlertLevel(level.lower())
+                except ValueError:
+                    pass
+            
+            alerts = monitor.get_alerts(
+                level=alert_level,
+                unacknowledged_only=unacknowledged_only,
+            )
+            
+            return {
+                "alerts": alerts,
+                "total": len(alerts),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting alerts: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/hyperspeed/monitor/alerts/{alert_id}/acknowledge")
+    async def acknowledge_alert(alert_id: str):
+        """Acknowledge a monitoring alert."""
+        try:
+            monitor = get_scheduler_monitor()
+            success = monitor.acknowledge_alert(alert_id)
+            
+            return {
+                "alert_id": alert_id,
+                "acknowledged": success,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error acknowledging alert: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/hyperspeed/monitor/recovery/{thread_id}")
+    async def get_recovery_suggestions(thread_id: str):
+        """Get recovery suggestions for a troubled thread."""
+        try:
+            monitor = get_scheduler_monitor()
+            suggestions = monitor.get_recovery_suggestions(thread_id)
+            health = monitor.get_thread_health(thread_id)
+            
+            return {
+                "thread_id": thread_id,
+                "health": health,
+                "suggestions": suggestions,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting recovery suggestions: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.post("/hyperspeed/monitor/heartbeat/{thread_id}")
+    async def record_heartbeat(thread_id: str):
+        """Record a heartbeat for a monitored thread."""
+        try:
+            monitor = get_scheduler_monitor()
+            monitor.record_heartbeat(thread_id)
+            
+            return {
+                "thread_id": thread_id,
+                "status": "recorded",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error recording heartbeat: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/hyperspeed/fallback/status")
+    async def get_fallback_status():
+        """Get status of fallback data providers."""
+        try:
+            from src.quantracore_apex.hyperspeed.adapters import FallbackDataProvider
+            
+            provider = FallbackDataProvider()
+            
+            return {
+                "fallback_mode": provider.is_fallback_mode(),
+                "cache_enabled": provider.config.use_cached_data,
+                "cache_dir": provider.config.cache_dir,
+                "polygon_available": bool(os.environ.get("POLYGON_API_KEY")),
+                "alpaca_available": bool(os.environ.get("ALPACA_PAPER_API_KEY")),
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting fallback status: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     class BatchAdvisoryRequest(BaseModel):
