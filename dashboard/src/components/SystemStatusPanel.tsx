@@ -13,37 +13,93 @@ export function SystemStatusPanel({ compact = false }: SystemStatusPanelProps) {
   const [predictive, setPredictive] = useState<PredictiveStatusResponse | null>(null)
   const [marketHours, setMarketHours] = useState<MarketHoursResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [connectionState, setConnectionState] = useState<'connected' | 'connecting' | 'degraded'>('connecting')
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
   const { config } = useVelocityMode()
   const prevBrokerRef = useRef<BrokerStatusResponse | null>(null)
+  const prevComplianceRef = useRef<ComplianceScoreResponse | null>(null)
+  const prevProvidersRef = useRef<DataProvidersResponse | null>(null)
+  const prevPredictiveRef = useRef<PredictiveStatusResponse | null>(null)
+  const prevMarketHoursRef = useRef<MarketHoursResponse | null>(null)
 
   useEffect(() => {
     let mounted = true
     const refreshInterval = config?.refreshIntervals?.system || 30000
+    let retryCount = 0
+    const maxRetries = 3
     
     async function loadData() {
       try {
-        const [brokerData, complianceData, providersData, predictiveData, marketHoursData] = await Promise.all([
-          api.getBrokerStatus().catch(() => null),
-          api.getComplianceScore().catch(() => null),
-          api.getDataProviders().catch(() => null),
-          api.getPredictiveStatus().catch(() => null),
-          api.getMarketHours().catch(() => null),
+        const results = await Promise.allSettled([
+          api.getBrokerStatus(),
+          api.getComplianceScore(),
+          api.getDataProviders(),
+          api.getPredictiveStatus(),
+          api.getMarketHours(),
         ])
         
         if (!mounted) return
         
-        if (brokerData) {
-          prevBrokerRef.current = brokerData
-          setBroker(brokerData)
+        const [brokerResult, complianceResult, providersResult, predictiveResult, marketHoursResult] = results
+        
+        let successCount = 0
+        
+        if (brokerResult.status === 'fulfilled' && brokerResult.value) {
+          prevBrokerRef.current = brokerResult.value
+          setBroker(brokerResult.value)
+          successCount++
+          retryCount = 0
+        } else if (prevBrokerRef.current) {
+          setBroker(prevBrokerRef.current)
         }
-        if (complianceData) setCompliance(complianceData)
-        if (providersData) setProviders(providersData)
-        if (predictiveData) setPredictive(predictiveData)
-        if (marketHoursData) setMarketHours(marketHoursData)
+        
+        if (complianceResult.status === 'fulfilled' && complianceResult.value) {
+          prevComplianceRef.current = complianceResult.value
+          setCompliance(complianceResult.value)
+          successCount++
+        } else if (prevComplianceRef.current) {
+          setCompliance(prevComplianceRef.current)
+        }
+        
+        if (providersResult.status === 'fulfilled' && providersResult.value) {
+          prevProvidersRef.current = providersResult.value
+          setProviders(providersResult.value)
+          successCount++
+        } else if (prevProvidersRef.current) {
+          setProviders(prevProvidersRef.current)
+        }
+        
+        if (predictiveResult.status === 'fulfilled' && predictiveResult.value) {
+          prevPredictiveRef.current = predictiveResult.value
+          setPredictive(predictiveResult.value)
+          successCount++
+        } else if (prevPredictiveRef.current) {
+          setPredictive(prevPredictiveRef.current)
+        }
+        
+        if (marketHoursResult.status === 'fulfilled' && marketHoursResult.value) {
+          prevMarketHoursRef.current = marketHoursResult.value
+          setMarketHours(marketHoursResult.value)
+          successCount++
+        } else if (prevMarketHoursRef.current) {
+          setMarketHours(prevMarketHoursRef.current)
+        }
+        
+        if (successCount === 5) {
+          setConnectionState('connected')
+        } else if (successCount > 0) {
+          setConnectionState('degraded')
+        } else {
+          setConnectionState('connecting')
+        }
+        
         setLastUpdate(new Date())
       } catch (err) {
         console.warn('SystemStatusPanel load error:', err)
+        retryCount++
+        if (retryCount < maxRetries) {
+          setTimeout(loadData, 2000 * retryCount)
+        }
       } finally {
         if (mounted) setIsLoading(false)
       }
@@ -67,12 +123,29 @@ export function SystemStatusPanel({ compact = false }: SystemStatusPanelProps) {
     return 'warning'
   }
   
+  const connectionColors = {
+    connected: 'bg-emerald-400',
+    connecting: 'bg-amber-400 animate-pulse',
+    degraded: 'bg-amber-400'
+  }
+  
+  const connectionLabels = {
+    connected: 'ONLINE',
+    connecting: 'CONNECTING...',
+    degraded: 'DEGRADED'
+  }
+  
   return (
     <div className={`apex-card ${compact ? 'p-3' : ''}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className={`w-2 h-2 rounded-full ${connectionColors[connectionState]}`} />
           System Status
+          {connectionState !== 'connected' && (
+            <span className={`text-xs px-2 py-0.5 rounded ${connectionState === 'degraded' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}`}>
+              {connectionLabels[connectionState]}
+            </span>
+          )}
         </h3>
         <span className="text-xs text-slate-500">
           {lastUpdate.toLocaleTimeString()}
