@@ -9294,7 +9294,7 @@ def create_app() -> FastAPI:
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     @app.get("/ml/status")
-    async def ml_models_status():
+    async def ml_models_status(api_key: str = Depends(verify_api_key)):
         """Get status of loaded ML models."""
         from src.quantracore_apex.server.ml_scanner import load_models_from_database, _model_cache
         
@@ -9319,7 +9319,7 @@ def create_app() -> FastAPI:
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     @app.get("/ml/scan/quick")
-    async def scan_quick(limit: int = 10):
+    async def scan_quick(limit: int = 10, api_key: str = Depends(verify_api_key)):
         """Quick scan of top 15 volatile stocks for runner candidates."""
         from src.quantracore_apex.server.ml_scanner import scan_for_runners, QUICK_UNIVERSE
         
@@ -9340,7 +9340,7 @@ def create_app() -> FastAPI:
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     @app.get("/ml/scan/runners")
-    async def scan_runners(limit: int = 20, quick: bool = True):
+    async def scan_runners(limit: int = 20, quick: bool = True, api_key: str = Depends(verify_api_key)):
         """Scan for 5%+ runner candidates using trained ML model."""
         from src.quantracore_apex.server.ml_scanner import scan_for_runners, RUNNER_UNIVERSE, QUICK_UNIVERSE
         
@@ -9363,7 +9363,7 @@ def create_app() -> FastAPI:
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     @app.get("/ml/scan/mega-runners")
-    async def scan_mega_runners(limit: int = 20):
+    async def scan_mega_runners(limit: int = 20, api_key: str = Depends(verify_api_key)):
         """Scan for 10%+ mega runner candidates."""
         from src.quantracore_apex.server.ml_scanner import scan_for_runners, RUNNER_UNIVERSE
         
@@ -9383,7 +9383,7 @@ def create_app() -> FastAPI:
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     @app.get("/ml/scan/moonshots")
-    async def scan_moonshots(limit: int = 20):
+    async def scan_moonshots(limit: int = 20, api_key: str = Depends(verify_api_key)):
         """Scan for 50%+/100%+ moonshot candidates."""
         from src.quantracore_apex.server.ml_scanner import scan_for_runners, MOONSHOT_UNIVERSE
         
@@ -9403,7 +9403,7 @@ def create_app() -> FastAPI:
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     @app.get("/ml/portfolio")
-    async def get_ml_portfolio():
+    async def get_ml_portfolio(api_key: str = Depends(verify_api_key)):
         """Get current Alpaca paper trading portfolio with ML signals."""
         from src.quantracore_apex.server.ml_scanner import (
             get_alpaca_positions, get_alpaca_account, scan_for_runners
@@ -9437,7 +9437,7 @@ def create_app() -> FastAPI:
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     @app.get("/ml/position-size/{symbol}")
-    async def calculate_position(symbol: str, confidence: float = 0.5, max_pct: float = 0.05):
+    async def calculate_position(symbol: str, confidence: float = 0.5, max_pct: float = 0.05, api_key: str = Depends(verify_api_key)):
         """Calculate recommended position size based on confidence."""
         from src.quantracore_apex.server.ml_scanner import (
             calculate_position_size, get_alpaca_account
@@ -9468,7 +9468,7 @@ def create_app() -> FastAPI:
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
     @app.post("/ml/trade/{symbol}")
-    async def execute_ml_trade(symbol: str, shares: int, side: str = "buy"):
+    async def execute_ml_trade(symbol: str, shares: int, side: str = "buy", api_key: str = Depends(verify_api_key)):
         """Execute a paper trade based on ML signals."""
         try:
             from alpaca.trading.client import TradingClient
