@@ -91,6 +91,9 @@ class MultiSourceSentimentAggregator:
     
     def get_status(self) -> Dict[str, Any]:
         """Get status of all sentiment providers."""
+        from .sec_edgar_adapter import get_sec_edgar_adapter
+        edgar = get_sec_edgar_adapter()
+        
         return {
             "finnhub": {
                 "available": self.finnhub.is_available(),
@@ -101,6 +104,12 @@ class MultiSourceSentimentAggregator:
                 "available": self.alpha_vantage.is_available(),
                 "rate_limit": "500 req/day",
                 "coverage": "News Sentiment (AI)"
+            },
+            "sec_edgar": {
+                "available": edgar.is_available(),
+                "rate_limit": "10 req/sec",
+                "coverage": "Insider Filings (Form 4), Institutional Holdings (13F)",
+                "api_key_required": False
             },
             "fred": {
                 "available": self.fred.is_available(),

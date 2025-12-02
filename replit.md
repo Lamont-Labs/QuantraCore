@@ -99,18 +99,29 @@ The Hyperspeed Learning System accelerates model training by replaying years of 
   - Environment: `ALPHA_VANTAGE_API_KEY`
   - Adapter: `AlphaVantageAdapter` in `alpha_vantage_adapter.py`
 
-### Sentiment API Endpoints
+### Sentiment & Alternative Data API Endpoints
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/sentiment/{symbol}` | GET | Unified sentiment (social + news + economic) |
 | `/sentiment/batch` | POST | Batch sentiment for multiple symbols |
 | `/sentiment/market` | GET | Overall market sentiment snapshot |
-| `/sentiment/providers` | GET | Status of sentiment data providers |
+| `/sentiment/providers` | GET | Status of all data providers |
 | `/economic/regime` | GET | Current economic regime from FRED |
 | `/economic/yield_curve` | GET | US Treasury yield curve |
 | `/news/{symbol}` | GET | AI-powered news sentiment |
 | `/social/{symbol}` | GET | Reddit/Twitter sentiment |
-| `/insider/{symbol}` | GET | Insider trading transactions |
+| `/sec/insider/{symbol}` | GET | SEC Form 4 insider trading summary |
+| `/sec/insider/{symbol}/transactions` | GET | Detailed insider transaction list |
+| `/sec/institutions/{symbol}` | GET | SEC 13F institutional holdings |
+| `/sec/events/{symbol}` | GET | SEC 8-K material events |
+| `/sec/status` | GET | SEC EDGAR adapter status |
+
+### SEC EDGAR Integration (NEW - No API Key Required)
+- **Form 4 Filings:** Insider trading transactions (buys/sells by executives)
+- **13F Filings:** Institutional holdings (what hedge funds own)
+- **8-K Filings:** Material events (earnings, acquisitions, executive changes)
+- **Rate Limit:** 10 requests/second (free government data)
+- **Adapter:** `SecEdgarAdapter` in `sec_edgar_adapter.py`
 
 ## Recent Changes (December 2025)
 

@@ -578,6 +578,145 @@ def create_app() -> FastAPI:
             logger.error(f"Yield curve error: {e}")
             raise HTTPException(status_code=500, detail=str(e))
     
+    @app.get("/sec/insider/{symbol}")
+    async def get_sec_insider_transactions(symbol: str, days: int = 90):
+        """
+        Get insider trading activity from SEC Form 4 filings.
+        
+        Shows executive buys/sells directly from government filings.
+        No API key required - free government data.
+        """
+        from src.quantracore_apex.data_layer.adapters.sec_edgar_adapter import (
+            get_sec_edgar_adapter
+        )
+        
+        try:
+            edgar = get_sec_edgar_adapter()
+            summary = edgar.get_insider_summary(symbol.upper(), days)
+            return summary
+        except Exception as e:
+            logger.error(f"SEC insider error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/sec/insider/{symbol}/transactions")
+    async def get_sec_insider_transaction_list(symbol: str, days: int = 90):
+        """
+        Get detailed list of insider transactions from SEC Form 4 filings.
+        """
+        from src.quantracore_apex.data_layer.adapters.sec_edgar_adapter import (
+            get_sec_edgar_adapter
+        )
+        
+        try:
+            edgar = get_sec_edgar_adapter()
+            transactions = edgar.get_insider_transactions(symbol.upper(), days)
+            
+            return {
+                "symbol": symbol.upper(),
+                "transaction_count": len(transactions),
+                "transactions": [
+                    {
+                        "insider_name": t.insider_name,
+                        "insider_title": t.insider_title,
+                        "transaction_type": t.transaction_type,
+                        "shares": t.shares,
+                        "price": t.price_per_share,
+                        "total_value": t.total_value,
+                        "shares_owned_after": t.shares_owned_after,
+                        "transaction_date": t.transaction_date.strftime("%Y-%m-%d"),
+                        "filing_date": t.filing_date.strftime("%Y-%m-%d")
+                    }
+                    for t in transactions
+                ],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"SEC insider transactions error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/sec/institutions/{symbol}")
+    async def get_sec_institutional_holdings(symbol: str):
+        """
+        Get institutional holdings from SEC 13F filings.
+        
+        Shows what hedge funds and institutions own.
+        """
+        from src.quantracore_apex.data_layer.adapters.sec_edgar_adapter import (
+            get_sec_edgar_adapter
+        )
+        
+        try:
+            edgar = get_sec_edgar_adapter()
+            holdings = edgar.get_institutional_holdings(symbol.upper())
+            
+            return {
+                "symbol": symbol.upper(),
+                "filing_count": len(holdings),
+                "institutions": [
+                    {
+                        "name": h.institution_name,
+                        "filing_date": h.filing_date.strftime("%Y-%m-%d"),
+                        "quarter": h.quarter
+                    }
+                    for h in holdings
+                ],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"SEC institutional holdings error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/sec/events/{symbol}")
+    async def get_sec_material_events(symbol: str, days: int = 30):
+        """
+        Get material events from SEC 8-K filings.
+        
+        Shows significant corporate events like earnings, acquisitions, etc.
+        """
+        from src.quantracore_apex.data_layer.adapters.sec_edgar_adapter import (
+            get_sec_edgar_adapter
+        )
+        
+        try:
+            edgar = get_sec_edgar_adapter()
+            events = edgar.get_material_events(symbol.upper(), days)
+            
+            return {
+                "symbol": symbol.upper(),
+                "event_count": len(events),
+                "events": [
+                    {
+                        "type": e.event_type,
+                        "description": e.description,
+                        "filing_date": e.filing_date.strftime("%Y-%m-%d"),
+                        "accession": e.accession_number
+                    }
+                    for e in events
+                ],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"SEC material events error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/sec/status")
+    async def get_sec_edgar_status():
+        """Get SEC EDGAR adapter status."""
+        from src.quantracore_apex.data_layer.adapters.sec_edgar_adapter import (
+            get_sec_edgar_adapter
+        )
+        
+        try:
+            edgar = get_sec_edgar_adapter()
+            status = edgar.get_status()
+            return {
+                **status,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"SEC EDGAR status error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     @app.get("/news/{symbol}")
     async def get_news_sentiment(symbol: str, limit: int = 20):
         """Get AI-powered news sentiment for a symbol."""
