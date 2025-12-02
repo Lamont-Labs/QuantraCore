@@ -65,6 +65,10 @@ class DatabaseModelStore:
     
     def __init__(self):
         if self._initialized:
+            if not self._db_url and os.environ.get("DATABASE_URL"):
+                self._db_url = os.environ.get("DATABASE_URL")
+                self._ensure_tables()
+                logger.info("[DatabaseModelStore] Re-initialized with PostgreSQL storage (env was delayed)")
             return
         
         self._db_url = os.environ.get("DATABASE_URL")
@@ -79,6 +83,8 @@ class DatabaseModelStore:
     
     def _get_connection(self):
         """Get a database connection."""
+        if not self._db_url:
+            self._db_url = os.environ.get("DATABASE_URL")
         if not self._db_url:
             return None
         return psycopg2.connect(self._db_url)
@@ -193,16 +199,43 @@ class DatabaseModelStore:
                 conn = self._get_connection()
                 with conn.cursor() as cur:
                     cur.execute("""
+                        UPDATE ml_model_versions
+                        SET is_active = FALSE
+                        WHERE model_name = %s AND model_size = %s AND version != %s
+                    """, (model_name, model_size, version))
+                    
+                    cur.execute("""
+                        INSERT INTO ml_model_versions
+                        (model_name, model_size, version, training_samples, manifest, is_active)
+                        VALUES (%s, %s, %s, %s, %s, TRUE)
+                        ON CONFLICT (model_name, model_size, version)
+                        DO UPDATE SET 
+                            is_active = TRUE,
+                            training_samples = EXCLUDED.training_samples,
+                            manifest = EXCLUDED.manifest
+                    """, (
+                        model_name, model_size, version, training_samples,
+                        json.dumps(manifest) if manifest else None
+                    ))
+                    
+                    cur.execute("""
+                        UPDATE ml_models
+                        SET is_active = FALSE
+                        WHERE model_name = %s AND model_size = %s AND version != %s
+                    """, (model_name, model_size, version))
+                    
+                    cur.execute("""
                         INSERT INTO ml_models 
                         (model_name, model_size, version, component_name, 
-                         data_compressed, data_hash, training_samples, manifest)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                         data_compressed, data_hash, training_samples, manifest, is_active)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, TRUE)
                         ON CONFLICT (model_name, model_size, component_name, version)
                         DO UPDATE SET 
                             data_compressed = EXCLUDED.data_compressed,
                             data_hash = EXCLUDED.data_hash,
                             training_samples = EXCLUDED.training_samples,
                             manifest = EXCLUDED.manifest,
+                            is_active = TRUE,
                             created_at = CURRENT_TIMESTAMP
                     """, (
                         model_name, model_size, version, component_name,
@@ -304,14 +337,27 @@ class DatabaseModelStore:
                 try:
                     with conn.cursor() as cur:
                         cur.execute("""
+                            UPDATE ml_model_versions
+                            SET is_active = FALSE
+                            WHERE model_name = %s AND model_size = %s
+                        """, (model_name, model_size))
+                        
+                        cur.execute("""
+                            UPDATE ml_models
+                            SET is_active = FALSE
+                            WHERE model_name = %s AND model_size = %s
+                        """, (model_name, model_size))
+                        
+                        cur.execute("""
                             INSERT INTO ml_model_versions
-                            (model_name, model_size, version, training_samples, manifest, notes)
-                            VALUES (%s, %s, %s, %s, %s, %s)
+                            (model_name, model_size, version, training_samples, manifest, notes, is_active)
+                            VALUES (%s, %s, %s, %s, %s, %s, TRUE)
                             ON CONFLICT (model_name, model_size, version)
                             DO UPDATE SET 
                                 training_samples = EXCLUDED.training_samples,
                                 manifest = EXCLUDED.manifest,
                                 notes = EXCLUDED.notes,
+                                is_active = TRUE,
                                 created_at = CURRENT_TIMESTAMP
                         """, (
                             model_name, model_size, version, training_samples,
@@ -324,14 +370,15 @@ class DatabaseModelStore:
                             cur.execute("""
                                 INSERT INTO ml_models 
                                 (model_name, model_size, version, component_name,
-                                 data_compressed, data_hash, training_samples, manifest)
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                 data_compressed, data_hash, training_samples, manifest, is_active)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, TRUE)
                                 ON CONFLICT (model_name, model_size, component_name, version)
                                 DO UPDATE SET 
                                     data_compressed = EXCLUDED.data_compressed,
                                     data_hash = EXCLUDED.data_hash,
                                     training_samples = EXCLUDED.training_samples,
                                     manifest = EXCLUDED.manifest,
+                                    is_active = TRUE,
                                     created_at = CURRENT_TIMESTAMP
                             """, (
                                 model_name, model_size, version, comp_name,
