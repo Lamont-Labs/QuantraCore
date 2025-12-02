@@ -17,8 +17,8 @@ QuantraCore Apex is an institutional-grade, deterministic AI trading intelligenc
 ### UI/UX Decisions
 The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, uses an institutional trading terminal aesthetic and a custom design system defined by `@theme` blocks.
 
-### ApexDesk Dashboard (14 Panels)
-The institutional trading dashboard provides real-time monitoring and control via 14 specialized panels:
+### ApexDesk Dashboard (15 Panels)
+The institutional trading dashboard provides real-time monitoring and control via 15 specialized panels:
 
 | Panel | Description | Key Features |
 |-------|-------------|--------------|
@@ -28,6 +28,7 @@ The institutional trading dashboard provides real-time monitoring and control vi
 | **ModelMetricsPanel** | ApexCore V3/V4 model performance | 7/16 prediction heads, training samples, accuracy metrics, model reload |
 | **AutoTraderPanel** | Autonomous swing trade execution | Trade status, position hold decisions, continuation probability |
 | **SignalsAlertsPanel** | Live signals and SMS alert status | Active signals, Twilio SMS configuration, alert history |
+| **PushNotificationPanel** | Browser push notifications | One-click subscribe, test notifications, threshold config, free alerts |
 | **RunnerScreenerPanel** | Low-float penny stock scanner | 110 symbols, volume surge detection, momentum alerts |
 | **ContinuousLearningPanel** | ML training orchestrator status | Drift detection, incremental learning, training schedule |
 | **LogsProvenancePanel** | System logs and audit trail | Real-time logs, provenance tracking, compliance audit |
@@ -64,6 +65,7 @@ The institutional trading dashboard provides real-time monitoring and control vi
 - **Continuous Learning System:** Autonomous orchestrator with 15-minute scheduling, incremental learning, drift detection, validation gates, multi-pass training, and an extended 251-symbol universe.
 - **Manual Trading Signal Service (ApexSignalService):** Generates actionable signals with priority scoring, timing guidance, ATR-based levels, conviction tiers, predicted top price, and persistence to disk.
 - **SMS Alert Service:** Sends Twilio SMS alerts for trading signals with configurable thresholds, displaying QuantraScore, conviction, predicted top price, entry/stop/target levels, and timing guidance.
+- **Push Notification Service (Free Alternative):** Browser-based push notifications for trading signals without SMS costs. Features: VAPID key-based encryption, service worker background delivery, configurable thresholds (QuantraScore, runner probability, timing), rate limiting, subscription management. Works even when browser is closed (requires HTTPS). API endpoints: GET /push/vapid-key, GET /push/status, POST /push/subscribe, POST /push/unsubscribe, POST /push/config, POST /push/test, POST /push/alert. Dashboard panel allows one-click subscribe/unsubscribe with test notifications.
 - **Low-Float Runner Screener:** Real-time scanner for penny stocks with volume surge, momentum detection, float limits, ApexCore V3 prediction integration, and SMS alerts. Scans 110 low-float symbols.
 - **MarketSimulator:** Provides 8 chaos scenarios for stress testing.
 - **Protocol System:** Includes 80 Tier protocols for analysis, 25 Learning protocols, 20 MonsterRunner protocols, and 20 Omega Directives.
