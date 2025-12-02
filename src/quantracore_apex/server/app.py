@@ -3163,12 +3163,20 @@ def create_app() -> FastAPI:
             from src.quantracore_apex.apexlab.training import run_swing_training_cycle
             
             symbols = [
-                # Large caps (stable, high liquidity)
+                # Large caps (7)
                 "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA",
-                # Small/mid caps (bigger moves, better for RunnerHunter)
-                "PLTR", "SOFI", "RIVN", "LCID", "NIO", "PLUG", "SNAP", "HOOD",
-                "UPST", "AFRM", "RBLX", "DKNG", "COIN", "MARA", "RIOT",
-                "PATH", "U", "CRWD", "NET", "SNOW", "ROKU", "SHOP"
+                # Small/micro caps (109) - EV, Crypto, Biotech, Tech, Meme, SPACs, AI
+                "ACHR", "AFRM", "AMC", "AMWL", "ASTS", "ATOS", "BB", "BBAI", "BBBY", "BE",
+                "BIRD", "BITF", "BLNK", "BNGO", "BNTX", "BTBT", "CFLT", "CGC", "CHPT", "CHWY",
+                "CIFR", "CLNE", "CLOV", "CLSK", "COIN", "COUR", "CROX", "CRWD", "CVNA", "DDOG",
+                "DKNG", "DNA", "DOCN", "DOCS", "DUOL", "ESTC", "ETSY", "EVGO", "EVTL", "FCEL",
+                "GEVO", "GME", "GREE", "GTLB", "HIMS", "HOOD", "HUT", "HYLN", "INO", "IONQ",
+                "IREN", "JOBY", "KULR", "LAZR", "LCID", "LI", "LIDR", "LMND", "LULU", "MARA",
+                "MDB", "MNMD", "MRNA", "MVIS", "NET", "NIO", "NU", "NVAX", "OCGN", "OKTA",
+                "OPEN", "OUST", "PANW", "PATH", "PINS", "PLTR", "PLUG", "PSFE", "PTON", "QUBT",
+                "RBLX", "RGTI", "RIOT", "RIVN", "RKT", "ROKU", "ROOT", "S", "SAVA", "SMCI",
+                "SNAP", "SNDL", "SNOW", "SOFI", "SOUN", "SPCE", "STEM", "TALK", "TDOC", "TLRY",
+                "TWLO", "U", "UPST", "UWMC", "VXRT", "W", "WKHS", "XPEV", "ZS"
             ]
             
             results = run_swing_training_cycle(
@@ -3182,9 +3190,9 @@ def create_app() -> FastAPI:
                 "status": "completed",
                 "symbols_processed": len(symbols),
                 "large_caps": 7,
-                "small_caps": 22,
+                "small_micro_caps": 109,
                 "training_results": results,
-                "message": "Training completed with large caps + small caps (higher volatility for RunnerHunter)",
+                "message": "Training completed with ALL small/micro caps (116 symbols, 5000+ samples)",
                 "timestamp": datetime.utcnow().isoformat(),
             }
         except Exception as e:
