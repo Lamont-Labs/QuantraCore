@@ -3,6 +3,15 @@ HyperLearner - Hyper-Velocity Learning System.
 
 Central orchestrator that captures everything the system does
 and learns from it at an accelerated rate.
+
+Enhanced with EnrichedDataFusion to incorporate all 7 data sources:
+- Polygon.io: Market data
+- Alpaca: Execution data  
+- FRED: Economic indicators
+- Finnhub: Social sentiment
+- Alpha Vantage: News sentiment
+- SEC EDGAR: Insider transactions
+- Binance: Crypto correlations
 """
 
 from datetime import datetime
@@ -59,6 +68,7 @@ class HyperLearner:
         batch_size: int = 100,
         auto_retrain_threshold: int = 500,
         model_dir: str = "models/hyperlearner",
+        enable_enrichment: bool = True,
     ):
         self._event_bus = get_event_bus()
         self._outcome_tracker = OutcomeTracker(event_bus=self._event_bus)
@@ -76,6 +86,16 @@ class HyperLearner:
         
         self._total_events = 0
         self._total_learnings = 0
+        
+        self._data_fusion = None
+        self._enable_enrichment = enable_enrichment
+        if enable_enrichment:
+            try:
+                from src.quantracore_apex.data_layer.enriched_data_fusion import get_enriched_data_fusion
+                self._data_fusion = get_enriched_data_fusion()
+                logger.info("[HyperLearner] EnrichedDataFusion enabled - all 7 data sources active")
+            except Exception as e:
+                logger.warning(f"[HyperLearner] EnrichedDataFusion disabled: {e}")
         
         self._setup_internal_subscriptions()
         
@@ -477,6 +497,71 @@ class HyperLearner:
     def export_training_data(self) -> List[Dict[str, Any]]:
         """Export all training data for ApexLab integration."""
         return self._continuous_trainer.get_training_data_for_apexlab()
+    
+    def get_data_fusion_status(self) -> Dict[str, Any]:
+        """
+        Get status of all 7 data sources feeding into learning cycles.
+        
+        Returns:
+            Dict with status of each data source and total active count
+        """
+        if not self._data_fusion:
+            return {
+                "enabled": False,
+                "message": "EnrichedDataFusion not initialized",
+                "sources": {}
+            }
+        
+        try:
+            status = self._data_fusion.get_status()
+            return {
+                "enabled": True,
+                "total_active": status.get("total_active", 0),
+                "learning_ready": status.get("learning_ready", False),
+                "sources": {
+                    "polygon": status.get("polygon", {}),
+                    "alpaca": status.get("alpaca", {}),
+                    "fred": status.get("fred", {}),
+                    "finnhub": status.get("finnhub", {}),
+                    "alpha_vantage": status.get("alpha_vantage", {}),
+                    "sec_edgar": status.get("sec_edgar", {}),
+                    "binance": status.get("binance", {}),
+                }
+            }
+        except Exception as e:
+            return {
+                "enabled": False,
+                "message": f"Error: {e}",
+                "sources": {}
+            }
+    
+    def enrich_symbol(self, symbol: str) -> Dict[str, Any]:
+        """
+        Get enriched features for a symbol from all 7 data sources.
+        
+        Args:
+            symbol: Stock ticker symbol
+            
+        Returns:
+            Dict with enriched features ready for ML
+        """
+        if not self._data_fusion:
+            return {"error": "EnrichedDataFusion not enabled"}
+        
+        try:
+            sample = self._data_fusion.enrich_sample(symbol)
+            return {
+                "symbol": symbol,
+                "timestamp": sample.timestamp.isoformat(),
+                "feature_count": sample.feature_count,
+                "sources_used": sample.sources_used,
+                "sentiment_features": sample.sentiment_features,
+                "economic_features": sample.economic_features,
+                "insider_features": sample.insider_features,
+                "crypto_features": sample.crypto_features,
+            }
+        except Exception as e:
+            return {"error": str(e)}
 
 
 _global_hyperlearner: Optional[HyperLearner] = None

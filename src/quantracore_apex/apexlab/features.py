@@ -95,9 +95,49 @@ class SwingFeatureExtractor:
         # Technical indicators (10)
         "macd_histogram", "macd_signal_cross", "stochastic_k", "stochastic_d",
         "williams_r", "cci_20", "mfi_14", "roc_10", "trix_15", "ultimate_oscillator",
+        
+        # Enriched Data Fusion features (40) - from all 7 data sources
+        # Sentiment features (12) - Finnhub + Alpha Vantage
+        "sentiment_social_score", "sentiment_news_score", "sentiment_combined_score",
+        "sentiment_reddit_mentions", "sentiment_twitter_mentions", "sentiment_buzz_level",
+        "sentiment_bullish_ratio", "sentiment_bearish_ratio", "sentiment_news_count",
+        "sentiment_confidence", "sentiment_signal_bullish", "sentiment_signal_bearish",
+        
+        # Economic features (10) - FRED
+        "economic_regime_score", "economic_risk_appetite", "economic_inflation_trend",
+        "economic_growth_trend", "economic_yield_curve", "economic_fed_stance",
+        "economic_regime_confidence", "economic_bullish", "economic_bearish", "economic_recession_risk",
+        
+        # Insider features (9) - SEC EDGAR
+        "insider_buy_count", "insider_sell_count", "insider_net_value_normalized",
+        "insider_sentiment_score", "insider_confidence", "insider_large_buy_signal",
+        "insider_activity_level", "insider_bullish", "insider_bearish",
+        
+        # Crypto features (6) - Binance
+        "crypto_btc_return_24h", "crypto_btc_volatility", "crypto_eth_return_24h",
+        "crypto_fear_index", "crypto_risk_on", "crypto_risk_off",
+        
+        # Data source quality (3)
+        "data_sources_count", "enrichment_confidence", "multi_source_agreement",
     ]
     
-    def __init__(self, lookback_short: int = 20, lookback_medium: int = 60, lookback_long: int = 120):
+    ENRICHED_FEATURE_NAMES = [
+        "sentiment_social_score", "sentiment_news_score", "sentiment_combined_score",
+        "sentiment_reddit_mentions", "sentiment_twitter_mentions", "sentiment_buzz_level",
+        "sentiment_bullish_ratio", "sentiment_bearish_ratio", "sentiment_news_count",
+        "sentiment_confidence", "sentiment_signal_bullish", "sentiment_signal_bearish",
+        "economic_regime_score", "economic_risk_appetite", "economic_inflation_trend",
+        "economic_growth_trend", "economic_yield_curve", "economic_fed_stance",
+        "economic_regime_confidence", "economic_bullish", "economic_bearish", "economic_recession_risk",
+        "insider_buy_count", "insider_sell_count", "insider_net_value_normalized",
+        "insider_sentiment_score", "insider_confidence", "insider_large_buy_signal",
+        "insider_activity_level", "insider_bullish", "insider_bearish",
+        "crypto_btc_return_24h", "crypto_btc_volatility", "crypto_eth_return_24h",
+        "crypto_fear_index", "crypto_risk_on", "crypto_risk_off",
+        "data_sources_count", "enrichment_confidence", "multi_source_agreement",
+    ]
+    
+    def __init__(self, lookback_short: int = 20, lookback_medium: int = 60, lookback_long: int = 120, enable_enrichment: bool = True):
         """
         Initialize the swing feature extractor.
         
@@ -105,11 +145,22 @@ class SwingFeatureExtractor:
             lookback_short: Short-term lookback for oscillators (default: 20)
             lookback_medium: Medium-term lookback for momentum (default: 60)
             lookback_long: Long-term lookback for regime detection (default: 120)
+            enable_enrichment: Enable enriched features from all 7 data sources (default: True)
         """
         self.lookback_short = lookback_short
         self.lookback_medium = lookback_medium
         self.lookback_long = lookback_long
+        self.enable_enrichment = enable_enrichment
         self.feature_dim = len(self.FEATURE_NAMES)
+        
+        self._data_fusion = None
+        if enable_enrichment:
+            try:
+                from src.quantracore_apex.data_layer.enriched_data_fusion import get_enriched_data_fusion
+                self._data_fusion = get_enriched_data_fusion()
+                logger.info(f"[SwingFeatureExtractor] Enrichment enabled - {self.feature_dim} total features (incl. {len(self.ENRICHED_FEATURE_NAMES)} enriched)")
+            except Exception as e:
+                logger.warning(f"[SwingFeatureExtractor] Enrichment disabled: {e}")
         
     def extract(self, window: OhlcvWindow) -> np.ndarray:
         """
@@ -145,6 +196,9 @@ class SwingFeatureExtractor:
         structure_features = self._extract_structure_features(closes, highs, lows)
         technical_features = self._extract_technical_features(closes, highs, lows, volumes)
         
+        # Enriched features from all 7 data sources
+        enriched_features = self._extract_enriched_features(window.symbol)
+        
         # Combine all features
         all_features = np.concatenate([
             core_features,
@@ -154,12 +208,136 @@ class SwingFeatureExtractor:
             pattern_features,
             structure_features,
             technical_features,
+            enriched_features,
         ])
         
         # Clean up NaN/Inf values
         all_features = np.nan_to_num(all_features, nan=0.0, posinf=1.0, neginf=-1.0)
         
         return all_features.astype(np.float32)
+    
+    def _extract_enriched_features(self, symbol: str) -> np.ndarray:
+        """
+        Extract enriched features from all 7 data sources.
+        
+        Sources:
+        - Polygon.io: Market data (included in OHLCV already)
+        - Alpaca: Execution data (included in OHLCV already)
+        - FRED: Economic indicators
+        - Finnhub: Social sentiment
+        - Alpha Vantage: News sentiment
+        - SEC EDGAR: Insider transactions
+        - Binance: Crypto correlations
+        
+        Returns:
+            numpy array with 40 enriched features
+        """
+        default_features = np.zeros(len(self.ENRICHED_FEATURE_NAMES), dtype=np.float32)
+        
+        if not self._data_fusion or not self.enable_enrichment:
+            return default_features
+        
+        try:
+            sample = self._data_fusion.enrich_sample(symbol)
+            
+            sentiment = sample.sentiment_features
+            economic = sample.economic_features
+            insider = sample.insider_features
+            crypto = sample.crypto_features
+            
+            features = np.array([
+                # Sentiment features (12)
+                sentiment.get("social_score", 0.0),
+                sentiment.get("news_score", 0.0),
+                sentiment.get("combined_score", 0.0),
+                np.clip(sentiment.get("reddit_mentions", 0.0) / 100.0, 0, 1),
+                np.clip(sentiment.get("twitter_mentions", 0.0) / 100.0, 0, 1),
+                np.clip(sentiment.get("buzz_level", 0.0) / 10.0, 0, 1),
+                sentiment.get("bullish_ratio", 0.5),
+                sentiment.get("bearish_ratio", 0.5),
+                np.clip(sentiment.get("news_count", 0.0) / 20.0, 0, 1),
+                sentiment.get("sentiment_confidence", 0.0),
+                sentiment.get("sentiment_signal_bullish", 0.0),
+                sentiment.get("sentiment_signal_bearish", 0.0),
+                
+                # Economic features (10)
+                economic.get("regime_score", 0.0),
+                economic.get("risk_appetite_score", 0.0),
+                economic.get("inflation_trend_score", 0.0),
+                economic.get("growth_trend_score", 0.0),
+                economic.get("yield_curve_score", 0.0),
+                economic.get("fed_stance_score", 0.0),
+                economic.get("regime_confidence", 0.0),
+                economic.get("economic_bullish", 0.0),
+                economic.get("economic_bearish", 0.0),
+                economic.get("recession_risk", 0.0),
+                
+                # Insider features (9)
+                np.clip(insider.get("insider_buy_count", 0.0) / 10.0, 0, 1),
+                np.clip(insider.get("insider_sell_count", 0.0) / 10.0, 0, 1),
+                insider.get("insider_net_value_normalized", 0.0),
+                insider.get("insider_sentiment_score", 0.0),
+                insider.get("insider_confidence", 0.0),
+                insider.get("large_buy_signal", 0.0),
+                np.clip(insider.get("insider_activity_level", 0.0), 0, 1),
+                insider.get("insider_bullish", 0.0),
+                insider.get("insider_bearish", 0.0),
+                
+                # Crypto features (6)
+                np.clip(crypto.get("btc_return_24h", 0.0), -0.2, 0.2),
+                np.clip(crypto.get("btc_volatility", 0.0), 0, 0.3),
+                np.clip(crypto.get("eth_return_24h", 0.0), -0.2, 0.2),
+                crypto.get("crypto_fear_index", 0.0),
+                crypto.get("crypto_risk_on", 0.0),
+                crypto.get("crypto_risk_off", 0.0),
+                
+                # Data source quality (3)
+                len(sample.sources_used) / 6.0,
+                min(1.0, sample.feature_count / 40.0),
+                self._compute_multi_source_agreement(sentiment, economic, insider),
+            ], dtype=np.float32)
+            
+            return features
+            
+        except Exception as e:
+            logger.debug(f"Enrichment error for {symbol}: {e}")
+            return default_features
+    
+    def _compute_multi_source_agreement(
+        self,
+        sentiment: Dict[str, float],
+        economic: Dict[str, float],
+        insider: Dict[str, float]
+    ) -> float:
+        """Compute agreement score across data sources."""
+        signals = []
+        
+        if sentiment.get("combined_score", 0) > 0.1:
+            signals.append(1)
+        elif sentiment.get("combined_score", 0) < -0.1:
+            signals.append(-1)
+        else:
+            signals.append(0)
+        
+        if economic.get("regime_score", 0) > 0:
+            signals.append(1)
+        elif economic.get("regime_score", 0) < 0:
+            signals.append(-1)
+        else:
+            signals.append(0)
+        
+        if insider.get("insider_sentiment_score", 0) > 0:
+            signals.append(1)
+        elif insider.get("insider_sentiment_score", 0) < 0:
+            signals.append(-1)
+        else:
+            signals.append(0)
+        
+        if not signals:
+            return 0.0
+        
+        agreement = abs(sum(signals)) / len(signals)
+        return agreement
     
     def _extract_core_features(self, window: OhlcvWindow, closes: np.ndarray, 
                                 highs: np.ndarray, lows: np.ndarray, volumes: np.ndarray) -> np.ndarray:

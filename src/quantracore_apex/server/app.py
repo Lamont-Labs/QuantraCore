@@ -5294,6 +5294,57 @@ def create_app() -> FastAPI:
             logger.error(f"HyperLearner stats error: {e}")
             raise HTTPException(status_code=500, detail=str(e))
     
+    @app.get("/learning/data-sources")
+    async def get_learning_data_sources():
+        """
+        Get status of all 7 data sources feeding into ML learning cycles.
+        
+        Data Sources:
+        - Polygon.io: Market data, OHLCV
+        - Alpaca: Paper trading, execution
+        - FRED: Economic indicators
+        - Finnhub: Social sentiment
+        - Alpha Vantage: News sentiment
+        - SEC EDGAR: Insider transactions
+        - Binance: Crypto correlations
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            fusion_status = hyperlearner.get_data_fusion_status()
+            return {
+                **fusion_status,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Data sources status error: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/learning/enrich/{symbol}")
+    async def get_enriched_features(symbol: str):
+        """
+        Get enriched ML features for a symbol from all 7 data sources.
+        
+        Returns ~40 features combining:
+        - Sentiment (social + news)
+        - Economic regime
+        - Insider activity
+        - Crypto correlations
+        """
+        if not HYPERLEARNER_AVAILABLE:
+            raise HTTPException(status_code=503, detail="HyperLearner not available")
+        
+        try:
+            enriched = hyperlearner.enrich_symbol(symbol.upper())
+            return {
+                **enriched,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Enrichment error for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     @app.post("/hyperlearner/record/trade")
     async def record_trade_for_learning(request: TradeRecordRequest):
         """
