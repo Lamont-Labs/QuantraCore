@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 _alpha_factory = None
 _hyperspeed_engine = None
 _scheduler_monitor = None
+_auto_learner = None
 
 def convert_numpy_types(obj: Any) -> Any:
     """Convert numpy types to native Python types for JSON serialization."""
@@ -327,6 +328,16 @@ def create_app() -> FastAPI:
             logger.warning(f"Model preloading failed (non-fatal): {e}")
         
         logger.info("QuantraCore Apex startup complete - system ready")
+        
+        # Start AutoLearner
+        global _auto_learner
+        try:
+            from src.quantracore_apex.learning import AutoLearner
+            _auto_learner = AutoLearner()
+            _auto_learner.start(run_time="02:00")
+            logger.info("AutoLearner started - scheduled for 2:00 AM daily")
+        except Exception as e:
+            logger.warning(f"AutoLearner startup failed (non-fatal): {e}")
     
     @app.get("/")
     async def root():
@@ -368,6 +379,47 @@ def create_app() -> FastAPI:
         return {
             "count": len(preloaded_models),
             "models": list(preloaded_models.keys()),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    @app.get("/learning/status")
+    async def get_learning_status():
+        """Get AutoLearner status."""
+        global _auto_learner
+        if _auto_learner is None:
+            return {"status": "not_initialized", "message": "AutoLearner not started"}
+        
+        try:
+            status = _auto_learner.get_status()
+            return {
+                "status": "active",
+                "scheduler_running": status.get("is_running", False),
+                "last_run": status.get("last_run"),
+                "next_run": status.get("next_run"),
+                "recent_trades": status.get("recent_trades", 0),
+                "trade_precision": status.get("trade_precision", 0),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+    
+    @app.post("/learning/run")
+    async def run_learning_cycle(background_tasks: BackgroundTasks):
+        """Trigger a learning cycle in the background."""
+        global _auto_learner
+        if _auto_learner is None:
+            raise HTTPException(status_code=503, detail="AutoLearner not initialized")
+        
+        def run_cycle():
+            try:
+                _auto_learner.run_learning_cycle(force=True)
+            except Exception as e:
+                logger.error(f"Learning cycle error: {e}")
+        
+        background_tasks.add_task(run_cycle)
+        return {
+            "status": "started",
+            "message": "Learning cycle started in background",
             "timestamp": datetime.utcnow().isoformat()
         }
     
