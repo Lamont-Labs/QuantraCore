@@ -1,11 +1,9 @@
 # QuantraCore Apex — Replit Project Documentation
 
 ## Overview
-
-QuantraCore Apex is an institutional-grade, deterministic AI trading intelligence engine for desktop use. It integrates an offline learning ecosystem (ApexLab), on-device neural assistant models (ApexCore V4 with 16 prediction heads), and a Hyperspeed Learning System for accelerated model maturity. The system supports all trading types (long, short, intraday, swing, scalping) primarily through Alpaca paper trading, emphasizing determinism, accuracy optimization, and self-learning. Its purpose is to provide a robust, self-improving platform with advanced risk management, database-backed ML persistence, and comprehensive reporting for both retail and institutional users. The project aims to deliver a self-improving platform for advanced risk management and comprehensive reporting.
+QuantraCore Apex is an institutional-grade, deterministic AI trading intelligence engine designed for desktop use. It features an offline learning ecosystem (ApexLab), on-device neural assistant models (ApexCore V4 with 16 prediction heads), and a Hyperspeed Learning System for accelerated model maturity. The system supports all trading types (long, short, intraday, swing, scalping) primarily through Alpaca paper trading, with a strong emphasis on determinism, accuracy optimization, and self-learning. Its core purpose is to provide a robust, self-improving platform with advanced risk management, database-backed ML persistence, and comprehensive reporting for both retail and institutional users. The project aims to deliver a self-improving platform for advanced risk management and comprehensive reporting, with a clear path towards commercialization through IP acquisition, licensing, SaaS, and mobile applications.
 
 ## User Preferences
-
 - **Communication:** Simple language with detailed explanations
 - **Workflow:** Iterative development with confirmation before major changes
 - **Coding Style:** Functional programming paradigms preferred
@@ -15,7 +13,7 @@ QuantraCore Apex is an institutional-grade, deterministic AI trading intelligenc
 ## System Architecture
 
 ### UI/UX Decisions
-The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, employs an institutional trading terminal aesthetic and a custom design system. The ApexDesk Dashboard features 15 real-time panels for monitoring and control, offering Standard (30s), High Velocity (5s), and Turbo (2s) refresh rates. Frontend performance is optimized with request throttling and lazy loading.
+The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, employs an institutional trading terminal aesthetic and a custom design system. The ApexDesk Dashboard provides 15 real-time monitoring panels with configurable refresh rates (Standard: 30s, High Velocity: 5s, Turbo: 2s), optimized with request throttling and lazy loading.
 
 ### Technical Implementations
 - **Backend:** Python 3.11, FastAPI, Uvicorn (port 8000, 4 workers).
@@ -26,6 +24,7 @@ The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, employs an 
 - **API Endpoints:** REST APIs for trading, data, scanning, health, model management, reporting, and hyperspeed learning control.
 - **Security:** `X-API-Key` authentication and restrictive CORS.
 - **Performance:** ORJSONResponse, GZipMiddleware, 4-worker Uvicorn, expanded TTL caches, module-level ML model caching, Alpaca client caching, parallel universe scanning, prediction result caching.
+- **Stability:** Circuit breakers for all 5 data providers, model preloading, status caching, graceful degradation, and frontend retry logic.
 
 ### Feature Specifications
 - **Full Trading Capabilities:** Supports various trade types with configurable risk limits and order types.
@@ -33,123 +32,28 @@ The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, employs an 
 - **Offline ML (ApexCore V4):** On-device neural models with 16 prediction heads.
 - **Accuracy Optimization System:** 8-module suite for calibration, regime-gating, uncertainty quantification, and auto-retraining.
 - **Self-Learning (Alpha Factory & Continuous Learning System):** 24/7 live research loop via WebSockets.
-- **Hyperspeed Learning System:** Accelerates ML training through historical data replay (1000x speed), parallel battle simulations, multi-source data fusion, and overnight intensive training. Targets 1-2 weeks to model maturity.
-- **Signal & Alert Services:** Manual Trading Signal Service, Twilio SMS alerts, and browser-based Push Notifications.
+- **Hyperspeed Learning System:** Accelerates ML training through 1000x historical data replay, parallel battle simulations, multi-source data fusion, and overnight intensive training.
+- **Signal & Alert Services:** Manual Trading Signal Service, Twilio SMS alerts, and browser Push Notifications.
 - **Low-Float Runner Screener:** Real-time scanner for penny stocks.
 - **Protocol System:** Extensive suite of trading protocols (T01-T80, LP01-LP25, MR01-MR20, Ω01-Ω20).
-- **Investor Reporting & Logging:** Comprehensive logging for paper trades, performance metrics, and ML model training (stored in `investor_logs/`). Includes automated daily compliance attestations.
+- **Investor Reporting & Logging:** Comprehensive logging for paper trades, performance metrics, and ML model training, including automated daily compliance attestations.
 - **Automated Swing Trade Execution (AutoTrader):** Autonomous setup scanning, position sizing, and market order execution.
 - **Model Management:** Hot Model Reload System (ModelManager) and Dual-Phase Incremental Learning (IncrementalTrainer).
 - **Trade Hold Manager:** Continuation probability-based system for active positions.
 - **Extended Market Hours Trading:** Full support for pre-market, regular, and after-hours trading.
 - **Multi-Source Data Ingestion:** Options flow, sentiment analysis, Level 2 data, dark pool activity, economic indicators, and alternative data feeds.
-
-### Hyperspeed Learning System
-This system accelerates model training by replaying years of historical data at 1000x speed. Key components include a Historical Replay Engine, Battle Simulator (100 parallel strategy simulations per cycle), Multi-Source Fusion (Polygon, Alpaca, Binance data aggregation), Overnight Training, and PostgreSQL-backed model persistence.
-
-### Trained ML Models
-The system includes trained ML models such as `apex_production` (5%+ runner detection), `mega_runners` (10%+ runner detection), and `moonshots` (50%+ / 100%+ doublers). These models are trained on a universe of 94 volatile stocks using 1 year of historical EOD data and 130+ technical indicators. Models are stored in PostgreSQL with GZIP compression.
-
-### Moonshot Detection System v2 (December 2025)
-
-**VALIDATED PERFORMANCE (with true negatives, strict 50%+ labels):**
-
-| Validation Type | Precision | Recall | ROC-AUC | Notes |
-|-----------------|-----------|--------|---------|-------|
-| **Time-Split** | 65.2% | 39.4% | 0.799 | Train on older, test on newer data |
-| **Stock-Split** | 65.1% | 20.4% | 0.729 | Train on 70% stocks, test on 30% unseen |
-
-**Improvement from Feature Engineering + Expanded Universe:**
-| Metric | Baseline (48 feat) | New (97 feat) | Change |
-|--------|-------------------|---------------|--------|
-| Stock-Split Precision | 52.5% | 65.1% | **+12.6%** |
-| Stock-Split Recall | 32.3% | 42.0% | **+9.7%** |
-| Time-Split Recall | 35.7% | 41.9% | **+6.2%** |
-| ROC-AUC (time) | N/A | 0.802 | NEW |
-| ROC-AUC (stock) | N/A | 0.763 | NEW |
-
-**Key Insight:** The expanded universe (94 stocks) dramatically improved recall while maintaining precision. The model now catches 42% of moonshots (vs 32% baseline) with the same 65% precision.
-
-**97 Features Include:**
-- Gap patterns (5-day history)
-- Volume dry-up detection
-- Stock embeddings (sector, meme/crypto flags)
-- ATR compression, Bollinger squeeze
-- SMA alignment indicators
-- Momentum acceleration/inflection
-
-**Production Models:**
-- `moonshot_strict_v2.pkl.gz` - LightGBM, 97 features, stock-split validated
-- `moonshot_ensemble_v2.pkl.gz` - Ensemble with expanded positives (30%+)
-
-**Moonshot Database:**
-- 2,695 total 50%+ gain events from 83 volatile stocks
-- 8,085 true negative samples for proper validation
-- Stored in `data/moonshots/` for continuous offline training
-
-**Training Scripts:**
-- `python scripts/strict_moonshot_validation.py` - Fair validation with true negatives
-- `python scripts/accuracy_maximizer.py` - Full ensemble training with hard negatives
-- `python scripts/proper_validation.py` - Baseline validation script
-
-**Offline Training (Rate-Limit Bypass):**
-- `python scripts/offline_train_now.py` - Train using cached Polygon data
-- Bypasses FRED/Finnhub rate limits completely
-- Uses 84 cached parquet files in `data/cache/polygon/day/`
+- **Moonshot Detection System v2:** Includes `moonshot_strict_v2.pkl.gz` (LightGBM, 97 features) and `moonshot_ensemble_v2.pkl.gz` for detecting 50%+ gain events.
+- **Forward Validation System:** Unbiased model accuracy measurement by recording predictions before outcomes are known, calculating true precision based on achieving 50%+ gain within 5 trading days.
 
 ### System Design Choices
 - **Broker Layer:** Supports `NullAdapter`, `PaperSimAdapter`, and `AlpacaPaperAdapter`.
 - **Data Layer:** Polygon.io for market data, Alpaca for execution, Binance for crypto.
 - **Configuration:** Parameters managed via `config/data_sources.yaml`, `config/broker.yaml`, and `config/scan_modes.yaml`.
 
-## Real-Time Data Infrastructure (December 2025)
-
-### Data Subscription Tiers
-
-| Tier | Cost | Data Refresh | Trading Types |
-|------|------|--------------|---------------|
-| **Free (EOD)** | $0/month | Once per day | Swing trades, position trades |
-| **Algo Trader Plus** | $99/month | Real-time streaming | All trading types |
-| **Alpaca Elite** | $0 (with $100K+) | Real-time streaming | All trading types |
-
-### Trading Modes by Tier
-
-| Trading Type | Free Tier | Algo Trader Plus |
-|--------------|-----------|------------------|
-| Swing Trading (2-10 days) | ACTIVE | ACTIVE |
-| Position Trading (weeks/months) | ACTIVE | ACTIVE |
-| Day Trading | UPGRADE REQUIRED | ACTIVE |
-| Scalping (1-5 min) | UPGRADE REQUIRED | ACTIVE |
-| Intraday Swing | UPGRADE REQUIRED | ACTIVE |
-
-### Real-Time Endpoints
-
-| Endpoint | Description |
-|----------|-------------|
-| `/ml/trading-modes` | Shows available trading types by subscription |
-| `/ml/realtime/status` | Real-time scanner status and connection info |
-| `/ml/realtime/signals` | Live signals (WebSocket when enabled) |
-| `/ml/upgrade-info` | How to upgrade for all trading types |
-
-### Enabling Real-Time Mode
-
-1. Subscribe to Alpaca Algo Trader Plus ($99/month)
-2. Set environment variable: `ALPACA_REALTIME_ENABLED=true`
-3. Restart the application
-4. All trading types now available
-
-### WebSocket Streaming (Real-Time Mode)
-
-- **Connection:** `wss://stream.data.alpaca.markets/v2/sip`
-- **Data Types:** Quotes, Trades, Bars
-- **Refresh Rate:** Sub-second
-- **Coverage:** 100% US market (SIP data)
-
 ## External Dependencies
-
 - **Polygon.io:** EOD prices, historical data, ML training.
 - **Alpaca:** Paper trading, order execution, positions, portfolio (primary training data source).
-- **FRED:** Federal Reserve economic data (rates, CPI, GDP, unemployment, yield curve).
+- **FRED:** Federal Reserve economic data.
 - **Finnhub:** Reddit/Twitter social sentiment, insider transactions.
 - **Alpha Vantage:** AI-powered news sentiment, technical indicators.
 - **SEC EDGAR:** Insider trades (Form 4), 13F holdings, 8-K events.
@@ -159,78 +63,3 @@ The system includes trained ML models such as `apex_production` (5%+ runner dete
 - **PostgreSQL:** Database for ML model persistence.
 - **Nasdaq Data Link (Optional):** COT futures positioning.
 - **FMP (Optional):** Earnings calendar, DCF valuations, company profiles.
-
-## System Status (December 2025)
-
-### End-to-End Test Results
-
-| Component | Status | Details |
-|-----------|--------|---------|
-| **System Health** | OPERATIONAL | Engine and data layer functional |
-| **Broker** | CONNECTED | Alpaca Paper Trading mode |
-| **Portfolio** | ACTIVE | ~$99,800 equity, 13 positions |
-| **AutoTrader** | ENABLED | Paper mode, min QuantraScore 65 |
-| **ML Model** | LOADED | ApexCore V4, 95% runner accuracy |
-| **Training Data** | 6,085 samples | Volatile small/mid cap universe |
-
-### Data Provider Status
-
-| Provider | Status | Purpose |
-|----------|--------|---------|
-| Polygon.io | OK | EOD prices, historical data |
-| Alpaca | OK | Trading execution, portfolio |
-| Alpha Vantage | OK | News sentiment, indicators |
-| FRED | RATE LIMITED | Economic data (fallback active) |
-| Finnhub | RATE LIMITED | Sentiment (fallback active) |
-
-### Stability Hardening (December 2025)
-
-**Backend Improvements:**
-- **Circuit Breakers:** All 5 data providers protected with configurable failure thresholds
-  - Alpaca/Polygon: 5 failures, 30s reset
-  - FRED/Finnhub/Alpha Vantage: 3 failures, 120s reset
-- **Model Preloading:** 5 ApexCore V4 heads preloaded at startup
-- **Status Caching:** 15s TTL for broker/predictive endpoints
-- **Graceful Degradation:** Endpoints return degraded status on provider failures
-
-**Frontend Improvements:**
-- **Promise.allSettled:** Prevents single API failure from breaking entire status panel
-- **Last Known Values:** Preserves previous good data during connectivity issues
-- **Connection State Tracking:** Visual indicator for connecting/degraded/online states
-- **Retry Logic:** Exponential backoff with 3 retries
-
-**New Endpoints:**
-- `/system/circuit_breakers` - View all circuit breaker states
-- `/system/preloaded_models` - View preloaded model inventory
-- Health endpoint now includes breaker states and preloaded count
-
-### Active Portfolio Positions (Sample)
-
-The system maintains 13 active paper trading positions across volatile tech and small-cap stocks including AAPL, AMD, NVDA, TSLA, and selected small-cap runners (BBAI, CLOV, MARA, RIOT).
-
-### Database Schema
-
-The PostgreSQL database includes:
-- `ml_models`: Core model storage with GZIP compression
-- `ml_model_components`: Multi-head model component storage
-- Model versioning with rollback capability
-
-## Investor Readiness (December 2025)
-
-### Investor Documentation
-
-| Document | Purpose |
-|----------|---------|
-| `INVESTOR_CONCERNS_ADDRESSED.md` | Direct response to 6 key investor concerns |
-| `docs/investor/` | Complete investor portal (30+ documents) |
-| `docs/investor_due_diligence/` | Technical due diligence suite |
-| `investor_logs/` | Trade logs, compliance attestations, reports |
-
-### Addressed Investor Concerns
-
-1. **Paper Trading Only** → Track record system, path to live defined
-2. **Revenue Model** → 4 commercial paths documented (IP acquisition, licensing, SaaS, mobile)
-3. **Competitive Moat** → 7 defensibility layers documented
-4. **Scalability** → Strategic rationale + desktop-to-server-to-cloud path
-5. **API Dependencies** → 5-layer resilience architecture
-6. **Single Developer** → Comprehensive documentation for knowledge transfer
