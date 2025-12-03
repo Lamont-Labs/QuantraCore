@@ -133,7 +133,12 @@ class EnrichedDataFusion:
     
     def __init__(self):
         self._cache: Dict[str, Any] = {}
-        self._cache_ttl = 300
+        self._cache_ttl = 900
+        self._cache_timestamps: Dict[str, datetime] = {}
+        
+        self._economic_cache: Dict[str, Any] = {}
+        self._economic_cache_time: Optional[datetime] = None
+        self._economic_cache_ttl = 1800
         
         self._init_adapters()
         self._log_status()
@@ -251,17 +256,26 @@ class EnrichedDataFusion:
         Create an enriched sample with features from all 7 data sources.
         
         This is the main entry point for the learning cycles.
+        Uses aggressive caching to prevent API rate limit floods.
         """
+        cache_key = f"enriched:{symbol}"
+        now = datetime.utcnow()
+        
+        if cache_key in self._cache:
+            cached_time = self._cache_timestamps.get(cache_key)
+            if cached_time and (now - cached_time).total_seconds() < self._cache_ttl:
+                return self._cache[cache_key]
+        
         sample = EnrichedSample(
             symbol=symbol,
-            timestamp=datetime.utcnow()
+            timestamp=now
         )
         
         with ThreadPoolExecutor(max_workers=6) as executor:
             futures = {}
             
-            futures[executor.submit(self._get_sentiment_features, symbol)] = "sentiment"
-            futures[executor.submit(self._get_economic_features)] = "economic"
+            futures[executor.submit(self._get_sentiment_features_cached, symbol)] = "sentiment"
+            futures[executor.submit(self._get_economic_features_cached)] = "economic"
             futures[executor.submit(self._get_insider_features, symbol)] = "insider"
             futures[executor.submit(self._get_crypto_features)] = "crypto"
             
@@ -285,7 +299,38 @@ class EnrichedDataFusion:
                 except Exception as e:
                     logger.debug(f"Error getting {feature_type} features: {e}")
         
+        self._cache[cache_key] = sample
+        self._cache_timestamps[cache_key] = now
+        
         return sample
+    
+    def _get_sentiment_features_cached(self, symbol: str) -> tuple:
+        """Get sentiment features with per-symbol caching (15 min TTL)."""
+        cache_key = f"sentiment:{symbol}"
+        now = datetime.utcnow()
+        
+        if cache_key in self._cache:
+            cached_time = self._cache_timestamps.get(cache_key)
+            if cached_time and (now - cached_time).total_seconds() < self._cache_ttl:
+                return self._cache[cache_key], "cached"
+        
+        result = self._get_sentiment_features(symbol)
+        self._cache[cache_key] = result[0]
+        self._cache_timestamps[cache_key] = now
+        return result
+    
+    def _get_economic_features_cached(self) -> tuple:
+        """Get economic features with global caching (30 min TTL) - FRED data rarely changes."""
+        now = datetime.utcnow()
+        
+        if self._economic_cache and self._economic_cache_time:
+            if (now - self._economic_cache_time).total_seconds() < self._economic_cache_ttl:
+                return self._economic_cache, "cached"
+        
+        result = self._get_economic_features()
+        self._economic_cache = result[0]
+        self._economic_cache_time = now
+        return result
     
     def _get_sentiment_features(self, symbol: str) -> tuple:
         """Get sentiment features from Finnhub and Alpha Vantage."""
