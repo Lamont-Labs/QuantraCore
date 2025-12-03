@@ -10039,6 +10039,132 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    @app.get("/investor/metrics")
+    async def get_investor_metrics():
+        """
+        Get comprehensive system metrics for investors.
+        Public endpoint - no API key required for transparency.
+        """
+        import glob
+        
+        try:
+            from src.quantracore_apex.server.ml_scanner import (
+                get_alpaca_positions, get_alpaca_account
+            )
+            
+            portfolio_data = {}
+            try:
+                account = get_alpaca_account()
+                positions = get_alpaca_positions()
+                
+                if account and positions:
+                    winners = [p for p in positions if p.get('unrealized_pl', 0) > 0]
+                    losers = [p for p in positions if p.get('unrealized_pl', 0) <= 0]
+                    total_pl = sum(p.get('unrealized_pl', 0) for p in positions)
+                    
+                    portfolio_data = {
+                        "total_equity": account.get('portfolio_value', 0),
+                        "cash": account.get('cash', 0),
+                        "positions_count": len(positions),
+                        "total_pnl": total_pl,
+                        "total_pnl_pct": (total_pl / account.get('portfolio_value', 1)) * 100 if account.get('portfolio_value') else 0,
+                        "winners_count": len(winners),
+                        "losers_count": len(losers),
+                        "win_rate": (len(winners) / len(positions) * 100) if positions else 0,
+                        "status": "connected"
+                    }
+            except Exception as e:
+                logger.warning(f"Portfolio fetch error: {e}")
+                portfolio_data = {"status": "unavailable", "error": str(e)}
+            
+            model_files = glob.glob("data/models/*.pkl.gz")
+            model_names = [os.path.basename(f).replace('.pkl.gz', '') for f in model_files]
+            
+            validation_data = {
+                "total_predictions": 0,
+                "pending_outcomes": 0,
+                "outcomes_checked": 0,
+                "true_precision": None,
+                "days_of_data": 0,
+                "status": "initializing"
+            }
+            try:
+                from src.quantracore_apex.validation.forward_validator import ForwardValidator
+                validator = ForwardValidator()
+                stats = validator.get_stats()
+                validation_data = {
+                    "total_predictions": stats.get("total_predictions", 0),
+                    "pending_outcomes": stats.get("pending_outcomes", 0),
+                    "outcomes_checked": stats.get("outcomes_checked", 0),
+                    "true_precision": stats.get("true_precision", None),
+                    "days_of_data": stats.get("days_of_data", 0),
+                    "status": "operational"
+                }
+            except Exception as e:
+                logger.warning(f"Validation fetch error: {e}")
+                validation_data["status"] = "unavailable"
+                validation_data["message"] = "Forward validation system initializing"
+            
+            autotrader_status = {}
+            try:
+                from src.quantracore_apex.trading.auto_trader import get_autotrader_status
+                autotrader_status = get_autotrader_status()
+            except:
+                autotrader_status = {"enabled": False, "status": "unavailable"}
+            
+            return {
+                "system": {
+                    "name": "QuantraCore Apex",
+                    "version": "v9.0-A",
+                    "company": "Lamont Labs",
+                    "tagline": "Institutional-Grade Autonomous Trading Intelligence",
+                    "status": "operational"
+                },
+                "capabilities": {
+                    "api_endpoints": 30,
+                    "ml_models_loaded": len(model_names),
+                    "ml_model_names": model_names[:5],
+                    "data_providers": ["Polygon.io", "Alpaca", "FRED", "Finnhub", "Alpha Vantage"],
+                    "data_provider_count": 5,
+                    "trading_modes": ["Swing", "Position", "Intraday"],
+                    "autonomous_features": ["AutoTrader", "AutoLearner", "Forward Validation", "Hyperspeed Training"]
+                },
+                "portfolio": portfolio_data,
+                "forward_validation": validation_data,
+                "autotrader": {
+                    "enabled": autotrader_status.get("enabled", False),
+                    "mode": autotrader_status.get("mode", "paper"),
+                    "min_score": autotrader_status.get("min_quantrascore", 65)
+                },
+                "technology_stack": {
+                    "backend": "Python 3.11 + FastAPI",
+                    "frontend": "React 18 + Vite + Tailwind",
+                    "ml": "scikit-learn Ensemble + Custom Models",
+                    "database": "PostgreSQL",
+                    "broker": "Alpaca Paper Trading"
+                },
+                "roadmap": [
+                    {"phase": "Current", "milestone": "Paper Trading Validation", "status": "active"},
+                    {"phase": "30 Days", "milestone": "Forward Validation Proof", "status": "in_progress"},
+                    {"phase": "90 Days", "milestone": "Extended Track Record", "status": "planned"},
+                    {"phase": "6 Months", "milestone": "Live Trading Beta", "status": "planned"},
+                    {"phase": "12 Months", "milestone": "Institutional Licensing", "status": "planned"}
+                ],
+                "disclaimers": {
+                    "not_financial_advice": True,
+                    "paper_trading_only": True,
+                    "past_performance_disclaimer": "Past performance does not guarantee future results"
+                },
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Investor metrics error: {e}")
+            return {
+                "error": str(e),
+                "system": {"name": "QuantraCore Apex", "status": "error"},
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
     return app
 
 

@@ -704,6 +704,10 @@ export const api = {
     const query = limit ? `?limit=${limit}` : ''
     return request(`/logs/provenance${query}`)
   },
+
+  getInvestorMetrics(): Promise<InvestorMetricsResponse> {
+    return request('/investor/metrics')
+  },
 }
 
 export interface BacktestRequest {
@@ -785,5 +789,61 @@ export interface ProvenanceResponse {
   records: ProvenanceRecord[]
   count: number
   note: string
+  timestamp: string
+}
+
+export interface InvestorMetricsResponse {
+  system: {
+    name: string
+    version: string
+    company: string
+    tagline: string
+    status: string
+  }
+  capabilities: {
+    api_endpoints: number
+    ml_models_loaded: number
+    ml_model_names: string[]
+    data_providers: string[]
+    data_provider_count: number
+    trading_modes: string[]
+    autonomous_features: string[]
+  }
+  portfolio: {
+    total_equity?: number
+    cash?: number
+    positions_count?: number
+    total_pnl?: number
+    total_pnl_pct?: number
+    winners_count?: number
+    losers_count?: number
+    win_rate?: number
+    status: string
+  }
+  forward_validation: {
+    total_predictions: number
+    pending_outcomes: number
+    outcomes_checked: number
+    true_precision: number | null
+    days_of_data: number
+    status: string
+    message?: string
+  }
+  autotrader: {
+    enabled: boolean
+    mode: string
+    min_score: number
+  }
+  technology_stack: Record<string, string>
+  roadmap: Array<{
+    phase: string
+    milestone: string
+    status: string
+  }>
+  disclaimers: {
+    not_financial_advice: boolean
+    paper_trading_only: boolean
+    past_performance_disclaimer: string
+  }
   timestamp: string
 }

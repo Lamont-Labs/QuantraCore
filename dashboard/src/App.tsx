@@ -9,6 +9,7 @@ import { ApexLabPage } from './components/ApexLabPage'
 import { ModelsPage } from './components/ModelsPage'
 import { LogsPage } from './components/LogsPage'
 import { SwingTradePage } from './components/SwingTradePage'
+import { InvestorPage } from './components/InvestorPage'
 import { SystemStatusPanel } from './components/SystemStatusPanel'
 import { PortfolioPanel } from './components/PortfolioPanel'
 import { TradingSetupsPanel } from './components/TradingSetupsPanel'
@@ -29,7 +30,7 @@ import { LazyPanel, PanelSkeleton } from './components/LazyPanel'
 import { VelocityProvider, useVelocityMode } from './hooks/useVelocityMode'
 import { api, type ScanResult, type HealthResponse, type UniverseResult } from './lib/api'
 
-export type NavItem = 'dashboard' | 'swing' | 'research' | 'apexlab' | 'models' | 'logs'
+export type NavItem = 'dashboard' | 'swing' | 'research' | 'apexlab' | 'models' | 'logs' | 'investor'
 
 const DEFAULT_UNIVERSE = [
   'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'META', 'TSLA', 'AMD', 'INTC', 'NFLX',
@@ -309,6 +310,7 @@ function AppContent() {
           {activeNav === 'apexlab' && <ApexLabPage />}
           {activeNav === 'models' && <ModelsPage />}
           {activeNav === 'logs' && <LogsPage />}
+          {activeNav === 'investor' && <InvestorPage />}
         </main>
 
         <footer className="h-10 bg-[#030508] border-t border-[#0096ff]/20 px-6 flex items-center justify-between text-xs text-slate-500">

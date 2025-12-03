@@ -12,6 +12,7 @@ const navItems: { id: NavItem; label: string; icon: string; description?: string
   { id: 'apexlab', label: 'ApexLab', icon: '⬡', description: 'Model training' },
   { id: 'models', label: 'ApexCore Models', icon: '◈', description: 'Neural network status' },
   { id: 'logs', label: 'Logs & Provenance', icon: '≡', description: 'Audit trail' },
+  { id: 'investor', label: 'Investor Metrics', icon: '◇', description: 'Public dashboard' },
 ]
 
 export function LeftRail({ activeNav, onNavChange }: LeftRailProps) {
