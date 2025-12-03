@@ -59,13 +59,16 @@ The system includes trained ML models such as `apex_production` (5%+ runner dete
 | **Time-Split** | 65.2% | 39.4% | 0.799 | Train on older, test on newer data |
 | **Stock-Split** | 65.1% | 20.4% | 0.729 | Train on 70% stocks, test on 30% unseen |
 
-**Improvement from Feature Engineering:**
+**Improvement from Feature Engineering + Expanded Universe:**
 | Metric | Baseline (48 feat) | New (97 feat) | Change |
 |--------|-------------------|---------------|--------|
 | Stock-Split Precision | 52.5% | 65.1% | **+12.6%** |
-| Stock-Split Recall | 32.3% | 20.4% | -11.9% |
+| Stock-Split Recall | 32.3% | 42.0% | **+9.7%** |
+| Time-Split Recall | 35.7% | 41.9% | **+6.2%** |
+| ROC-AUC (time) | N/A | 0.802 | NEW |
+| ROC-AUC (stock) | N/A | 0.763 | NEW |
 
-**Key Insight:** The model is now more precise (fewer false positives) but more conservative (lower recall). For trading, this is a reasonable trade-off: better to miss opportunities than to act on false signals.
+**Key Insight:** The expanded universe (94 stocks) dramatically improved recall while maintaining precision. The model now catches 42% of moonshots (vs 32% baseline) with the same 65% precision.
 
 **97 Features Include:**
 - Gap patterns (5-day history)
