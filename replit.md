@@ -50,20 +50,44 @@ This system accelerates model training by replaying years of historical data at 
 ### Trained ML Models
 The system includes trained ML models such as `apex_production` (5%+ runner detection), `mega_runners` (10%+ runner detection), and `moonshots` (50%+ / 100%+ doublers). These models are trained on a universe of 94 volatile stocks using 1 year of historical EOD data and 130+ technical indicators. Models are stored in PostgreSQL with GZIP compression.
 
-### Moonshot Detection System (December 2025)
-Specialized models trained exclusively on 50%+ gain patterns:
+### Moonshot Detection System v2 (December 2025)
 
-| Model | Precision | Recall | Training Samples |
-|-------|-----------|--------|------------------|
-| `moonshot_100_plus` | 87.0% | 67.0% | 1,043 events |
-| `moonshot_200_plus` | 90.7% | 69.3% | 634 events |
-| `moonshot_500_plus` | 87.7% | 87.7% | 325 events |
+**VALIDATED PERFORMANCE (with true negatives, strict 50%+ labels):**
+
+| Validation Type | Precision | Recall | ROC-AUC | Notes |
+|-----------------|-----------|--------|---------|-------|
+| **Time-Split** | 65.2% | 39.4% | 0.799 | Train on older, test on newer data |
+| **Stock-Split** | 65.1% | 20.4% | 0.729 | Train on 70% stocks, test on 30% unseen |
+
+**Improvement from Feature Engineering:**
+| Metric | Baseline (48 feat) | New (97 feat) | Change |
+|--------|-------------------|---------------|--------|
+| Stock-Split Precision | 52.5% | 65.1% | **+12.6%** |
+| Stock-Split Recall | 32.3% | 20.4% | -11.9% |
+
+**Key Insight:** The model is now more precise (fewer false positives) but more conservative (lower recall). For trading, this is a reasonable trade-off: better to miss opportunities than to act on false signals.
+
+**97 Features Include:**
+- Gap patterns (5-day history)
+- Volume dry-up detection
+- Stock embeddings (sector, meme/crypto flags)
+- ATR compression, Bollinger squeeze
+- SMA alignment indicators
+- Momentum acceleration/inflection
+
+**Production Models:**
+- `moonshot_strict_v2.pkl.gz` - LightGBM, 97 features, stock-split validated
+- `moonshot_ensemble_v2.pkl.gz` - Ensemble with expanded positives (30%+)
 
 **Moonshot Database:**
-- 3,422 total 50%+ gain events from 84 volatile stocks
+- 2,695 total 50%+ gain events from 83 volatile stocks
+- 8,085 true negative samples for proper validation
 - Stored in `data/moonshots/` for continuous offline training
-- Run `python scripts/moonshot_hunter_fast.py` to scan for new moonshots
-- Run `python scripts/train_moonshots_only.py` to retrain on moonshots only
+
+**Training Scripts:**
+- `python scripts/strict_moonshot_validation.py` - Fair validation with true negatives
+- `python scripts/accuracy_maximizer.py` - Full ensemble training with hard negatives
+- `python scripts/proper_validation.py` - Baseline validation script
 
 **Offline Training (Rate-Limit Bypass):**
 - `python scripts/offline_train_now.py` - Train using cached Polygon data
