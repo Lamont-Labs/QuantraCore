@@ -71,7 +71,7 @@ class ForwardValidator:
         """Lazy init dependencies to avoid circular imports."""
         if self._polygon is None:
             try:
-                from src.quantracore_apex.data_layer.polygon_adapter import PolygonAdapter
+                from src.quantracore_apex.data_layer.adapters.polygon_adapter import PolygonAdapter
                 self._polygon = PolygonAdapter()
             except Exception as e:
                 logger.warning(f"Could not init Polygon: {e}")
@@ -81,7 +81,7 @@ class ForwardValidator:
                 from src.quantracore_apex.ml.massive_predictor import MassivePredictor
                 self._predictor = MassivePredictor()
             except Exception as e:
-                logger.warning(f"Could not init predictor: {e}")
+                logger.debug(f"Predictor not available: {e}")
     
     def record_prediction(
         self,
@@ -359,25 +359,45 @@ class ForwardValidator:
         """
         self._init_dependencies()
         
-        if not self._predictor:
-            logger.warning("Predictor not available")
-            return 0
-        
         try:
-            from src.quantracore_apex.scanning.universe_scanner import UniverseScanner
+            from src.quantracore_apex.core.universe_scan import UniverseScanner
             scanner = UniverseScanner()
-            setups = scanner.scan_universe(top_n=top_n * 2, min_score=min_score)
+            
+            scan_result = scanner.scan(mode="mega_large_focus", max_symbols=200)
+            
+            setups = []
+            for sr in scan_result.results:
+                if sr.quantrascore >= min_score and not sr.error:
+                    setups.append({
+                        "symbol": sr.symbol,
+                        "score": sr.quantrascore,
+                        "entry_price": getattr(sr, 'close', None),
+                    })
+            
+            setups.sort(key=lambda x: x["score"], reverse=True)
             
             recorded = 0
             for setup in setups[:top_n]:
-                if self.record_prediction(
-                    symbol=setup.get("symbol"),
-                    model_score=setup.get("score", 0),
-                    consensus_count=setup.get("consensus_count", 0),
-                    avg_confidence=setup.get("avg_confidence", 0),
-                    entry_price=setup.get("entry_price", setup.get("close")),
-                ):
-                    recorded += 1
+                self._init_dependencies()
+                entry_price = setup.get("entry_price")
+                
+                if entry_price is None and self._polygon:
+                    try:
+                        bars = self._polygon.get_daily_bars(setup["symbol"], days=1)
+                        if bars and len(bars) > 0:
+                            entry_price = bars[-1].get("close", 0)
+                    except:
+                        pass
+                
+                if entry_price and entry_price > 0:
+                    if self.record_prediction(
+                        symbol=setup["symbol"],
+                        model_score=setup["score"],
+                        consensus_count=0,
+                        avg_confidence=setup["score"] / 100.0,
+                        entry_price=entry_price,
+                    ):
+                        recorded += 1
             
             logger.info(f"[ForwardValidator] Recorded {recorded} top predictions for today")
             return recorded

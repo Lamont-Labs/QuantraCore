@@ -423,6 +423,127 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    # =============================================================================
+    # FORWARD VALIDATION ENDPOINTS - Prove real accuracy with unbiased results
+    # =============================================================================
+    
+    _forward_validator = None
+    
+    def get_forward_validator():
+        nonlocal _forward_validator
+        if _forward_validator is None:
+            from src.quantracore_apex.validation.forward_validator import ForwardValidator
+            _forward_validator = ForwardValidator()
+            _forward_validator.start_scheduler()
+        return _forward_validator
+    
+    @app.get("/validation/stats")
+    async def get_validation_stats(days: int = 30):
+        """
+        Get forward validation statistics - TRUE unbiased accuracy metrics.
+        
+        These are real predictions recorded BEFORE outcomes were known.
+        """
+        try:
+            validator = get_forward_validator()
+            stats = validator.get_stats(days=days)
+            
+            return {
+                "period_days": days,
+                "total_predictions": stats.total_predictions,
+                "outcomes_checked": stats.checked_outcomes,
+                "pending_outcomes": stats.pending_outcomes,
+                "hits": stats.hits,
+                "misses": stats.misses,
+                "true_precision": stats.precision,
+                "avg_gain_on_hits": stats.avg_gain_on_hits,
+                "avg_gain_on_misses": stats.avg_loss_on_misses,
+                "best_gain": stats.best_gain,
+                "worst_result": stats.worst_loss,
+                "avg_days_to_peak": stats.avg_days_to_peak,
+                "confidence_note": "These metrics are from forward testing - predictions recorded before outcomes were known",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Validation stats error: {e}")
+            return {"error": str(e), "true_precision": 0, "total_predictions": 0}
+    
+    @app.get("/validation/predictions")
+    async def get_validation_predictions(limit: int = 50):
+        """Get recent predictions and their outcomes."""
+        try:
+            validator = get_forward_validator()
+            predictions = validator.get_recent_predictions(limit=limit)
+            
+            formatted = []
+            for p in predictions:
+                formatted.append({
+                    "symbol": p["symbol"],
+                    "date": p["prediction_date"].isoformat() if p["prediction_date"] else None,
+                    "score": p["model_score"],
+                    "consensus": p["consensus_count"],
+                    "entry_price": p["entry_price"],
+                    "checked": p["outcome_checked"],
+                    "outcome": p["actual_outcome"],
+                    "max_gain_pct": p["max_gain_pct"],
+                    "days_to_peak": p["days_to_peak"]
+                })
+            
+            return {
+                "predictions": formatted,
+                "count": len(formatted),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Validation predictions error: {e}")
+            return {"predictions": [], "error": str(e)}
+    
+    @app.post("/validation/record")
+    async def record_todays_predictions(background_tasks: BackgroundTasks, min_score: float = 70, top_n: int = 20):
+        """Record today's top predictions for forward validation."""
+        try:
+            validator = get_forward_validator()
+            
+            def record_task():
+                try:
+                    count = validator.record_todays_top_predictions(min_score=min_score, top_n=top_n)
+                    logger.info(f"Recorded {count} predictions for validation")
+                except Exception as e:
+                    logger.error(f"Record predictions error: {e}")
+            
+            background_tasks.add_task(record_task)
+            
+            return {
+                "status": "recording",
+                "message": f"Recording top {top_n} predictions with score >= {min_score}",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/validation/check-outcomes")
+    async def check_prediction_outcomes(background_tasks: BackgroundTasks):
+        """Check outcomes for predictions made 5+ days ago."""
+        try:
+            validator = get_forward_validator()
+            
+            def check_task():
+                try:
+                    results = validator.check_outcomes()
+                    logger.info(f"Outcome check: {results}")
+                except Exception as e:
+                    logger.error(f"Check outcomes error: {e}")
+            
+            background_tasks.add_task(check_task)
+            
+            return {
+                "status": "checking",
+                "message": "Checking outcomes for mature predictions",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
     @app.get("/market/hours")
     async def get_market_hours():
         """
