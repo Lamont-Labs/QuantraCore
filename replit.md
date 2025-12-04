@@ -1,65 +1,102 @@
 # QuantraCore Apex — Replit Project Documentation
 
+**Last Updated:** 2025-12-04
+
 ## Overview
-QuantraCore Apex is an institutional-grade, deterministic AI trading intelligence engine designed for desktop use. It features an offline learning ecosystem (ApexLab), on-device neural assistant models (ApexCore V4 with 16 prediction heads), and a Hyperspeed Learning System for accelerated model maturity. The system supports all trading types (long, short, intraday, swing, scalping) primarily through Alpaca paper trading, with a strong emphasis on determinism, accuracy optimization, and self-learning. Its core purpose is to provide a robust, self-improving platform with advanced risk management, database-backed ML persistence, and comprehensive reporting for both retail and institutional users. The project aims to deliver a self-improving platform for advanced risk management and comprehensive reporting, with a clear path towards commercialization through IP acquisition, licensing, SaaS, and mobile applications.
+
+QuantraCore Apex v9.0-A is an autonomous AI trading system designed to detect stocks ready for massive runs (50%+ gains) within 5 trading days using EOD data, targeting 70%+ precision. The system operates through Alpaca paper trading with automatic stop-loss management and forward validation tracking to prove real-world performance.
+
+**Current Status:**
+- 11 active paper trading positions
+- Primary model: massive_ensemble_v3.pkl.gz
+- Stop-loss system active (-15% hard, +10%/8% trailing, 5-day time limit)
+- Forward validation tracking all predictions
 
 ## User Preferences
 - **Communication:** Simple language with detailed explanations
 - **Workflow:** Iterative development with confirmation before major changes
 - **Coding Style:** Functional programming paradigms preferred
 - **Data Policy:** Absolutely no placeholders - everything must use real data
-- **Restrictions:** Do not modify folder `Z` or file `Y`
 
 ## System Architecture
 
-### UI/UX Decisions
-The frontend, built with React 18.2, Vite 7.2, and Tailwind CSS 4.0, employs an institutional trading terminal aesthetic and a custom design system. The ApexDesk Dashboard provides 15 real-time monitoring panels with configurable refresh rates (Standard: 30s, High Velocity: 5s, Turbo: 2s), optimized with request throttling and lazy loading.
+### Codebase Metrics (Verified 2025-12-04)
+| Metric | Value |
+|--------|-------|
+| Python Source Files | 423 |
+| Python Lines of Code | 104,903 |
+| TypeScript/React Files | 38 |
+| API Endpoints | 263 |
+| ML Model Files | 21 |
+| Test Modules | 38 |
 
-### Technical Implementations
-- **Backend:** Python 3.11, FastAPI, Uvicorn (port 8000, 4 workers).
-- **Frontend:** React 18.2, Vite 7.2, Tailwind CSS 4.0, TypeScript (port 5000).
-- **Machine Learning:** `scikit-learn` (GradientBoosting), `joblib`, `NumPy`, `Pandas`. ApexCore V4 features 16 prediction heads.
-- **Database:** PostgreSQL for ML model persistence with GZIP compression, version history, and rollback.
-- **Testing:** `pytest` (backend), `vitest` (frontend).
-- **API Endpoints:** REST APIs for trading, data, scanning, health, model management, reporting, and hyperspeed learning control.
-- **Security:** `X-API-Key` authentication and restrictive CORS.
-- **Performance:** ORJSONResponse, GZipMiddleware, 4-worker Uvicorn, expanded TTL caches, module-level ML model caching, Alpaca client caching, parallel universe scanning, prediction result caching.
-- **Stability:** Circuit breakers for all 5 data providers, model preloading, status caching, graceful degradation, and frontend retry logic.
+### Technical Stack
+- **Backend:** Python 3.11, FastAPI, Uvicorn (port 8000, 4 workers)
+- **Frontend:** React 18.2, Vite 7.2, Tailwind CSS 4.0, TypeScript (port 5000)
+- **Machine Learning:** scikit-learn, LightGBM, joblib, NumPy, Pandas
+- **Database:** PostgreSQL for ML model persistence
+- **Testing:** pytest (backend), vitest (frontend)
+- **Security:** X-API-Key authentication, restrictive CORS
 
-### Feature Specifications
-- **Full Trading Capabilities:** Supports various trade types with configurable risk limits and order types.
-- **Deterministic Core:** Ensures consistent outputs for identical inputs.
-- **Offline ML (ApexCore V4):** On-device neural models with 16 prediction heads.
-- **Accuracy Optimization System:** 8-module suite for calibration, regime-gating, uncertainty quantification, and auto-retraining.
-- **Self-Learning (Alpha Factory & Continuous Learning System):** 24/7 live research loop via WebSockets.
-- **Hyperspeed Learning System:** Accelerates ML training through 1000x historical data replay, parallel battle simulations, multi-source data fusion, and overnight intensive training.
-- **Signal & Alert Services:** Manual Trading Signal Service, Twilio SMS alerts, and browser Push Notifications.
-- **Low-Float Runner Screener:** Real-time scanner for penny stocks.
-- **Protocol System:** Extensive suite of trading protocols (T01-T80, LP01-LP25, MR01-MR20, Ω01-Ω20).
-- **Investor Reporting & Logging:** Comprehensive logging for paper trades, performance metrics, and ML model training, including automated daily compliance attestations.
-- **Automated Swing Trade Execution (AutoTrader):** Autonomous setup scanning, position sizing, and market order execution.
-- **Model Management:** Hot Model Reload System (ModelManager) and Dual-Phase Incremental Learning (IncrementalTrainer).
-- **Trade Hold Manager:** Continuation probability-based system for active positions.
-- **Extended Market Hours Trading:** Full support for pre-market, regular, and after-hours trading.
-- **Multi-Source Data Ingestion:** Options flow, sentiment analysis, Level 2 data, dark pool activity, economic indicators, and alternative data feeds.
-- **Moonshot Detection System v2:** Includes `moonshot_strict_v2.pkl.gz` (LightGBM, 97 features) and `moonshot_ensemble_v2.pkl.gz` for detecting 50%+ gain events.
-- **Forward Validation System:** Unbiased model accuracy measurement by recording predictions before outcomes are known, calculating true precision based on achieving 50%+ gain within 5 trading days.
+### Core Features
 
-### System Design Choices
-- **Broker Layer:** Supports `NullAdapter`, `PaperSimAdapter`, and `AlpacaPaperAdapter`.
-- **Data Layer:** Polygon.io for market data, Alpaca for execution, Binance for crypto.
-- **Configuration:** Parameters managed via `config/data_sources.yaml`, `config/broker.yaml`, and `config/scan_modes.yaml`.
+#### Moonshot Detection System
+- **Goal:** Detect stocks ready for 50%+ gains within 5 trading days
+- **Target Precision:** 70%+
+- **Primary Model:** massive_ensemble_v3.pkl.gz
+- **Data Source:** EOD (End of Day) prices for reliable signals
+
+#### Automatic Stop-Loss Management
+| Rule | Configuration |
+|------|--------------|
+| Hard Stop | -15% from entry price |
+| Trailing Stop | Activates at +10% gain, trails 8% below highest price |
+| Time Stop | Exit after 5 days if gain < 5% |
+
+#### Forward Validation System
+- Records predictions before outcomes are known
+- Tracks actual results to calculate true precision
+- Proves model accuracy with real data
+
+#### AutoTrader
+- Autonomous position entry on high-confidence signals
+- Automatic position sizing based on risk rules
+- Full paper trading integration via Alpaca
+
+### API Endpoints (Key)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/portfolio/status` | GET | Current positions and P&L |
+| `/stops/status` | GET | Stop-loss status for all positions |
+| `/stops/exit-signals` | GET | Positions needing exit |
+| `/validation/status` | GET | Forward validation metrics |
+| `/moonshot/detect` | POST | Moonshot candidate detection |
+| `/scan_universe_mode` | POST | Universe scan |
+
+### Protocol System
+- **Tier Protocols (T01-T80):** Market structure analysis
+- **Learning Protocols (LP01-LP25):** Label generation for training
+- **MonsterRunner Protocols (MR01-MR20):** Extreme move detection
+- **Omega Directives (Ω01-Ω20):** Safety and compliance rules
 
 ## External Dependencies
-- **Polygon.io:** EOD prices, historical data, ML training.
-- **Alpaca:** Paper trading, order execution, positions, portfolio (primary training data source).
-- **FRED:** Federal Reserve economic data.
-- **Finnhub:** Reddit/Twitter social sentiment, insider transactions.
-- **Alpha Vantage:** AI-powered news sentiment, technical indicators.
-- **SEC EDGAR:** Insider trades (Form 4), 13F holdings, 8-K events.
-- **Binance:** Cryptocurrency data for Alpha Factory.
-- **Twilio:** SMS alerts for trading signals.
-- **Google Docs:** Automated reporting via Replit OAuth2.
-- **PostgreSQL:** Database for ML model persistence.
-- **Nasdaq Data Link (Optional):** COT futures positioning.
-- **FMP (Optional):** Earnings calendar, DCF valuations, company profiles.
+- **Alpaca:** Paper trading, order execution, positions (Free tier: 200 calls/min, IEX-only)
+- **Polygon.io:** EOD prices, historical data (Free tier: 5 calls/min)
+- **FRED:** Federal Reserve economic data
+- **Finnhub:** Social sentiment, insider transactions
+- **Alpha Vantage:** News sentiment, technical indicators
+- **Twilio:** SMS alerts for trading signals
+- **Google Docs:** Automated reporting via Replit OAuth2
+- **PostgreSQL:** ML model persistence
+
+## Data Plans
+| Provider | Current Plan | Rate Limit | Notes |
+|----------|--------------|------------|-------|
+| Alpaca | Free | 200 calls/min | IEX-only data |
+| Polygon | Free | 5 calls/min | EOD prices |
+| Alpaca Algo Trader Plus | Available ($99/mo) | 10k calls/min | Full SIP feed |
+
+## Current Portfolio (Paper Trading)
+- 11 active positions
+- All positions monitored by stop-loss system
+- Breakout timing estimates: 2-6 days based on position age and P&L

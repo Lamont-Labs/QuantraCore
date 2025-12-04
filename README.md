@@ -1,10 +1,7 @@
 # QuantraCore Apex
 
-**Institutional-Grade Deterministic AI Trading Intelligence Engine**
+**Institutional-Grade Autonomous AI Trading System for Moonshot Detection**
 
-[![Tests](https://img.shields.io/badge/tests-1145%20passed-brightgreen)]()
-[![Compliance](https://img.shields.io/badge/regulatory-163%2B%20tests-blueviolet)]()
-[![Security](https://img.shields.io/badge/security-fail--closed-critical)]()
 [![Mode](https://img.shields.io/badge/mode-PAPER%20TRADING-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.11-blue)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)]()
@@ -15,14 +12,14 @@
 [![Desktop](https://img.shields.io/badge/platform-desktop%20only-orange)]()
 [![License](https://img.shields.io/badge/license-proprietary-red)]()
 [![Status](https://img.shields.io/badge/status-production--ready-success)]()
-[![Code](https://img.shields.io/badge/lines-121K+-informational)]()
-[![Endpoints](https://img.shields.io/badge/API-148%20endpoints-blueviolet)]()
-[![Dashboard](https://img.shields.io/badge/Dashboard-9%20panels-cyan)]()
+[![Code](https://img.shields.io/badge/lines-105K-informational)]()
+[![Endpoints](https://img.shields.io/badge/API-263%20endpoints-blueviolet)]()
 
 **Owner:** Lamont Labs - Jesse J. Lamont  
 **Version:** v9.0-A (Production-Ready Paper Trading)  
 **Architecture:** Desktop-Only | Mode: PAPER (Alpaca Connected)  
 **Stage:** Beta / Production-Ready  
+**Last Updated:** 2025-12-04  
 
 ---
 
@@ -38,12 +35,14 @@
 
 | Metric | Value |
 |--------|-------|
-| **Codebase** | 102,000+ lines Python, 415 source files |
-| **Tests** | 1,145 tests, 100% pass rate |
-| **Documentation** | 50+ documents, 20,000+ lines |
-| **API Endpoints** | 148 REST endpoints |
+| **Codebase** | 104,903 lines Python, 423 source files |
+| **Frontend** | 38 TypeScript/React files |
+| **API Endpoints** | 263 REST endpoints |
+| **ML Models** | 21 trained models (primary: massive_ensemble_v3) |
 | **Protocols** | 145 (T01-T80, LP01-LP25, MR01-MR20, Ω01-Ω20) |
-| **Commercial Paths** | IP Acquisition, Licensing, SaaS, Mobile App |
+| **Target** | 50%+ gains in 5 days, 70%+ precision |
+| **Current Status** | 11 active paper trading positions |
+| **Commercial Paths** | IP Acquisition, Licensing, SaaS |
 
 ---
 
@@ -52,15 +51,16 @@
 | Component | Status | Details |
 |-----------|--------|---------|
 | **ApexEngine** | Operational | Deterministic core with 80 Tier protocols |
-| **ApexDesk UI** | Operational | React 18.2 + Vite 7.2 + Tailwind CSS 4 (9 panels) |
-| **FastAPI Backend** | Operational | **148 REST endpoints** on port 8000 |
-| **Test Suite** | **1,145 tests passing** | Regulatory excellence + hardening + institutional |
+| **ApexDesk UI** | Operational | React 18.2 + Vite 7.2 + Tailwind CSS 4 |
+| **FastAPI Backend** | Operational | **263 REST endpoints** on port 8000 |
 | **Universal Scanner** | Operational | 7 market cap buckets, 4 scan modes |
-| **Alpaca Paper Trading** | **Connected** | All position types enabled |
-| **Data Layer** | Operational | 7 sources: Polygon, Alpaca, FRED, Finnhub, Alpha Vantage, SEC EDGAR, Binance |
-| **ApexCore Models** | Operational | V4 neural models with 16 prediction heads |
-| **Broker Layer** | Operational | Paper trading with 9-check risk engine |
-| **EEO Engine** | Operational | Entry/exit optimization, 6 strategies |
+| **Alpaca Paper Trading** | **Connected** | 11 active positions |
+| **Moonshot Detection** | Operational | massive_ensemble_v3 model (50%+ gain detection) |
+| **Stop-Loss System** | Operational | -15% hard, +10%/8% trailing, 5-day time stop |
+| **Forward Validation** | Operational | Real-time prediction tracking |
+| **Data Layer** | Operational | Polygon, Alpaca, FRED, Finnhub, Alpha Vantage |
+| **ApexCore Models** | Operational | 21 trained models |
+| **Broker Layer** | Operational | Paper trading with risk engine |
 | **Velocity Mode** | Operational | Standard (30s), High (5s), Turbo (2s) |
 
 ### Trading Capabilities (All Enabled)
@@ -78,26 +78,28 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Files** | 516 source files |
-| **Total Lines** | 121,207 lines of code |
-| **Python** | 459 files / 88,921 lines |
-| **TypeScript/React** | 18 files / 3,123 lines |
-| **API Endpoints** | 123 REST endpoints |
+| **Python Source Files** | 423 files |
+| **Python Lines** | 104,903 lines |
+| **TypeScript/React** | 38 files |
+| **API Endpoints** | 263 REST endpoints |
+| **ML Models** | 21 trained models |
+| **Test Modules** | 38 test files |
 
 ---
 
 ## What This System Does
 
-QuantraCore Apex is a **research and backtesting platform** that:
+QuantraCore Apex is an **autonomous moonshot detection and trading system** that:
 
+- **Detects Moonshot Candidates**: Identifies stocks ready for 50%+ gains within 5 trading days
+- **Autonomous Execution**: AutoTrader automatically enters positions on high-confidence signals
+- **Automatic Stop-Loss Management**: -15% hard stop, trailing stops (activates at +10%, trails 8%), 5-day time limit
+- **Forward Validation**: Tracks every prediction to prove real-world accuracy (70%+ precision target)
+- **EOD-Based Analysis**: Uses end-of-day data for reliable, non-noisy signals
 - Analyzes market structure using **80 Tier Protocols** (T01-T80)
 - Computes **QuantraScore** (0-100) for structural probability assessment
-- Detects regime states, entropy levels, drift conditions, and suppression patterns
 - Identifies potential extreme moves via **20 MonsterRunner protocols** (MR01-MR20)
-- Trains local neural models via **ApexLab** offline learning environment (V1 + V2)
-- **ApexLab V2**: 40+ field labeling with runner/monster/safety labels
-- **ApexCore V4**: Multi-head models with 16 output heads (quantrascore, runner, quality, avoid, regime, timing, runup, direction, volatility, momentum, support, resistance, volume, reversal, breakout, continuation)
-- **PredictiveAdvisor**: Fail-closed integration with manifest verification
+- **ApexCore V4**: Multi-head models with 16 output heads
 - Provides deterministic, reproducible analysis with cryptographic hashing
 
 ### Core Metrics Computed
@@ -126,44 +128,21 @@ QuantraCore Apex is a **research and backtesting platform** that:
 
 ---
 
-## Test Coverage
+## Testing
 
-```
-1,145 tests | 100% pass rate
-```
+The system includes 38 test modules covering:
 
-### Test Breakdown
-
-| Category | Tests | Description |
-|----------|-------|-------------|
-| **Hardening** | 34 | Protocol manifest, mode enforcement, kill switch |
-| **Broker Layer** | 34 | Order routing, risk engine, adapters |
-| **EEO Engine** | 42 | Entry/exit optimization, profiles |
-| **Core Engine** | 78 | ApexEngine instantiation, execution, result validation |
-| **Protocols** | 123 | Tier protocol loading, execution, extended Omega/MR |
-| **Scanner** | 78 | Universe scanner, volatility tags, regime detection |
-| **Model** | 68 | ApexCore model loading, inference, validation |
-| **Lab** | 97 | ApexLab label generation, feature extraction |
-| **Performance** | 19 | Protocol latency, scan speed benchmarks |
-| **Matrix** | 39 | Cross-symbol protocol matrix validation |
-| **Extreme** | 71 | Edge cases, boundary conditions |
-| **Nuclear** | 106 | Determinism verification, bit-identical reproducibility |
-| **Regulatory** | 163+ | SEC/FINRA/MiFID II/Basel compliance (2x-5x stricter) |
-| **Predictive** | 16 | ApexCore V2 integration |
-| **API/CLI** | 7 | REST endpoints, CLI commands |
-| **E2E Integration** | 26 | End-to-end system validation |
+- **Core Engine**: ApexEngine instantiation, execution, result validation
+- **Broker Layer**: Order routing, risk engine, adapters
+- **Protocols**: Tier protocol loading, execution, Omega/MR
+- **Scanner**: Universe scanner, volatility tags, regime detection
+- **Model**: ApexCore model loading, inference, validation
+- **Regulatory**: SEC/FINRA/MiFID II compliance
 
 ### Run Tests
 
 ```bash
-# Full suite (1,145 tests)
-make test
-
-# End-to-end integration (26 tests)
-make test-e2e
-
-# Quick smoke test
-make test-smoke
+pytest tests/
 ```
 
 ---
@@ -236,7 +215,7 @@ http://localhost:5000
 
 ---
 
-## API Endpoints (148 Total)
+## API Endpoints (263 Total)
 
 ### Core Analysis
 | Endpoint | Method | Description |
@@ -253,16 +232,24 @@ http://localhost:5000
 |----------|--------|-------------|
 | `/broker/status` | GET | Broker connection status |
 | `/broker/execute` | POST | Execute trade |
-| `/broker/positions` | GET | Current positions |
+| `/portfolio/status` | GET | Current portfolio & positions |
 | `/oms/orders` | GET | Order history |
-| `/eeo/plan` | POST | Entry/exit optimization |
+
+### Stop-Loss Management
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/stops/status` | GET | Stop-loss status for all positions |
+| `/stops/check/{symbol}` | GET | Check stop for specific symbol |
+| `/stops/config` | POST | Update stop-loss configuration |
+| `/stops/exit-signals` | GET | Get positions needing exit |
 
 ### Predictions & Analysis
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/predictive/advise` | POST | Get prediction advisory |
-| `/monster_runner/{symbol}` | POST | Monster runner detection |
-| `/estimated_move/{symbol}` | GET | Expected move calculation |
+| `/moonshot/detect` | POST | Moonshot candidate detection |
+| `/validation/status` | GET | Forward validation status |
+| `/validation/record` | POST | Record new prediction |
 
 ### Example API Call
 

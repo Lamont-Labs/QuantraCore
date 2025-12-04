@@ -1,7 +1,7 @@
 # QuantraCore Apex v9.0-A — Master Specification
 
 **Version:** 9.0-A (Production-Ready Paper Trading)  
-**Last Updated:** 2025-12-02  
+**Last Updated:** 2025-12-04  
 **Classification:** Technical Build Specification  
 **Purpose:** Complete technical reference for development teams  
 **Status:** Beta / Production-Ready (Paper Mode)
@@ -86,12 +86,16 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 
 | Metric | Value |
 |--------|-------|
-| **Total Files** | 478 Python files |
-| **Total Lines of Code** | 100,000+ lines |
-| **API Endpoints** | 148 REST endpoints |
+| **Python Source Files** | 423 files |
+| **Python Lines of Code** | 104,903 lines |
+| **Frontend Files** | 38 TypeScript/React files |
+| **API Endpoints** | 263 REST endpoints |
+| **ML Model Files** | 21 trained models |
+| **Test Files** | 38 test modules |
 | **Development Stage** | Beta / Production-Ready (Paper Mode) |
 | **Execution Mode** | PAPER (Alpaca connected) |
-| **Symbol Universe** | 251 symbols (64 penny, 114 low-float) |
+| **Active Positions** | 11 paper trading positions |
+| **Primary Model** | massive_ensemble_v3.pkl.gz (Moonshot Detection) |
 
 ### 1.5 Capability Summary
 
@@ -99,11 +103,14 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 - **QuantraScore**: 0-100 probability-weighted composite score
 - **Universal Scanner**: 7 market cap buckets × 4 scan modes
 - **Offline ML**: On-device ApexCore V4 neural models with **16 prediction heads**
+- **Moonshot Detection**: 50%+ gain detection within 5 trading days (70%+ precision target)
 - **Full Paper Trading**: Alpaca integration with all position types
+- **Automatic Stop-Loss**: Hard stop (-15%), trailing stop (+10% activation, 8% trail), time stop (5 days)
+- **Forward Validation**: Real-time prediction tracking to prove model accuracy
 - **Hyperspeed Learning**: 1000x accelerated model training via historical replay
 - **Self-Learning**: Feedback loop → ApexLab → periodic retraining
 - **All Trading Types**: Long, short, margin, intraday, swing, scalping
-- **Low-Float Screener**: Real-time penny runner detection (114 symbols)
+- **Low-Float Screener**: Real-time penny runner detection
 - **SMS Alerts**: Twilio-powered trading signal notifications
 - **Database Model Persistence**: PostgreSQL-backed ML models survive restarts
 
