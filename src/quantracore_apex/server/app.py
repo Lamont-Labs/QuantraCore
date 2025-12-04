@@ -1637,6 +1637,182 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    @app.get("/stops/status")
+    async def get_stops_status():
+        """
+        Get stop-loss status for all positions.
+        
+        Returns current stop levels, exit signals, and protection status.
+        """
+        from src.quantracore_apex.broker.stop_loss_manager import get_stop_loss_manager, ExitSignal
+        from datetime import date
+        
+        try:
+            stop_manager = get_stop_loss_manager()
+            
+            engine = get_broker_engine()
+            broker_positions = engine.router.get_positions()
+            
+            positions_data = []
+            for pos in broker_positions:
+                pos_dict = pos.to_dict() if hasattr(pos, 'to_dict') else pos
+                positions_data.append({
+                    "symbol": pos_dict.get("symbol", ""),
+                    "avg_entry_price": float(pos_dict.get("avg_entry_price", 0)),
+                    "qty": float(pos_dict.get("qty", 0)),
+                    "current_price": float(pos_dict.get("current_price", 0)),
+                })
+            
+            stop_manager.sync_from_broker(positions_data, date.today())
+            
+            prices = {p["symbol"]: p["current_price"] for p in positions_data}
+            check_results = stop_manager.check_all_positions(prices, date.today())
+            
+            exit_count = sum(1 for r in check_results if r.exit_signal == ExitSignal.EXIT)
+            warning_count = sum(1 for r in check_results if r.exit_signal == ExitSignal.WARNING)
+            
+            return {
+                "summary": {
+                    "total_positions": len(check_results),
+                    "exit_signals": exit_count,
+                    "warnings": warning_count,
+                    "holding": len(check_results) - exit_count - warning_count,
+                },
+                "config": stop_manager.config.to_dict(),
+                "positions": [r.to_dict() for r in check_results],
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error checking stops: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/stops/check/{symbol}")
+    async def check_stop_for_symbol(symbol: str):
+        """Check stop-loss status for a specific symbol."""
+        from src.quantracore_apex.broker.stop_loss_manager import get_stop_loss_manager
+        from datetime import date
+        
+        try:
+            stop_manager = get_stop_loss_manager()
+            
+            engine = get_broker_engine()
+            broker_positions = engine.router.get_positions()
+            
+            for pos in broker_positions:
+                pos_dict = pos.to_dict() if hasattr(pos, 'to_dict') else pos
+                if pos_dict.get("symbol", "").upper() == symbol.upper():
+                    stop_manager.sync_from_broker([{
+                        "symbol": pos_dict.get("symbol"),
+                        "avg_entry_price": float(pos_dict.get("avg_entry_price", 0)),
+                        "qty": float(pos_dict.get("qty", 0)),
+                        "current_price": float(pos_dict.get("current_price", 0)),
+                    }], date.today())
+                    
+                    result = stop_manager.check_stops(
+                        symbol.upper(),
+                        float(pos_dict.get("current_price", 0)),
+                        date.today()
+                    )
+                    
+                    position = stop_manager.get_position(symbol.upper())
+                    
+                    return {
+                        "check_result": result.to_dict(),
+                        "position_details": position.to_dict() if position else None,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    }
+            
+            raise HTTPException(status_code=404, detail=f"Position {symbol} not found")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error checking stop for {symbol}: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/stops/config")
+    async def update_stop_config(
+        hard_stop_pct: Optional[float] = None,
+        trailing_activation_pct: Optional[float] = None,
+        trailing_distance_pct: Optional[float] = None,
+        time_limit_days: Optional[int] = None,
+    ):
+        """
+        Update stop-loss configuration.
+        
+        Args:
+            hard_stop_pct: Hard stop percentage (e.g., 0.15 for -15%)
+            trailing_activation_pct: Gain % to activate trailing (e.g., 0.10 for +10%)
+            trailing_distance_pct: Trail distance from high (e.g., 0.08 for 8%)
+            time_limit_days: Days before time stop kicks in
+        """
+        from src.quantracore_apex.broker.stop_loss_manager import get_stop_loss_manager
+        
+        stop_manager = get_stop_loss_manager()
+        
+        updates = {}
+        if hard_stop_pct is not None:
+            updates["hard_stop_pct"] = hard_stop_pct
+        if trailing_activation_pct is not None:
+            updates["trailing_activation_pct"] = trailing_activation_pct
+        if trailing_distance_pct is not None:
+            updates["trailing_distance_pct"] = trailing_distance_pct
+        if time_limit_days is not None:
+            updates["time_limit_days"] = time_limit_days
+        
+        if updates:
+            stop_manager.update_config(**updates)
+        
+        return {
+            "config": stop_manager.config.to_dict(),
+            "message": "Configuration updated" if updates else "No changes",
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    
+    @app.get("/stops/exit-signals")
+    async def get_exit_signals():
+        """
+        Get positions that have triggered exit signals.
+        
+        Returns only positions where stop has been hit and exit is recommended.
+        """
+        from src.quantracore_apex.broker.stop_loss_manager import get_stop_loss_manager, ExitSignal
+        from datetime import date
+        
+        try:
+            stop_manager = get_stop_loss_manager()
+            
+            engine = get_broker_engine()
+            broker_positions = engine.router.get_positions()
+            
+            positions_data = []
+            for pos in broker_positions:
+                pos_dict = pos.to_dict() if hasattr(pos, 'to_dict') else pos
+                positions_data.append({
+                    "symbol": pos_dict.get("symbol", ""),
+                    "avg_entry_price": float(pos_dict.get("avg_entry_price", 0)),
+                    "qty": float(pos_dict.get("qty", 0)),
+                    "current_price": float(pos_dict.get("current_price", 0)),
+                })
+            
+            stop_manager.sync_from_broker(positions_data, date.today())
+            prices = {p["symbol"]: p["current_price"] for p in positions_data}
+            check_results = stop_manager.check_all_positions(prices, date.today())
+            
+            exit_signals = [r.to_dict() for r in check_results if r.exit_signal == ExitSignal.EXIT]
+            warnings = [r.to_dict() for r in check_results if r.exit_signal == ExitSignal.WARNING]
+            
+            return {
+                "exit_now": exit_signals,
+                "warnings": warnings,
+                "exit_count": len(exit_signals),
+                "warning_count": len(warnings),
+                "message": f"{len(exit_signals)} positions need immediate exit, {len(warnings)} warnings",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        except Exception as e:
+            logger.error(f"Error getting exit signals: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
     @app.get("/oms/orders")
     async def get_orders(symbol: Optional[str] = None, status: Optional[str] = None):
         """Get orders, optionally filtered by symbol or status."""
