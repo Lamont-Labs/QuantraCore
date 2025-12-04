@@ -179,6 +179,9 @@ class BrokerPosition:
     avg_entry_price: float
     market_value: float = 0.0
     unrealized_pl: float = 0.0
+    current_price: float = 0.0
+    unrealized_plpc: float = 0.0
+    change_today: float = 0.0
     side: PositionSide = PositionSide.FLAT
     
     def __post_init__(self):
@@ -194,8 +197,11 @@ class BrokerPosition:
             "symbol": self.symbol,
             "qty": self.qty,
             "avg_entry_price": self.avg_entry_price,
+            "current_price": self.current_price,
             "market_value": self.market_value,
             "unrealized_pl": self.unrealized_pl,
+            "unrealized_plpc": self.unrealized_plpc,
+            "change_today": self.change_today,
             "side": self.side.value,
         }
 

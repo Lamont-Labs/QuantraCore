@@ -1576,6 +1576,8 @@ def create_app() -> FastAPI:
                     "avg_price": float(pos_dict.get("avg_entry_price", 0)),
                     "current_price": float(pos_dict.get("current_price", 0)),
                     "unrealized_pnl": float(pos_dict.get("unrealized_pl", 0)),
+                    "unrealized_pnl_pct": float(pos_dict.get("unrealized_plpc", 0)),
+                    "change_today_pct": float(pos_dict.get("change_today", 0)),
                     "market_value": float(pos_dict.get("market_value", 0)),
                     "side": pos_dict.get("side", "long"),
                 })

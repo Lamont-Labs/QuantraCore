@@ -366,7 +366,7 @@ class AlpacaPaperAdapter(BrokerAdapter):
             return []
     
     def get_positions(self) -> List[BrokerPosition]:
-        """Get all positions from Alpaca."""
+        """Get all positions from Alpaca with real-time prices."""
         try:
             response = self._make_request("GET", "/v2/positions")
             
@@ -377,8 +377,11 @@ class AlpacaPaperAdapter(BrokerAdapter):
                     symbol=pos.get("symbol", ""),
                     qty=qty,
                     avg_entry_price=float(pos.get("avg_entry_price", 0)),
+                    current_price=float(pos.get("current_price", 0)),
                     market_value=float(pos.get("market_value", 0)),
                     unrealized_pl=float(pos.get("unrealized_pl", 0)),
+                    unrealized_plpc=float(pos.get("unrealized_plpc", 0)) * 100,
+                    change_today=float(pos.get("change_today", 0)) * 100,
                 ))
             
             return positions
