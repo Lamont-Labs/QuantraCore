@@ -2,10 +2,23 @@
 
 **System Name:** QuantraCore Apex  
 **Owner:** Lamont Labs - Jesse J. Lamont  
-**Version:** 9.0-A (Institutional Hardening Upgrade)  
-**Base Version:** 8.2  
-**Status:** Active - Full Protocol System (Desktop-Only)  
+**Version:** 9.0-A (Production-Ready Paper Trading)  
+**Last Updated:** 2025-12-04  
+**Status:** Active - Moonshot Detection System (Desktop-Only)  
 **Repository:** https://github.com/Lamont-Labs/QuantraCore
+
+## Current System Metrics (Verified 2025-12-04)
+
+| Metric | Value |
+|--------|-------|
+| Python Source Files | 423 |
+| Python Lines of Code | 104,903 |
+| TypeScript/React Files | 38 |
+| API Endpoints | 263 |
+| ML Model Files | 21 |
+| Test Modules | 38 |
+| Active Paper Positions | 11 |
+| Primary Model | massive_ensemble_v3.pkl.gz |
 
 ---
 
@@ -13,12 +26,11 @@
 
 1. **Determinism first** - All computations must be reproducible given the same inputs
 2. **Fail-closed always** - System defaults to safe/no-action state on any error
-3. **No cloud dependencies** - Entire system runs locally without external services
-4. **Local-only learning** - ApexLab trains models on local data only
-5. **QuantraScore mandatory everywhere** - Every analysis produces a 0-100 score
-6. **Rule engine overrides AI always** - Deterministic rules take precedence over neural outputs
-7. **Redundant verification** - Critical decisions require dual-path confirmation (v9.0-A)
-8. **Drift awareness** - Monitor statistical properties and detect distribution shifts (v9.0-A)
+3. **Local ML training** - All machine learning runs on-device; external APIs for market data and paper trading (Alpaca, Polygon, etc.)
+4. **QuantraScore mandatory everywhere** - Every analysis produces a 0-100 score
+5. **Rule engine overrides AI always** - Deterministic rules take precedence over neural outputs
+6. **Redundant verification** - Critical decisions require dual-path confirmation (v9.0-A)
+7. **Drift awareness** - Monitor statistical properties and detect distribution shifts (v9.0-A)
 
 ---
 
@@ -743,6 +755,63 @@ Full support for extended hours via Alpaca:
 
 ---
 
+## 27. Automatic Stop-Loss Management System
+
+Autonomous risk management for all paper trading positions:
+
+### Stop-Loss Rules
+
+| Rule Type | Configuration | Trigger |
+|-----------|---------------|---------|
+| Hard Stop | -15% from entry | Exit immediately if loss reaches 15% |
+| Trailing Stop | Activates at +10%, trails 8% below high | Lock in profits on runners |
+| Time Stop | 5 days, <5% gain | Exit stagnant positions |
+
+### Stop-Loss API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/stops/status` | GET | Get stop-loss status for all positions |
+| `/stops/check/{symbol}` | GET | Check specific position stop status |
+| `/stops/config` | POST | Update stop-loss configuration |
+| `/stops/exit-signals` | GET | Get positions needing immediate exit |
+
+### Exit Signal Classification
+
+| Signal | Meaning | Action |
+|--------|---------|--------|
+| HOLD | Position within all thresholds | Continue holding |
+| WARNING | Within 3% of stop level | Monitor closely |
+| EXIT | Stop level breached | Execute exit immediately |
+
+---
+
+## 28. Forward Validation System
+
+Real-time prediction tracking to prove model accuracy:
+
+| Feature | Description |
+|---------|-------------|
+| **Prediction Recording** | All predictions logged before outcomes known |
+| **Resolution Tracking** | Automatic checking of prediction outcomes |
+| **Precision Calculation** | True precision = wins / total resolved |
+| **Target** | 70%+ precision for moonshot predictions |
+
+---
+
+## 29. Moonshot Detection System
+
+Core capability for detecting 50%+ gain opportunities:
+
+| Component | Description |
+|-----------|-------------|
+| **Target Gain** | 50%+ within 5 trading days |
+| **Data Source** | EOD (End of Day) prices |
+| **Primary Model** | massive_ensemble_v3.pkl.gz |
+| **Precision Target** | 70%+ |
+
+---
+
 **Document Version:** 9.0-A  
-**Last Updated:** 2025-12-02  
+**Last Updated:** 2025-12-04  
 **Status:** Active

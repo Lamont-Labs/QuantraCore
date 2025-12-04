@@ -48,7 +48,9 @@
 29. [ApexCore V4 Neural Model](#29-apexcore-v4-neural-model)
 30. [Multi-Source Data Ingestion](#30-multi-source-data-ingestion)
 31. [Extended Market Hours Trading](#31-extended-market-hours-trading)
-32. [ApexDesk Dashboard (15 Panels)](#32-apexdesk-dashboard-15-panels)
+32. [Automatic Stop-Loss Management System](#32-automatic-stop-loss-management-system)
+33. [Forward Validation System](#33-forward-validation-system)
+34. [ApexDesk Dashboard (15 Panels)](#34-apexdesk-dashboard-15-panels)
 
 ---
 
@@ -64,7 +66,7 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 |-----------|-------------|
 | **Determinism** | Same inputs always produce identical outputs |
 | **Fail-Closed** | System blocks operations on uncertainty |
-| **Local-Only Learning** | No cloud dependencies; all ML runs on-device |
+| **Local-Only Learning** | All ML training runs on-device; external APIs for market data and paper trading |
 | **Paper Trading Active** | Full paper trading via Alpaca (LIVE mode disabled) |
 | **Rule Override** | Hardcoded rules always override ML predictions |
 
@@ -140,8 +142,8 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 | Layer | Technology |
 |-------|------------|
 | Backend | Python 3.11, FastAPI, Uvicorn (port 8000) |
-| Frontend | React 18.2, Vite 7.2, Tailwind CSS 4.0, TypeScript (port 5000) |
-| Dashboard | 9 real-time panels with Velocity Mode (Standard/High/Turbo) |
+| Frontend | React 18.2, Vite 7.2, Tailwind CSS 3.4, TypeScript (port 5000) |
+| Dashboard | 15 real-time panels with Velocity Mode (Standard/High/Turbo) |
 | Machine Learning | scikit-learn (GradientBoosting), joblib |
 | Numerical | NumPy, Pandas |
 | Testing | pytest (1,145+ tests), vitest |
@@ -3396,9 +3398,79 @@ order = alpaca_client.submit_order(
 
 ---
 
-## 32. ApexDesk Dashboard (15 Panels)
+## 32. Automatic Stop-Loss Management System
 
-### 32.1 Panel Overview
+### 32.1 Overview
+
+The Stop-Loss Management System provides autonomous risk protection for all paper trading positions with three layers of protection.
+
+### 32.2 Stop-Loss Rules
+
+| Rule Type | Configuration | Trigger | Purpose |
+|-----------|---------------|---------|---------|
+| **Hard Stop** | -15% from entry | Position loss reaches 15% | Limit maximum loss per position |
+| **Trailing Stop** | Activates at +10%, trails 8% | Price drops 8% from highest point | Lock in profits on runners |
+| **Time Stop** | 5 days, <5% gain | Position stagnant after 5 days | Cut non-performing positions |
+
+### 32.3 Exit Signal Classification
+
+| Signal | Meaning | Action Required |
+|--------|---------|-----------------|
+| **HOLD** | Position within all thresholds | Continue monitoring |
+| **WARNING** | Within 3% of stop level | Monitor closely, prepare exit |
+| **EXIT** | Stop level breached | Execute exit immediately |
+
+### 32.4 Stop-Loss API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/stops/status` | GET | Get stop-loss status for all positions |
+| `/stops/check/{symbol}` | GET | Check specific position stop status |
+| `/stops/config` | POST | Update stop-loss configuration |
+| `/stops/exit-signals` | GET | Get positions needing immediate exit |
+
+### 32.5 Configuration Options
+
+```python
+StopLossConfig(
+    hard_stop_pct=0.15,          # -15% from entry
+    trailing_activation_pct=0.10, # Activate trailing at +10%
+    trailing_distance_pct=0.08,   # Trail 8% below highs
+    time_limit_days=5,            # Exit after 5 days
+    min_gain_for_time_exit=0.05   # Allow time exit only if <5% gain
+)
+```
+
+---
+
+## 33. Forward Validation System
+
+### 33.1 Purpose
+
+The Forward Validation System tracks all predictions to prove real-world model accuracy by recording predictions before outcomes are known.
+
+### 33.2 Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Prediction Recording** | All moonshot predictions logged before market outcomes |
+| **Resolution Tracking** | Automatic checking of 5-day price outcomes |
+| **Precision Calculation** | True precision = successful predictions / total resolved |
+| **Target Accuracy** | 70%+ precision for moonshot detection |
+
+### 33.3 Validation API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/validation/status` | GET | Get forward validation metrics |
+| `/validation/record` | POST | Record new prediction |
+| `/validation/resolve` | POST | Resolve pending predictions |
+
+---
+
+## 34. ApexDesk Dashboard (15 Panels)
+
+### 34.1 Panel Overview
 
 The institutional trading dashboard now features 15 real-time monitoring panels:
 
@@ -3420,7 +3492,7 @@ The institutional trading dashboard now features 15 real-time monitoring panels:
 | **PushNotificationPanel** | Web push notification management |
 | **ModelStoragePanel** | Database model persistence status |
 
-### 32.2 Velocity Mode System
+### 34.2 Velocity Mode System
 
 | Mode | Refresh Rate | Use Case |
 |------|--------------|----------|
@@ -3455,6 +3527,9 @@ The institutional trading dashboard now features 15 real-time monitoring panels:
 | 9.0-A | 2025-12-02 | Added Section 32: ApexDesk Dashboard expanded to 15 panels |
 | 9.0-A | 2025-12-02 | Added 4 model storage API endpoints: /model/storage, /versions, /restore, /migrate |
 | 9.0-A | 2025-12-02 | Added 7 data ingestion API endpoints for multi-source market data |
+| 9.0-A | 2025-12-04 | Added Section 32: Automatic Stop-Loss Management System with 4 API endpoints |
+| 9.0-A | 2025-12-04 | Added Section 33: Forward Validation System for prediction accuracy tracking |
+| 9.0-A | 2025-12-04 | Documentation audit: Updated all metrics to verified 2025-12-04 values (423 files, 104,903 LOC, 263 endpoints, 21 models) |
 
 ---
 

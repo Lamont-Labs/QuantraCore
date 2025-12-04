@@ -32,8 +32,8 @@ QuantraCore Apex v9.0-A is an autonomous AI trading system designed to detect st
 
 ### Technical Stack
 - **Backend:** Python 3.11, FastAPI, Uvicorn (port 8000, 4 workers)
-- **Frontend:** React 18.2, Vite 7.2, Tailwind CSS 4.0, TypeScript (port 5000)
-- **Machine Learning:** scikit-learn, LightGBM, joblib, NumPy, Pandas
+- **Frontend:** React 18.2, Vite 7.2, Tailwind CSS 3.4, TypeScript (port 5000)
+- **Machine Learning:** scikit-learn (GradientBoosting), joblib, NumPy, Pandas
 - **Database:** PostgreSQL for ML model persistence
 - **Testing:** pytest (backend), vitest (frontend)
 - **Security:** X-API-Key authentication, restrictive CORS

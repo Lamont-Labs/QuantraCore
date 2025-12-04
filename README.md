@@ -8,7 +8,7 @@
 [![React](https://img.shields.io/badge/React-18.2-61DAFB)]()
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6)]()
 [![Vite](https://img.shields.io/badge/Vite-7.2-646CFF)]()
-[![Tailwind](https://img.shields.io/badge/Tailwind-4.0-06B6D4)]()
+[![Tailwind](https://img.shields.io/badge/Tailwind-3.4-06B6D4)]()
 [![Desktop](https://img.shields.io/badge/platform-desktop%20only-orange)]()
 [![License](https://img.shields.io/badge/license-proprietary-red)]()
 [![Status](https://img.shields.io/badge/status-production--ready-success)]()
@@ -51,7 +51,7 @@
 | Component | Status | Details |
 |-----------|--------|---------|
 | **ApexEngine** | Operational | Deterministic core with 80 Tier protocols |
-| **ApexDesk UI** | Operational | React 18.2 + Vite 7.2 + Tailwind CSS 4 |
+| **ApexDesk UI** | Operational | React 18.2 + Vite 7.2 + Tailwind CSS 3.4 |
 | **FastAPI Backend** | Operational | **263 REST endpoints** on port 8000 |
 | **Universal Scanner** | Operational | 7 market cap buckets, 4 scan modes |
 | **Alpaca Paper Trading** | **Connected** | 11 active positions |
@@ -123,7 +123,7 @@ QuantraCore Apex is an **autonomous moonshot detection and trading system** that
 | **Live Trading** | Paper trading only (LIVE mode disabled) |
 | **Financial Advice** | All outputs are structural probabilities only |
 | **Mobile/Android** | Desktop-only architecture (strictly prohibited) |
-| **Cloud Dependencies** | Runs entirely locally |
+| **Cloud Dependencies** | Local ML training only; external APIs for market data/paper trading |
 | **Guaranteed Returns** | Past analysis does not predict future results |
 
 ---
