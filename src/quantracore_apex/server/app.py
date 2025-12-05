@@ -4403,6 +4403,80 @@ def create_app() -> FastAPI:
             "timestamp": datetime.utcnow().isoformat()
         }
     
+    class DirectSellRequest(BaseModel):
+        symbol: str
+        qty: Optional[float] = None  # If None, closes entire position
+    
+    @app.post("/broker/alpaca/sell")
+    async def alpaca_direct_sell(request: DirectSellRequest):
+        """
+        Directly sell a position through Alpaca paper trading API.
+        Bypasses internal risk engine for position exits.
+        
+        PAPER TRADING ONLY - No real money at risk.
+        """
+        from src.quantracore_apex.broker.adapters.alpaca_adapter import AlpacaPaperAdapter
+        from src.quantracore_apex.broker.models import OrderTicket
+        from src.quantracore_apex.broker.enums import OrderSide, OrderType, TimeInForce
+        
+        try:
+            adapter = AlpacaPaperAdapter()
+            
+            # Get current position to determine quantity
+            positions = adapter.get_positions()
+            position = None
+            for p in positions:
+                if p.symbol.upper() == request.symbol.upper():
+                    position = p
+                    break
+            
+            if not position:
+                return {
+                    "success": False,
+                    "error": f"No position found for {request.symbol}",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            
+            qty_to_sell = request.qty if request.qty else float(position.qty)
+            
+            # Get current price for limit order (extended hours requires limit)
+            current_price = float(position.current_price) if hasattr(position, 'current_price') else None
+            if not current_price:
+                # Try to get last price from Alpaca
+                try:
+                    account = adapter.get_account_info()
+                    current_price = float(position.avg_entry_price) * 0.95  # Sell slightly below avg for fast fill
+                except:
+                    current_price = float(position.avg_entry_price) * 0.95
+            
+            # Create sell order - use LIMIT for extended hours
+            ticket = OrderTicket(
+                symbol=request.symbol.upper(),
+                side=OrderSide.SELL,
+                order_type=OrderType.LIMIT,
+                qty=qty_to_sell,
+                limit_price=round(current_price * 0.98, 2),  # 2% below current for fast fill
+                time_in_force=TimeInForce.DAY,
+                extended_hours=True,
+            )
+            
+            result = adapter.place_order(ticket)
+            
+            return {
+                "success": result.status.value in ["FILLED", "NEW", "ACCEPTED", "PENDING"],
+                "order_id": result.order_id,
+                "symbol": request.symbol.upper(),
+                "qty_sold": qty_to_sell,
+                "status": result.status.value,
+                "avg_fill_price": result.avg_fill_price,
+                "error": result.error_message if result.error_message else None,
+                "mode": "PAPER TRADING",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
     from src.quantracore_apex.eeo_engine import (
         EntryExitOptimizer,
         SignalContext as EEOSignalContext,
