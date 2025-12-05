@@ -318,6 +318,94 @@ class AlpacaPaperAdapter(BrokerAdapter):
                 ticket_id=order.ticket_id,
             )
     
+    def place_bracket_order(
+        self,
+        symbol: str,
+        qty: int,
+        side: OrderSide,
+        stop_loss_price: float,
+        take_profit_price: float,
+        limit_price: Optional[float] = None,
+        time_in_force: TimeInForce = TimeInForce.GTC,
+    ) -> ExecutionResult:
+        """
+        Place a bracket order (entry + stop-loss + take-profit in one atomic order).
+        
+        Bracket orders are advanced order types that include:
+        1. Entry order (market or limit)
+        2. Stop-loss order (triggered if price falls)
+        3. Take-profit order (triggered if price rises)
+        
+        When one exit order fills, the other is automatically canceled.
+        
+        Args:
+            symbol: Stock symbol
+            qty: Number of shares
+            side: BUY or SELL
+            stop_loss_price: Stop-loss trigger price
+            take_profit_price: Take-profit limit price
+            limit_price: Optional limit price for entry (None = market order)
+            time_in_force: Order duration (default GTC)
+        
+        Returns:
+            ExecutionResult with bracket order details
+        """
+        order_type = "limit" if limit_price else "market"
+        
+        body = {
+            "symbol": symbol.upper(),
+            "qty": str(qty),
+            "side": self.SIDE_MAP[side],
+            "type": order_type,
+            "time_in_force": self.TIME_IN_FORCE_MAP[time_in_force],
+            "order_class": "bracket",
+            "stop_loss": {
+                "stop_price": str(round(stop_loss_price, 2)),
+            },
+            "take_profit": {
+                "limit_price": str(round(take_profit_price, 2)),
+            },
+        }
+        
+        if limit_price:
+            body["limit_price"] = str(round(limit_price, 2))
+        
+        try:
+            response = self._make_request("POST", "/v2/orders", body)
+            
+            status = self.STATUS_MAP.get(response.get("status", "new"), OrderStatus.NEW)
+            filled_qty = float(response.get("filled_qty", 0) or 0)
+            avg_fill_price = float(response.get("filled_avg_price", 0) or 0)
+            
+            legs = response.get("legs", [])
+            leg_ids = [leg.get("id") for leg in legs]
+            
+            logger.info(
+                f"[ALPACA] Bracket order placed: {response.get('id')} - "
+                f"{side.value} {qty} {symbol} | "
+                f"Stop: ${stop_loss_price:.2f} | Target: ${take_profit_price:.2f} | "
+                f"Legs: {leg_ids}"
+            )
+            
+            return ExecutionResult(
+                order_id=response.get("id", ""),
+                broker=self.name,
+                status=status,
+                filled_qty=filled_qty,
+                avg_fill_price=avg_fill_price,
+                timestamp_utc=response.get("created_at", datetime.utcnow().isoformat()),
+                raw_broker_payload=response,
+            )
+            
+        except Exception as e:
+            logger.error(f"Alpaca bracket order failed: {e}")
+            return ExecutionResult(
+                order_id="",
+                broker=self.name,
+                status=OrderStatus.REJECTED,
+                error_message=str(e),
+            )
+    
     def cancel_order(self, order_id: str) -> ExecutionResult:
         """Cancel an order with Alpaca."""
         try:
