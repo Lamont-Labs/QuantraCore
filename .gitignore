@@ -6,6 +6,11 @@ dist/
 SBOM/checksums.csv
 .DS_Store
 
+# Large data files (exceed GitHub 100MB limit)
+data/intraday_1min/kaggle/*.csv
+data/intraday_1min/*.csv
+*.csv.gz
+
 # Large ML model files (stored in database instead)
 models/production/*.pkl
 models/mega_runners/*.pkl
