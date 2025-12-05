@@ -99,27 +99,30 @@ class FinnhubAdapter(EnhancedDataAdapter):
     - 60 API calls/minute
     - US stock coverage
     - Real-time quotes
-    - Social sentiment (Reddit/Twitter)
-    - News
+    - Company news
     - Insider transactions
     - Basic fundamentals
     
+    NOTE: Social sentiment endpoint requires premium tier.
     Premium tiers provide international coverage and more data.
     """
     
     BASE_URL = "https://finnhub.io/api/v1"
+    
+    SOCIAL_SENTIMENT_ENABLED = False
     
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("FINNHUB_API_KEY")
         self._last_request = 0
         self._rate_limit_delay = 1.0
         self._cache: Dict[str, Any] = {}
-        self._cache_ttl = 60
+        self._cache_ttl = 3600
+        self._blocked_endpoints: set = set()
         
         if self.api_key:
-            logger.info("[Finnhub] Adapter initialized (60 req/min free tier)")
+            logger.info("[Finnhub] Adapter initialized (social sentiment disabled - premium feature)")
         else:
-            logger.warning("[Finnhub] API key not set - using simulated data")
+            logger.debug("[Finnhub] API key not set - using simulated data")
     
     @property
     def name(self) -> str:
@@ -142,7 +145,7 @@ class FinnhubAdapter(EnhancedDataAdapter):
             last_error=None if self.is_available() else "FINNHUB_API_KEY not set"
         )
     
-    def _request(self, endpoint: str, params: Dict[str, Any] = None) -> Optional[Dict]:
+    def _request(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict]:
         if not self.is_available():
             return None
         
@@ -172,7 +175,8 @@ class FinnhubAdapter(EnhancedDataAdapter):
         Get social media sentiment for a symbol.
         
         Returns Reddit and Twitter mention counts and sentiment scores.
-        Falls back to simulated data if API is unavailable.
+        NOTE: Social sentiment requires premium Finnhub tier.
+        Returns simulated data on free tier.
         """
         cache_key = f"social_{symbol}"
         if cache_key in self._cache:
@@ -180,14 +184,18 @@ class FinnhubAdapter(EnhancedDataAdapter):
             if time.time() - timestamp < self._cache_ttl:
                 return cached
         
-        if not self.is_available():
-            return self._simulated_social_sentiment(symbol)
+        if not self.SOCIAL_SENTIMENT_ENABLED or not self.is_available():
+            result = self._simulated_social_sentiment(symbol)
+            self._cache[cache_key] = (result, time.time())
+            return result
         
         try:
             data = self._request("stock/social-sentiment", {"symbol": symbol})
             
             if data is None or "reddit" not in data:
-                return self._simulated_social_sentiment(symbol)
+                result = self._simulated_social_sentiment(symbol)
+                self._cache[cache_key] = (result, time.time())
+                return result
             
             reddit = data.get("reddit", [])
             twitter = data.get("twitter", [])

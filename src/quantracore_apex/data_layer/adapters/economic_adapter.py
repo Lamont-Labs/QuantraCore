@@ -167,11 +167,19 @@ class FredAdapter(EconomicDataAdapter):
         EconomicIndicator.DXY: "DTWEXBGS",
     }
     
+    CACHE_TTL_HOURS = 24
+    
+    _instance = None
+    _instance_cache: Dict[str, Any] = {}
+    _instance_cache_ts: Dict[str, float] = {}
+    
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or os.getenv("FRED_API_KEY")
         self._last_request = 0
         self._rate_limit_delay = 0.5
-        self._cache: Dict[str, Any] = {}
+        if not hasattr(FredAdapter, '_instance_cache'):
+            FredAdapter._instance_cache = {}
+            FredAdapter._instance_cache_ts = {}
     
     @property
     def name(self) -> str:
@@ -222,6 +230,15 @@ class FredAdapter(EconomicDataAdapter):
         if not series_id:
             raise ValueError(f"Unknown indicator: {indicator}")
         
+        cache_key = f"{series_id}_{start}_{end}"
+        now = time.time()
+        
+        if cache_key in FredAdapter._instance_cache:
+            cached_ts = FredAdapter._instance_cache_ts.get(cache_key, 0)
+            if now - cached_ts < self.CACHE_TTL_HOURS * 3600:
+                logger.debug(f"[FRED] Cache hit for {series_id}")
+                return FredAdapter._instance_cache[cache_key]
+        
         params = {"series_id": series_id}
         if start:
             params["observation_start"] = start.strftime("%Y-%m-%d")
@@ -254,9 +271,12 @@ class FredAdapter(EconomicDataAdapter):
                     previous=previous
                 ))
             
+            FredAdapter._instance_cache[cache_key] = points
+            FredAdapter._instance_cache_ts[cache_key] = now
+            logger.debug(f"[FRED] Cached {series_id} with {len(points)} points")
             return points
         except Exception as e:
-            logger.warning(f"FRED API error: {e}")
+            logger.warning(f"[FRED] API error for {series_id}: {e}")
             return self._generate_simulated_data(indicator)
     
     def _generate_simulated_data(

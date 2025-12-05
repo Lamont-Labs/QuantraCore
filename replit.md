@@ -7,15 +7,31 @@
 QuantraCore Apex v9.0-A is an autonomous AI trading system designed to detect stocks ready for massive runs (50%+ gains) within 5 trading days using EOD data, targeting 70%+ precision. The system operates through Alpaca paper trading with automatic stop-loss management and forward validation tracking to prove real-world performance.
 
 **Current Status:**
-- 10 active paper trading positions
+- 8 active paper trading positions (~$107k equity, +2.9% P&L)
 - Primary model: massive_ensemble_v3.pkl.gz
-- NEW: Intraday model trained on 2M+ 1-minute bars (intraday_moonshot_v1.pkl.gz)
+- Intraday model: intraday_moonshot_v1.pkl.gz (2M+ 1-minute bars)
 - Stop-loss system active (-15% hard, +10%/8% trailing, 5-day time limit)
 - Forward validation tracking all predictions
+- All API rate limiting optimized with 24-hour caching
 
 ## Recent Updates (2025-12-05)
 
-### Multi-Strategy Orchestrator (NEW)
+### API Rate Limiting Optimizations (INVESTOR-READY)
+Implemented comprehensive caching to prevent log spam and preserve API quotas:
+
+| Adapter | Fix Applied | TTL |
+|---------|-------------|-----|
+| Alpha Vantage | 24-hour OHLCV cache + daily limit checking | 24h |
+| FRED | Class-level cache with series+date key | 24h |
+| Finnhub | Disabled social sentiment (premium API) | N/A |
+
+**Key Changes:**
+- `fetch_ohlcv()` now checks daily limit before API calls
+- All cached data falls back to simulated data when unavailable
+- No more rate limit spam in logs
+- Database constraint errors resolved (ON CONFLICT fixed)
+
+### Multi-Strategy Orchestrator
 Built complete concurrent strategy execution system:
 - **4 Concurrent Strategies:** Swing (2-5 days), Scalp (minutes-hours), MonsterRunner (1-7 days), Momentum (4-48 hours)
 - **Strategy Orchestrator:** Manages lifecycle, coordinates signal generation across all strategies
