@@ -34,21 +34,18 @@ class MomentumStrategy(BaseStrategy):
         self._load_models()
     
     def _load_models(self):
-        """Load both EOD and intraday models for momentum detection."""
+        """Load intraday model for momentum detection."""
         try:
-            from ...ml.moonshot_predictor import MoonshotPredictor
-            from ...ml.intraday_predictor import IntradayPredictor
-            self.eod_predictor = MoonshotPredictor()
-            self.intraday_predictor = IntradayPredictor()
+            from src.quantracore_apex.ml.intraday_predictor import IntradayMoonshotPredictor
+            self.intraday_predictor = IntradayMoonshotPredictor()
             self.model_loaded = True
             logger.info("[MomentumStrategy] Models loaded")
         except Exception as e:
             logger.warning(f"[MomentumStrategy] Could not load models: {e}")
-            self.eod_predictor = None
             self.intraday_predictor = None
     
     def generate_signals(self, symbols: List[str]) -> List[TradingIntent]:
-        """Generate momentum intents from combined model analysis."""
+        """Generate momentum intents from combined EOD + intraday analysis."""
         intents = []
         
         if not self.model_loaded:
@@ -56,26 +53,39 @@ class MomentumStrategy(BaseStrategy):
             return intents
         
         try:
-            from ...server.ml_scanner import combined_moonshot_scan
+            from src.quantracore_apex.server.ml_scanner import scan_for_runners
             
-            candidates = combined_moonshot_scan(
+            all_candidates = scan_for_runners(
                 symbols=symbols[:30],
-                min_combined_confidence=self.config.min_score_threshold,
-                eod_weight=0.5,
-                intraday_weight=0.5,
+                model_type='apex_production',
             )
             
-            for candidate in candidates.get("candidates", [])[:5]:
+            eod_candidates = sorted(
+                [c for c in all_candidates if c.get("confidence", 0) >= self.config.min_score_threshold * 0.6],
+                key=lambda x: x.get("confidence", 0),
+                reverse=True
+            )[:10]
+            
+            for candidate in eod_candidates[:8]:
                 symbol = candidate.get("symbol", "")
-                combined_score = candidate.get("combined_score", 0)
-                eod_conf = candidate.get("eod_confidence", 0)
-                intraday_conf = candidate.get("intraday_confidence", 0)
+                eod_conf = candidate.get("confidence", 0)
                 price = candidate.get("current_price", 0)
                 
-                if combined_score < self.config.min_score_threshold:
+                if price <= 0:
                     continue
                 
-                if price <= 0:
+                intraday_conf = 0.5
+                try:
+                    if self.intraday_predictor:
+                        intraday_result = self.intraday_predictor.predict_single(symbol)
+                        if intraday_result:
+                            intraday_conf = intraday_result.get("confidence", 0.5)
+                except Exception:
+                    pass
+                
+                combined_score = (eod_conf * 0.6) + (intraday_conf * 0.4)
+                
+                if combined_score < self.config.min_score_threshold:
                     continue
                 
                 is_momentum = self._validate_momentum(eod_conf, intraday_conf)

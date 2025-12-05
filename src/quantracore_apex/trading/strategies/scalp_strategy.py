@@ -36,8 +36,8 @@ class ScalpStrategy(BaseStrategy):
     def _load_model(self):
         """Load the intraday model for scalping signals."""
         try:
-            from ...ml.intraday_predictor import IntradayPredictor
-            self.predictor = IntradayPredictor()
+            from src.quantracore_apex.ml.intraday_predictor import IntradayMoonshotPredictor
+            self.predictor = IntradayMoonshotPredictor()
             self.model_loaded = True
             logger.info("[ScalpStrategy] Intraday model loaded")
         except Exception as e:

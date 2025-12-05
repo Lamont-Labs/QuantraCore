@@ -30,36 +30,26 @@ class SwingStrategy(BaseStrategy):
         if config is None:
             config = STRATEGY_CONFIGS[StrategyType.SWING]
         super().__init__(config)
-        self.model_loaded = False
-        self._load_model()
-    
-    def _load_model(self):
-        """Load the EOD moonshot model."""
-        try:
-            from ...ml.moonshot_predictor import MoonshotPredictor
-            self.predictor = MoonshotPredictor()
-            self.model_loaded = True
-            logger.info("[SwingStrategy] EOD model loaded")
-        except Exception as e:
-            logger.warning(f"[SwingStrategy] Could not load model: {e}")
-            self.predictor = None
+        self.model_loaded = True
+        logger.info("[SwingStrategy] Initialized (uses scan_for_runners)")
     
     def generate_signals(self, symbols: List[str]) -> List[TradingIntent]:
-        """Generate swing trade intents from EOD model."""
+        """Generate swing trade intents from EOD model via scan_for_runners."""
         intents = []
         
-        if not self.model_loaded or not self.predictor:
-            logger.warning("[SwingStrategy] Model not loaded, skipping")
-            return intents
-        
         try:
-            from ...server.ml_scanner import scan_for_runners
+            from src.quantracore_apex.server.ml_scanner import scan_for_runners
             
-            candidates = scan_for_runners(
-                symbols=symbols,
-                top_n=10,
-                min_confidence=self.config.min_score_threshold,
+            all_candidates = scan_for_runners(
+                symbols=symbols[:30],
+                model_type='apex_production',
             )
+            
+            candidates = sorted(
+                [c for c in all_candidates if c.get("confidence", 0) >= self.config.min_score_threshold],
+                key=lambda x: x.get("confidence", 0),
+                reverse=True
+            )[:10]
             
             for candidate in candidates:
                 symbol = candidate.get("symbol", "")

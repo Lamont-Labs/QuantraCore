@@ -30,36 +30,26 @@ class MonsterRunnerStrategy(BaseStrategy):
         if config is None:
             config = STRATEGY_CONFIGS[StrategyType.MONSTER_RUNNER]
         super().__init__(config)
-        self.model_loaded = False
-        self._load_models()
-    
-    def _load_models(self):
-        """Load MonsterRunner detection models."""
-        try:
-            from ...ml.moonshot_predictor import MoonshotPredictor
-            self.predictor = MoonshotPredictor()
-            self.model_loaded = True
-            logger.info("[MonsterRunnerStrategy] Models loaded")
-        except Exception as e:
-            logger.warning(f"[MonsterRunnerStrategy] Could not load models: {e}")
-            self.predictor = None
+        self.model_loaded = True
+        logger.info("[MonsterRunnerStrategy] Initialized (uses scan_for_runners)")
     
     def generate_signals(self, symbols: List[str]) -> List[TradingIntent]:
         """Generate MonsterRunner intents for extreme move candidates."""
         intents = []
         
-        if not self.model_loaded or not self.predictor:
-            logger.warning("[MonsterRunnerStrategy] Models not loaded, skipping")
-            return intents
-        
         try:
-            from ...server.ml_scanner import scan_for_runners
+            from src.quantracore_apex.server.ml_scanner import scan_for_runners
             
-            candidates = scan_for_runners(
-                symbols=symbols,
-                top_n=5,
-                min_confidence=self.config.min_score_threshold,
+            all_candidates = scan_for_runners(
+                symbols=symbols[:30],
+                model_type='mega_runners',
             )
+            
+            candidates = sorted(
+                [c for c in all_candidates if c.get("confidence", 0) >= self.config.min_score_threshold],
+                key=lambda x: x.get("confidence", 0),
+                reverse=True
+            )[:5]
             
             for candidate in candidates:
                 symbol = candidate.get("symbol", "")
