@@ -64,7 +64,13 @@ class KaggleDataProcessor:
             self.data_dir / f"{symbol.lower()}.csv",
             self.data_dir / f"{symbol}.csv.gz",
             self.data_dir / f"{symbol.lower()}.csv.gz",
+            self.data_dir / f"1_min_{symbol}_2008-2021.csv",
+            self.data_dir / f"1_min_{symbol.upper()}_2008-2021.csv",
         ]
+        
+        for f in self.data_dir.glob(f"*{symbol}*.csv*"):
+            if f not in possible_files:
+                possible_files.append(f)
         
         for filepath in possible_files:
             if filepath.exists():
@@ -108,7 +114,14 @@ class KaggleDataProcessor:
         df = df.rename(columns=column_map)
         
         if 'timestamp' in df.columns:
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            sample_val = str(df['timestamp'].iloc[0])
+            if '  ' in sample_val and len(sample_val.split()[0]) == 8:
+                df['timestamp'] = pd.to_datetime(
+                    df['timestamp'].str.replace('  ', ' '),
+                    format='%Y%m%d %H:%M:%S'
+                )
+            else:
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
         
         required_cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
         for col in required_cols:
@@ -125,7 +138,11 @@ class KaggleDataProcessor:
         """Get list of symbols available in Kaggle dataset."""
         symbols = []
         for f in self.data_dir.glob("*.csv*"):
-            symbol = f.stem.replace('.csv', '').upper()
+            filename = f.stem.replace('.csv', '')
+            if filename.startswith('1_min_') and '_2008-2021' in filename:
+                symbol = filename.replace('1_min_', '').replace('_2008-2021', '').upper()
+            else:
+                symbol = filename.upper()
             symbols.append(symbol)
         return sorted(set(symbols))
     
