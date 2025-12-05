@@ -200,6 +200,123 @@ def scan_for_runners(symbols: List[str], model_type: str = 'apex_production') ->
     return signals
 
 
+def scan_with_intraday_model(symbols: List[str], probability_threshold: float = 0.6) -> List[Dict]:
+    """
+    Scan symbols using the trained intraday moonshot model.
+    
+    Uses 1-minute bar patterns to detect stocks ready for significant moves.
+    Requires Alpha Vantage API for live data.
+    
+    Args:
+        symbols: List of stock symbols to scan
+        probability_threshold: Minimum probability to flag as candidate
+    
+    Returns:
+        List of predictions sorted by probability
+    """
+    try:
+        from src.quantracore_apex.ml.intraday_predictor import get_intraday_predictor
+    except ImportError as e:
+        logger.error(f"Failed to import intraday predictor: {e}")
+        return []
+    
+    try:
+        predictor = get_intraday_predictor(probability_threshold=probability_threshold)
+    except FileNotFoundError:
+        logger.warning("Intraday model not found - skipping intraday scan")
+        return []
+    
+    predictions = predictor.scan_symbols(symbols, use_cache=True)
+    
+    results = []
+    for p in predictions:
+        results.append({
+            'symbol': p.symbol,
+            'confidence': p.probability,
+            'model_type': 'intraday_moonshot',
+            'confidence_tier': p.confidence_tier,
+            'is_candidate': p.is_candidate,
+            'bars_analyzed': p.bars_analyzed,
+            'timestamp': p.timestamp.isoformat(),
+        })
+    
+    return results
+
+
+def combined_moonshot_scan(
+    symbols: List[str],
+    include_eod: bool = True,
+    include_intraday: bool = True,
+) -> Dict[str, Any]:
+    """
+    Combine EOD and intraday model signals for more robust moonshot detection.
+    
+    This function runs both models and combines their signals:
+    - EOD model: Daily patterns, fundamental/technical convergence
+    - Intraday model: 1-minute microstructure patterns
+    
+    A symbol flagged by BOTH models has higher conviction.
+    
+    Args:
+        symbols: List of stock symbols to scan
+        include_eod: Include EOD moonshot model
+        include_intraday: Include intraday model
+    
+    Returns:
+        Combined analysis with both model outputs
+    """
+    results = {
+        'timestamp': datetime.now().isoformat(),
+        'symbols_scanned': len(symbols),
+        'eod_signals': [],
+        'intraday_signals': [],
+        'combined_candidates': [],
+        'high_conviction': [],
+    }
+    
+    eod_candidates = set()
+    intraday_candidates = set()
+    
+    if include_eod:
+        try:
+            eod_signals = scan_for_runners(symbols, model_type='moonshots')
+            results['eod_signals'] = eod_signals
+            eod_candidates = {s['symbol'] for s in eod_signals if s['confidence'] >= 0.6}
+        except Exception as e:
+            logger.error(f"EOD scan failed: {e}")
+    
+    if include_intraday:
+        try:
+            intraday_signals = scan_with_intraday_model(symbols, probability_threshold=0.5)
+            results['intraday_signals'] = intraday_signals
+            intraday_candidates = {s['symbol'] for s in intraday_signals if s['is_candidate']}
+        except Exception as e:
+            logger.error(f"Intraday scan failed: {e}")
+    
+    all_candidates = eod_candidates | intraday_candidates
+    high_conviction = eod_candidates & intraday_candidates
+    
+    for symbol in all_candidates:
+        eod_conf = next((s['confidence'] for s in results['eod_signals'] if s['symbol'] == symbol), 0)
+        intraday_conf = next((s['confidence'] for s in results['intraday_signals'] if s['symbol'] == symbol), 0)
+        
+        combined_score = (eod_conf * 0.6 + intraday_conf * 0.4) if eod_conf and intraday_conf else max(eod_conf, intraday_conf)
+        
+        results['combined_candidates'].append({
+            'symbol': symbol,
+            'eod_confidence': eod_conf,
+            'intraday_confidence': intraday_conf,
+            'combined_score': combined_score,
+            'signal_sources': ['eod'] * (symbol in eod_candidates) + ['intraday'] * (symbol in intraday_candidates),
+            'high_conviction': symbol in high_conviction,
+        })
+    
+    results['combined_candidates'].sort(key=lambda x: x['combined_score'], reverse=True)
+    results['high_conviction'] = [c for c in results['combined_candidates'] if c['high_conviction']]
+    
+    return results
+
+
 def get_alpaca_positions() -> List[Dict]:
     """Get current positions from Alpaca."""
     try:

@@ -9996,6 +9996,80 @@ def create_app() -> FastAPI:
             logger.error(f"Moonshot scan error: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
     
+    @app.get("/ml/scan/moonshots/combined")
+    async def scan_moonshots_combined(
+        limit: int = 20,
+        include_eod: bool = True,
+        include_intraday: bool = True,
+        api_key: str = Depends(verify_api_key)
+    ):
+        """
+        Combined moonshot scan using both EOD and intraday models.
+        
+        - EOD model: Daily patterns, fundamental/technical convergence
+        - Intraday model: 1-minute microstructure patterns (trained on 2M+ bars)
+        
+        Symbols flagged by BOTH models have higher conviction.
+        """
+        from src.quantracore_apex.server.ml_scanner import combined_moonshot_scan, MOONSHOT_UNIVERSE
+        
+        try:
+            result = combined_moonshot_scan(
+                symbols=MOONSHOT_UNIVERSE,
+                include_eod=include_eod,
+                include_intraday=include_intraday,
+            )
+            
+            return {
+                "model": "combined_moonshot",
+                "models_used": {
+                    "eod": include_eod,
+                    "intraday": include_intraday,
+                },
+                "symbols_scanned": result['symbols_scanned'],
+                "high_conviction_count": len(result['high_conviction']),
+                "high_conviction": result['high_conviction'][:limit],
+                "all_candidates": result['combined_candidates'][:limit],
+                "eod_only": [c for c in result['combined_candidates'] if 'eod' in c['signal_sources'] and 'intraday' not in c['signal_sources']][:5],
+                "intraday_only": [c for c in result['combined_candidates'] if 'intraday' in c['signal_sources'] and 'eod' not in c['signal_sources']][:5],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Combined moonshot scan error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
+    @app.get("/ml/scan/intraday")
+    async def scan_intraday(limit: int = 20, threshold: float = 0.6, api_key: str = Depends(verify_api_key)):
+        """
+        Scan for moonshot candidates using the intraday model only.
+        
+        Uses 1-minute bar patterns trained on 2M+ SPY bars to detect
+        microstructure signals that precede significant moves.
+        
+        Note: Requires Alpha Vantage API (limited to 25 calls/day on free tier).
+        """
+        from src.quantracore_apex.server.ml_scanner import scan_with_intraday_model, MOONSHOT_UNIVERSE
+        
+        try:
+            signals = scan_with_intraday_model(MOONSHOT_UNIVERSE[:10], probability_threshold=threshold)
+            
+            return {
+                "model": "intraday_moonshot",
+                "model_info": {
+                    "trained_on": "SPY 1-minute bars (2008-2021)",
+                    "training_samples": 50000,
+                    "precision_at_70": "76.9%",
+                    "top_feature": "avg_bar_range (volatility)",
+                },
+                "signals_count": len(signals),
+                "candidates": [s for s in signals if s['is_candidate']][:limit],
+                "all_signals": signals[:limit],
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        except Exception as e:
+            logger.error(f"Intraday scan error: {e}")
+            return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
+    
     @app.get("/ml/portfolio")
     async def get_ml_portfolio(api_key: str = Depends(verify_api_key)):
         """Get current Alpaca paper trading portfolio with ML signals."""
