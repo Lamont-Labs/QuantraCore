@@ -1,0 +1,1113 @@
+{
+  "proof_hash": "dac71c1c1fa02735f875bc61908a784729240eda95e05099490c4bfe7e891898",
+  "timestamp": "2025-12-05T18:51:30.844389",
+  "result": {
+    "symbol": "CRM",
+    "timestamp": "2025-12-05T18:51:30.841862",
+    "window_hash": "918fa5ee702460f6",
+    "quantrascore": 61.14305138085341,
+    "score_bucket": "high",
+    "regime": "unknown",
+    "risk_tier": "high",
+    "entropy_state": "stable",
+    "suppression_state": "moderate",
+    "drift_state": "critical",
+    "microtraits": {
+      "wick_ratio": 0.41398925950072707,
+      "body_ratio": 0.5860107404992729,
+      "bullish_pct_last20": 0.6,
+      "compression_score": 0.2853751914241903,
+      "noise_score": 0.47959183673469385,
+      "strength_slope": 0.028614464257243587,
+      "range_density": 0.06820029027576181,
+      "volume_intensity": 0.7833660958647688,
+      "trend_consistency": 0.0707070707070707,
+      "volatility_ratio": 0.34545156246876807
+    },
+    "entropy_metrics": {
+      "price_entropy": 0.6626365109445025,
+      "volume_entropy": 0.381937651912265,
+      "combined_entropy": 0.5784268532348312,
+      "entropy_state": "stable",
+      "entropy_floor": 0.5027876295671959
+    },
+    "suppression_metrics": {
+      "suppression_level": 0.4089023197982691,
+      "suppression_state": "moderate",
+      "coil_factor": 0.8169355844249627,
+      "breakout_probability": 0.3269480448043002,
+      "is_suppressed": true,
+      "suppression_score": 0.4089023197982691
+    },
+    "drift_metrics": {
+      "drift_magnitude": 0.11382466132810234,
+      "drift_direction": 1.0,
+      "drift_state": "critical",
+      "mean_reversion_pressure": 0.05691233066405117
+    },
+    "continuation_metrics": {
+      "continuation_probability": 0.6368600586791495,
+      "momentum_strength": 0.7076222874212772,
+      "exhaustion_signal": false,
+      "reversal_risk": 0.2
+    },
+    "volume_metrics": {
+      "volume_spike_detected": false,
+      "spike_magnitude": 1.5634918182239597,
+      "volume_trend": "increasing",
+      "relative_volume": 1.5634918182239597
+    },
+    "protocol_results": [
+      {
+        "protocol_id": "T01",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "trend_unclear",
+        "details": {
+          "current_price": 235.415,
+          "sma20": 235.26975,
+          "sma50": 234.03770000000003,
+          "trend_consistency": 0.0707070707070707
+        }
+      },
+      {
+        "protocol_id": "T02",
+        "fired": false,
+        "confidence": 0.14847344090961334,
+        "signal_type": "weak_trend",
+        "details": {
+          "adx": 2.011834319527509,
+          "combined_strength": 0.14847344090961334,
+          "body_consistency": 0.5860107404992729
+        }
+      },
+      {
+        "protocol_id": "T03",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "momentum_diverging",
+        "details": {
+          "roc_5": 0.18085875994722453,
+          "roc_10": 0.21497594823549254,
+          "roc_20": 0.023368456832077836,
+          "momentum_aligned": true
+        }
+      },
+      {
+        "protocol_id": "T04",
+        "fired": false,
+        "confidence": 0.2,
+        "signal_type": "no_clear_channel",
+        "details": {
+          "channel_direction": "descending",
+          "position_in_channel": 0.7760087839693373,
+          "channel_width": 0.5204285714286527,
+          "parallel_score": 8.364779757741303e-09
+        }
+      },
+      {
+        "protocol_id": "T05",
+        "fired": true,
+        "confidence": 0.42,
+        "signal_type": "bearish_crossover",
+        "details": {
+          "current_fast_ma": 235.262,
+          "current_slow_ma": 235.26975,
+          "bars_since_cross": 3
+        }
+      },
+      {
+        "protocol_id": "T06",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_expansion",
+        "details": {
+          "expansion_ratio": 0.8935516888434101,
+          "was_compressed": false,
+          "compression_score": 0.2853751914241903
+        }
+      },
+      {
+        "protocol_id": "T07",
+        "fired": true,
+        "confidence": 0.85,
+        "signal_type": "extreme_squeeze",
+        "details": {
+          "current_bb_width": 0.00908363818635007,
+          "squeeze_ratio": 0.4204246036153161,
+          "near_minimum": true
+        }
+      },
+      {
+        "protocol_id": "T08",
+        "fired": false,
+        "confidence": 0.15,
+        "signal_type": "no_contraction",
+        "details": {
+          "current_atr": 0.6000000000000004,
+          "average_atr": 0.7736992945326262,
+          "contraction_ratio": 0.7754950847699125,
+          "atr_declining": true
+        }
+      },
+      {
+        "protocol_id": "T09",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_compression",
+        "details": {
+          "narrowing_bars": 6,
+          "compression_pct": 0.044334975369446084,
+          "microtraits_compression": 0.2853751914241903
+        }
+      },
+      {
+        "protocol_id": "T10",
+        "fired": true,
+        "confidence": 0.7,
+        "signal_type": "vol_contraction",
+        "details": {
+          "realized_vol": 0.050595420934765954,
+          "vol_ratio": 0.5133120791152012,
+          "vol_skew": -1.0115267309430787
+        }
+      },
+      {
+        "protocol_id": "T11",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "bullish_continuation",
+        "details": {
+          "in_uptrend": true,
+          "recent_pullback": false,
+          "bullish_pct": 0.6
+        }
+      },
+      {
+        "protocol_id": "T12",
+        "fired": false,
+        "confidence": 0.15,
+        "signal_type": "no_bearish_continuation",
+        "details": {
+          "in_downtrend": false,
+          "recent_bounce": false,
+          "bearish_pct": 0.4
+        }
+      },
+      {
+        "protocol_id": "T13",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_flag",
+        "details": {
+          "pole_move_pct": 1.4932438247697732,
+          "flag_slope": 0.03864285714285859,
+          "flag_tight": true
+        }
+      },
+      {
+        "protocol_id": "T14",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_pennant",
+        "details": {
+          "converging": false,
+          "range_contraction": 0.2335766423357607,
+          "prior_move_pct": 1.4932438247697732
+        }
+      },
+      {
+        "protocol_id": "T15",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_wedge",
+        "details": {
+          "high_slope": -0.009229323308271736,
+          "low_slope": 0.0027255639097671946,
+          "both_up": false,
+          "both_down": false
+        }
+      },
+      {
+        "protocol_id": "T16",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_double_bottom",
+        "details": {
+          "low1": 231.74,
+          "low2": 234.08,
+          "similar_lows": true,
+          "neckline": 235.93
+        }
+      },
+      {
+        "protocol_id": "T17",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_double_top",
+        "details": {
+          "high1": 236.53,
+          "high2": 236.46,
+          "similar_highs": true,
+          "neckline": 234.715
+        }
+      },
+      {
+        "protocol_id": "T18",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "hs_forming",
+        "details": {
+          "left_shoulder": 234.22,
+          "head": 236.53,
+          "right_shoulder": 236.46,
+          "neckline": 233.64249999999998
+        }
+      },
+      {
+        "protocol_id": "T19",
+        "fired": true,
+        "confidence": 0.85,
+        "signal_type": "ihs_confirmed",
+        "details": {
+          "left_shoulder": 232.21,
+          "head": 231.74,
+          "right_shoulder": 234.08,
+          "neckline": 234.26
+        }
+      },
+      {
+        "protocol_id": "T20",
+        "fired": false,
+        "confidence": 0.1,
+        "signal_type": "no_climax",
+        "details": {
+          "volume_zscore": 0.4200969984517744,
+          "relative_volume": 1.284800965018094,
+          "wide_range": false,
+          "reversal_wick": false
+        }
+      },
+      {
+        "protocol_id": "T21",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "volatility_stable",
+        "details": {
+          "atr_short": 0.582000000000005,
+          "atr_long": 0.6339999999999989,
+          "expansion_ratio": 0.9179810725552144,
+          "range_expansion": 0.5964010282776352
+        }
+      },
+      {
+        "protocol_id": "T22",
+        "fired": false,
+        "confidence": 0.2,
+        "signal_type": "no_contraction",
+        "details": {
+          "atr_recent": 0.582000000000005,
+          "atr_prior": 0.6513333333333302,
+          "contraction_ratio": 0.8935516888434101,
+          "compression_score": 0.2853751914241903
+        }
+      },
+      {
+        "protocol_id": "T23",
+        "fired": true,
+        "confidence": 0.7,
+        "signal_type": "moderate_squeeze",
+        "details": {
+          "band_width": 0.009083638186350173,
+          "squeeze_ratio": 0.554928147554917,
+          "upper_band": 236.33830264259652,
+          "lower_band": 234.20119735740346
+        }
+      },
+      {
+        "protocol_id": "T24",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "moderate_breakout",
+        "details": {
+          "atr14": 0.6000000000000004,
+          "last_move": 0.4550000000000125,
+          "atr_multiple": 0.7583333333333536,
+          "range_atr": 2.4999999999999982
+        }
+      },
+      {
+        "protocol_id": "T25",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "within_keltner",
+        "details": {
+          "upper_keltner": 236.56869736842103,
+          "lower_keltner": 233.97080263157895,
+          "ema20": 235.26975,
+          "atr": 0.6494736842105265,
+          "current_price": 235.415
+        }
+      },
+      {
+        "protocol_id": "T26",
+        "fired": true,
+        "confidence": 0.7,
+        "signal_type": "subdued_volatility",
+        "details": {
+          "vol_5d": 0.0332679089618477,
+          "vol_20d": 0.04043184545522989,
+          "vol_50d": 0.04248501891098247,
+          "vol_percentile": 25.31645569620253
+        }
+      },
+      {
+        "protocol_id": "T27",
+        "fired": false,
+        "confidence": 0.4,
+        "signal_type": "symmetric_volatility",
+        "details": {
+          "upside_vol": 0.002323408673428469,
+          "downside_vol": 0.0024551481508072555,
+          "skew_ratio": 0.9463415365237856,
+          "up_count": 53,
+          "down_count": 46
+        }
+      },
+      {
+        "protocol_id": "T28",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "normal_ranges",
+        "details": {
+          "avg_range": 0.6339999999999989,
+          "recent_range": 0.582000000000005,
+          "range_ratio": 0.9179810725552144,
+          "avg_range_pct": 0.269550729846411,
+          "hl_consistency": 0.36985292369436473
+        }
+      },
+      {
+        "protocol_id": "T29",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "normal_gaps",
+        "details": {
+          "last_gap_pct": -0.016958494085721813,
+          "avg_gap_size": 0.014012509990995731,
+          "hist_avg_gap": 0.06421386194187015,
+          "gap_direction_consistency": 0.6
+        }
+      },
+      {
+        "protocol_id": "T30",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "vol_moderately_extended",
+        "details": {
+          "vol_5d": 0.0332679089618477,
+          "vol_20d": 0.04043184545522989,
+          "vol_50d": 0.04248501891098247,
+          "vol_ratio_short": 0.7830503507966633,
+          "z_score": -2.3328631455918685,
+          "reversion_direction": "expect_normalization"
+        }
+      },
+      {
+        "protocol_id": "T31",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "neutral_momentum",
+        "details": {
+          "rsi": 49.36921783010919,
+          "rsi_trend": -3.973932308260572,
+          "avg_gain": 0.2096428571428573,
+          "avg_loss": 0.21500000000000138
+        }
+      },
+      {
+        "protocol_id": "T32",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "neutral",
+        "details": {
+          "macd": 0.4896848303206127,
+          "signal": 0.4800455919395186,
+          "histogram": 0.009639238381094095,
+          "macd_slope": -0.03042904927454515
+        }
+      },
+      {
+        "protocol_id": "T33",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "neutral",
+        "details": {
+          "stoch_k": 56.09243697478916,
+          "stoch_d": 76.06577966168221,
+          "lowest_low": 234.08,
+          "highest_high": 236.46
+        }
+      },
+      {
+        "protocol_id": "T34",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "normal_momentum",
+        "details": {
+          "roc_10": 0.21497594823549254,
+          "roc_5": 0.18085875994722453,
+          "roc_1": -0.1929028702251293,
+          "roc_zscore": -0.3414811660035704,
+          "roc_acceleration": 0.14674157165895652
+        }
+      },
+      {
+        "protocol_id": "T35",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "no_divergence",
+        "details": {
+          "rsi_current": 49.36921783010919,
+          "rsi_prev": 72.18543046357635,
+          "price_change_pct": -0.03184848613529961,
+          "divergence_strength": 2.249772777211416
+        }
+      },
+      {
+        "protocol_id": "T36",
+        "fired": true,
+        "confidence": 0.5,
+        "signal_type": "weak_trend",
+        "details": {
+          "adx": 2.011834319527509,
+          "plus_di": 25.654761904761898,
+          "minus_di": 24.642857142856702,
+          "dx": 2.011834319527509
+        }
+      },
+      {
+        "protocol_id": "T37",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "neutral",
+        "details": {
+          "williams_r": -43.90756302521084,
+          "wr_trend": -15.807535023900648,
+          "highest_high": 236.46,
+          "lowest_low": 234.08
+        }
+      },
+      {
+        "protocol_id": "T38",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "neutral",
+        "details": {
+          "cci": 45.06016812344227,
+          "cci_trend": -29.96683555863717,
+          "typical_price": 235.58333333333334,
+          "sma": 235.29141666666663
+        }
+      },
+      {
+        "protocol_id": "T39",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "no_exhaustion",
+        "details": {
+          "price_trend_pct": 0.37307069156647055,
+          "momentum_deceleration": 0.14738954274455468,
+          "volume_decline_pct": -51.751611414112055,
+          "exhaustion_score": 0.8135502043299733
+        }
+      },
+      {
+        "protocol_id": "T40",
+        "fired": true,
+        "confidence": 0.5,
+        "signal_type": "partial_alignment",
+        "details": {
+          "mom_5": 0.11269402509036204,
+          "mom_10": 0.37307069156647055,
+          "mom_20": -0.184439262242952,
+          "mom_50": 1.0798626019750908,
+          "alignment_score": 0.75,
+          "avg_momentum": 0.34529701409724284
+        }
+      },
+      {
+        "protocol_id": "T41",
+        "fired": true,
+        "confidence": 0.65,
+        "signal_type": "moderate_volume_spike",
+        "details": {
+          "current_volume": 10651.0,
+          "avg_volume_20": 7004.25,
+          "volume_ratio": 1.5206481778919942,
+          "volume_zscore": 1.425822532069893,
+          "price_change_pct": -0.1929028702251293
+        }
+      },
+      {
+        "protocol_id": "T42",
+        "fired": true,
+        "confidence": 0.85,
+        "signal_type": "bearish_divergence",
+        "details": {
+          "obv_current": 95707.0,
+          "obv_sma20": 108136.65,
+          "obv_trend": -8983.0,
+          "obv_slope": -0.038886174745270896
+        }
+      },
+      {
+        "protocol_id": "T43",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "no_confirmation",
+        "details": {
+          "up_volume": 531675.0,
+          "down_volume": 435968.0,
+          "volume_ratio": 1.219527580005872,
+          "recent_price_trend": 0.37307069156647055,
+          "recent_volume_trend": 51.751611414112055
+        }
+      },
+      {
+        "protocol_id": "T44",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "neutral",
+        "details": {
+          "ad_current": 80865.49422883627,
+          "ad_sma10": 86773.12304997414,
+          "ad_sma20": 85127.70644208707,
+          "ad_trend": 724.887345020019
+        }
+      },
+      {
+        "protocol_id": "T45",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "neutral",
+        "details": {
+          "mfi": 64.90774167473019,
+          "mfi_trend": -4.249708345482503,
+          "positive_mf": 13887888.456666667,
+          "negative_mf": 7508462.885
+        }
+      },
+      {
+        "protocol_id": "T46",
+        "fired": true,
+        "confidence": 0.7,
+        "signal_type": "extended_from_vwap",
+        "details": {
+          "current_price": 235.415,
+          "vwap": 231.81213114439498,
+          "deviation_pct": 1.554219288619022,
+          "above_vwap_streak": 9,
+          "below_vwap_streak": 0
+        }
+      },
+      {
+        "protocol_id": "T47",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "neutral",
+        "details": {
+          "cmf": -0.07891046180786009,
+          "cmf_trend": -0.09923377307733844
+        }
+      },
+      {
+        "protocol_id": "T48",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "normal_profile_position",
+        "details": {
+          "current_price": 235.415,
+          "poc_price": 233.171125,
+          "distance_to_poc_pct": 0.9531571904933853,
+          "current_volume_node": 70335.0,
+          "avg_volume_node": 48635.45
+        }
+      },
+      {
+        "protocol_id": "T49",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "neutral",
+        "details": {
+          "fi_13_ema": -388.55038461538913,
+          "fi_normalized": -0.026944610556265326,
+          "positive_streak": 0,
+          "negative_streak": 2
+        }
+      },
+      {
+        "protocol_id": "T50",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "no_climax",
+        "details": {
+          "volume_zscore": 1.425822532069893,
+          "range_expansion": 0.8280757097791902,
+          "price_change_pct": -0.1929028702251293,
+          "climax_score": 0.9999145530137294,
+          "recent_trend_pct": 0.37307069156647055
+        }
+      },
+      {
+        "protocol_id": "T51",
+        "fired": true,
+        "confidence": 0.75,
+        "signal_type": "bearish_marubozu",
+        "details": {
+          "patterns_detected": [
+            "bearish_marubozu"
+          ],
+          "body_size": 0.41500000000002046,
+          "upper_shadow": 0.09999999999999432,
+          "lower_shadow": 0.009999999999990905,
+          "is_bullish": false
+        }
+      },
+      {
+        "protocol_id": "T52",
+        "fired": true,
+        "confidence": 0.8,
+        "signal_type": "double_top",
+        "details": {
+          "local_highs_count": 12,
+          "local_lows_count": 12,
+          "pattern_price": 228.3875
+        }
+      },
+      {
+        "protocol_id": "T53",
+        "fired": true,
+        "confidence": 0.85,
+        "signal_type": "head_and_shoulders",
+        "details": {
+          "neckline": 230.4025,
+          "local_highs_count": 11,
+          "local_lows_count": 9
+        }
+      },
+      {
+        "protocol_id": "T54",
+        "fired": false,
+        "confidence": 0.2,
+        "signal_type": "no_triangle",
+        "details": {
+          "high_slope": -0.009229323308271736,
+          "low_slope": 0.0027255639097671946,
+          "trendline_quality": 0.005737147705693946,
+          "range_contraction": false
+        }
+      },
+      {
+        "protocol_id": "T55",
+        "fired": false,
+        "confidence": 0.2,
+        "signal_type": "no_pattern",
+        "details": {
+          "pole_move_pct": 1.3383251570703218,
+          "high_slope": 0.16557575757576692,
+          "low_slope": 0.13639393939393413,
+          "consolidation": true
+        }
+      },
+      {
+        "protocol_id": "T56",
+        "fired": false,
+        "confidence": 0.2,
+        "signal_type": "no_wedge",
+        "details": {
+          "high_slope": -0.009229323308271736,
+          "low_slope": 0.0027255639097671946,
+          "both_rising": false,
+          "both_falling": false,
+          "narrowing": true
+        }
+      },
+      {
+        "protocol_id": "T57",
+        "fired": false,
+        "confidence": 0.2,
+        "signal_type": "no_cup",
+        "details": {
+          "left_rim": 234.19,
+          "cup_bottom": 232.24,
+          "right_rim": 235.735,
+          "cup_depth_pct": 0.832657244118019,
+          "handle_pullback_pct": 0.5069251490020665
+        }
+      },
+      {
+        "protocol_id": "T58",
+        "fired": true,
+        "confidence": 0.85,
+        "signal_type": "island_bottom_reversal",
+        "details": {
+          "gap_count": 11,
+          "gap1_idx": 25,
+          "gap2_idx": 35
+        }
+      },
+      {
+        "protocol_id": "T59",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "potential_rounding_bottom",
+        "details": {
+          "curvature_a": 0.0012255074835307734,
+          "r_squared": 0.5119382888422781,
+          "vertex_x": -8.371824460427867,
+          "depth_pct": 1.3435741187423227
+        }
+      },
+      {
+        "protocol_id": "T60",
+        "fired": true,
+        "confidence": 0.8,
+        "signal_type": "bearish_three_drives",
+        "details": {
+          "local_highs_count": 11,
+          "local_lows_count": 9
+        }
+      },
+      {
+        "protocol_id": "T61",
+        "fired": true,
+        "confidence": 0.9,
+        "signal_type": "at_support",
+        "details": {
+          "current_price": 235.415,
+          "nearest_support": 232.38000000000002,
+          "support_touches": 9,
+          "distance_pct": 1.2892126669923192,
+          "total_support_levels": 1
+        }
+      },
+      {
+        "protocol_id": "T62",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "no_significant_resistance",
+        "details": {
+          "current_price": 235.415,
+          "nearest_resistance": 0,
+          "resistance_touches": 0,
+          "distance_pct": Infinity,
+          "total_resistance_levels": 2
+        }
+      },
+      {
+        "protocol_id": "T63",
+        "fired": true,
+        "confidence": 0.8,
+        "signal_type": "at_ema20",
+        "details": {
+          "current_price": 235.415,
+          "sma20": 235.26975,
+          "sma50": 234.03770000000003,
+          "ema20": 235.3979252323603,
+          "nearest_ma_distance_pct": 0.007253049992432214
+        }
+      },
+      {
+        "protocol_id": "T64",
+        "fired": true,
+        "confidence": 0.75,
+        "signal_type": "at_fib_0.236",
+        "details": {
+          "current_price": 235.415,
+          "swing_high": 236.53,
+          "swing_low": 226.195,
+          "nearest_fib_level": "0.236",
+          "nearest_fib_price": 234.09094,
+          "distance_pct": 0.5624365482233515
+        }
+      },
+      {
+        "protocol_id": "T65",
+        "fired": true,
+        "confidence": 0.8,
+        "signal_type": "at_s2",
+        "details": {
+          "current_price": 235.415,
+          "pivot": 236.03,
+          "r1": 236.3,
+          "r2": 236.73000000000002,
+          "r3": 237.00000000000003,
+          "s1": 235.6,
+          "s2": 235.32999999999998,
+          "s3": 234.89999999999998,
+          "nearest_level": "S2"
+        }
+      },
+      {
+        "protocol_id": "T66",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "at_minor_level",
+        "details": {
+          "current_price": 235.415,
+          "major_round": 240.0,
+          "minor_round": 235.0,
+          "distance_major_pct": 1.947624407960414,
+          "recent_crosses": 0
+        }
+      },
+      {
+        "protocol_id": "T67",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "no_breakout",
+        "details": {
+          "prior_high": 236.53,
+          "prior_low": 231.74,
+          "current_price": 235.415,
+          "volume_confirmation": true,
+          "breakout_magnitude_pct": 0.0
+        }
+      },
+      {
+        "protocol_id": "T68",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "no_false_breakout",
+        "details": {
+          "prior_high": 236.53,
+          "prior_low": 234.08,
+          "bull_trap": false,
+          "bear_trap": false,
+          "rejection_wick": false,
+          "weak_volume": false
+        }
+      },
+      {
+        "protocol_id": "T69",
+        "fired": false,
+        "confidence": 0.3,
+        "signal_type": "no_flip",
+        "details": {
+          "prior_support": 231.74,
+          "prior_resistance": 236.53,
+          "current_price": 235.415,
+          "support_to_resistance": false,
+          "resistance_to_support": false
+        }
+      },
+      {
+        "protocol_id": "T70",
+        "fired": true,
+        "confidence": 0.5,
+        "signal_type": "range_midpoint",
+        "details": {
+          "range_high": 236.53,
+          "range_low": 234.08,
+          "current_price": 235.415,
+          "range_size_pct": 1.0412018444146909,
+          "touches_upper": 2,
+          "touches_lower": 0
+        }
+      },
+      {
+        "protocol_id": "T71",
+        "fired": true,
+        "confidence": 0.65,
+        "signal_type": "uptrend",
+        "details": {
+          "sma20": 235.26975,
+          "sma50": 234.03770000000003,
+          "trend_strength_score": 0.2808646599630142,
+          "price_distance_sma20": 0.06173764370472801,
+          "bullish_aligned": true,
+          "bearish_aligned": false
+        }
+      },
+      {
+        "protocol_id": "T72",
+        "fired": true,
+        "confidence": 0.75,
+        "signal_type": "range_bound",
+        "details": {
+          "volatility": 0.04043184545522989,
+          "trend_strength": 2.0980556257476193e-05,
+          "price_range_pct": 1.0407153324979244,
+          "trend_consistency": 0.5263157894736842,
+          "is_trending": false,
+          "is_volatile": false,
+          "is_ranging": true
+        }
+      },
+      {
+        "protocol_id": "T73",
+        "fired": false,
+        "confidence": 0.4,
+        "signal_type": "average_performance",
+        "details": {
+          "perf_5d_pct": 0.18085875994722453,
+          "perf_20d_pct": 0.023368456832077836,
+          "perf_60d_pct": 1.4370044812133658,
+          "zscore_5d": -0.0626142557541662,
+          "relative_momentum": 7.73943958930827
+        }
+      },
+      {
+        "protocol_id": "T74",
+        "fired": true,
+        "confidence": 0.85,
+        "signal_type": "at_50d_high",
+        "details": {
+          "current_price": 235.415,
+          "position_20_pct": 54.48979591836677,
+          "position_50_pct": 81.26050420168049,
+          "high_20": 236.53,
+          "low_20": 234.08,
+          "high_50": 236.53,
+          "low_50": 230.58
+        }
+      },
+      {
+        "protocol_id": "T75",
+        "fired": true,
+        "confidence": 0.75,
+        "signal_type": "young_trend",
+        "details": {
+          "days_in_trend": 9,
+          "total_move_pct": 0.37307069156647055,
+          "pullback_ratio": 0.4444444444444444,
+          "trend_direction": "up"
+        }
+      },
+      {
+        "protocol_id": "T76",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "early_month",
+        "details": {
+          "day_spread": 0.1538847373377369,
+          "monthly_position": 0,
+          "cycle_5_avg": 0.03636503867001576,
+          "cycle_10_avg": 0.02162129869679346,
+          "cycle_20_avg": 0.001493277177862426
+        }
+      },
+      {
+        "protocol_id": "T77",
+        "fired": false,
+        "confidence": 0.35,
+        "signal_type": "low_reversion_probability",
+        "details": {
+          "deviation_sma20_pct": 0.06173764370472801,
+          "deviation_sma50_pct": 0.5884949305175886,
+          "zscore": 0.24239672951068955,
+          "reversion_rate": 0.0,
+          "reversion_score": 0.07395377172730143
+        }
+      },
+      {
+        "protocol_id": "T78",
+        "fired": true,
+        "confidence": 0.8200000000000001,
+        "signal_type": "high_continuation_probability",
+        "details": {
+          "trend_10_pct": 0.21497594823549254,
+          "trend_20_pct": 0.023368456832077836,
+          "trend_alignment": true,
+          "volume_support": true,
+          "pullback_depth_pct": 0.3787397909525666,
+          "continuation_score": 0.8
+        }
+      },
+      {
+        "protocol_id": "T79",
+        "fired": true,
+        "confidence": 0.6,
+        "signal_type": "subdued_risk",
+        "details": {
+          "vol_5_annualized": 3.32679089618477,
+          "vol_20_annualized": 4.043184545522989,
+          "vol_50_annualized": 4.248501891098247,
+          "risk_score": 0.1332679089618477,
+          "large_moves_count": 0,
+          "gap_count": 0
+        }
+      },
+      {
+        "protocol_id": "T80",
+        "fired": true,
+        "confidence": 0.85,
+        "signal_type": "strongly_bullish_composite",
+        "details": {
+          "trend_signal": 1,
+          "momentum_signal": 0,
+          "volatility_signal": 1,
+          "volume_signal": 1,
+          "bullish_count": 3,
+          "bearish_count": 0,
+          "alignment_score": 0.75
+        }
+      }
+    ],
+    "monster_runner_results": {
+      "any_fired": true,
+      "protocols_fired": [
+        "MR01"
+      ],
+      "monster_score": 0.5225,
+      "confidence": 52.25,
+      "dominant_signal": "MR01",
+      "individual_results": {
+        "MR01": "MR01Result(protocol_id='MR01', fired=True, compression_score=0.5225, atr_contraction_ratio=0.8408, range_tightness=0.2587, bollinger_squeeze=0.2185, explosion_probability=0.627, direction_bias='bearish', confidence=52.25, notes='Compression explosion precursor detected')",
+        "MR02": "MR02Result(protocol_id='MR02', fired=False, volume_anomaly_score=0.0, spike_magnitude=1.4258, accumulation_signal=0.5639, distribution_signal=0.4361, climax_detected=False, dry_up_detected=False, confidence=0.0, notes='No significant volume anomaly')",
+        "MR03": "MR03Result(protocol_id='MR03', fired=False, regime_shift_score=0.0, current_regime='normal', previous_regime='normal', transition_strength=0.0, volatility_expansion=0.0, volatility_contraction=0.3654, confidence=0.0, notes='Volatility contracting')",
+        "MR04": "MR04Result(protocol_id='MR04', fired=False, institutional_score=0.1074, large_bar_ratio=0.15, price_volume_divergence=0.3581, stealth_accumulation=0.0, stealth_distribution=0.0, footprint_type='none', confidence=10.74, notes='Price/volume divergence detected')",
+        "MR05": "MR05Result(protocol_id='MR05', fired=False, alignment_score=0.1645, trend_alignment=0.0, momentum_alignment=0.0, structure_alignment=0.6579, timeframe_scores={'short': 0.0138, 'medium': 0.0581, 'long': 0.2471}, dominant_direction='neutral', confidence=16.45, notes='Clear structural pattern; Direction: neutral')",
+        "MR06": "MR06Result(protocol_id='MR06', fired=False, breakout_score=0.0, squeeze_depth=0.5657, breakout_direction='neutral', band_width=0.0091, price_vs_upper=-0.0039, price_vs_lower=0.0052, confidence=0.0, notes='Squeeze depth: 0.57')",
+        "MR07": "MR07Result(protocol_id='MR07', fired=False, explosion_score=0.0, volume_multiple=1.5635, price_change_pct=-0.0019, direction='bearish', institutional_signature=False, confidence=0.0, notes='No explosion detected')",
+        "MR08": "MR08Result(protocol_id='MR08', fired=False, runner_score=0.5, gap_pct=-0.0002, gap_direction='down', continuation=True, intraday_strength=0.7905, fill_probability=0.7, confidence=50.0, notes='Gap continuation')",
+        "MR09": "MR09Result(protocol_id='MR09', fired=False, vwap_score=0.0, vwap_deviation=0.0155, breakout_direction='neutral', volume_confirmation=False, price_vs_vwap=0.0155, confidence=0.0, notes='No VWAP breakout detected')",
+        "MR10": "MR10Result(protocol_id='MR10', fired=False, nr7_score=0.4, is_nr7=False, range_rank=5, breakout_detected=True, breakout_direction='bearish', confidence=40.0, notes='Bearish breakout')",
+        "MR11": "MR11Result(protocol_id='MR11', fired=False, squeeze_score=0.0, price_acceleration=0.0008, volume_surge=1.423, consecutive_up_days=0, parabolic_move=False, confidence=0.0, notes='No squeeze pattern detected')",
+        "MR12": "MR12Result(protocol_id='MR12', fired=False, pump_score=0.0, intraday_move=-0.0018, volume_ratio=1.2703, is_pump=False, is_dump=False, confidence=0.0, notes='No pump pattern detected')",
+        "MR13": "MR13Result(protocol_id='MR13', fired=False, catalyst_score=0.0, gap_magnitude=0.0002, gap_direction='down', volume_spike=False, potential_catalyst='none_detected', confidence=0.0, notes='No catalyst pattern detected')",
+        "MR14": "MR14Result(protocol_id='MR14', fired=False, fractal_score=0.0, is_new_high=False, is_new_low=False, breakout_strength=0.0, days_since_level=0, confidence=0.0, notes='No fractal breakout detected')",
+        "MR15": "MR15Result(protocol_id='MR15', fired=False, extreme_score=0.0, total_return=-0.0019, intraday_return=-0.0018, is_doubler=False, is_halver=False, confidence=0.0, notes='No extreme move detected')",
+        "MR16": "MR16Result(protocol_id='MR16', fired=False, parabolic_score=0.0, five_day_return=0.0018, acceleration_rate=-0.0019, is_blow_off=False, exhaustion_risk=0.0, confidence=0.0, notes='No parabolic pattern detected')",
+        "MR17": "MR17Result(protocol_id='MR17', fired=False, frenzy_score=0.0, volatility_ratio=0.1895, volume_intensity=0.7834, price_swing=0.0089, frenzy_characteristics=0, confidence=0.0, notes='No frenzy pattern detected')",
+        "MR18": "MR18Result(protocol_id='MR18', fired=False, gamma_score=0.25, volatility_spike=1.3093, intraday_range_ratio=1.6859, directional_persistence=0.5, gamma_signature=False, confidence=25.0, notes='No gamma ramp detected')",
+        "MR19": "MR19Result(protocol_id='MR19', fired=False, fomo_score=0.2, cumulative_return_10d=0.0021, volume_growth=1.7764, consecutive_ups=0, fomo_stage='none', confidence=20.0, notes='No FOMO cascade detected')",
+        "MR20": "MR20Result(protocol_id='MR20', fired=False, nuclear_score=0.0, total_return_10d=0.0021, max_drawdown=0.0038, is_nuclear=False, multiplier=1.0021, confidence=0.0, notes='Minimal pullbacks')"
+      }
+    },
+    "verdict": {
+      "action": "structural_interest",
+      "confidence": 0.8222861027617068,
+      "primary_signal": "Mixed structure",
+      "risk_factors": [
+        "Critical drift from mean"
+      ],
+      "compliance_note": "Structural analysis only - not trading advice"
+    },
+    "omega_overrides": {
+      "omega_1_safety": false,
+      "omega_2_entropy": false,
+      "omega_3_drift": true,
+      "omega_4_compliance": true
+    },
+    "proof_hash": "dac71c1c1fa02735f875bc61908a784729240eda95e05099490c4bfe7e891898"
+  },
+  "context": {
+    "seed": 42,
+    "run_id": null,
+    "sector": null,
+    "market_hours": true,
+    "compliance_mode": true
+  }
+}
