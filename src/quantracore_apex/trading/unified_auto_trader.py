@@ -28,6 +28,13 @@ from ..server.ml_scanner import (
 
 logger = logging.getLogger(__name__)
 
+QUICK_SCAN_UNIVERSE = [
+    "AMC", "GME", "BBBY", "MARA", "RIOT",
+    "PLUG", "FCEL", "SOFI", "LCID", "RIVN",
+    "CLOV", "WISH", "PLTR", "NIO", "XPEV",
+    "LAZR", "VLDR", "GOEV", "WKHS", "FFIE",
+]
+
 
 @dataclass
 class UnifiedCandidate:
@@ -189,20 +196,39 @@ class UnifiedAutoTrader:
         self,
         candidates: List[UnifiedCandidate],
         equity: float,
+        available_cash: float,
     ) -> List[UnifiedCandidate]:
-        """Add pricing and position sizing to candidates."""
-        max_position_value = equity * self.max_position_pct
+        """Add pricing and position sizing to candidates with capital checks."""
+        max_position_value = min(equity * self.max_position_pct, available_cash * 0.95)
+        
+        if max_position_value < 100:
+            logger.warning(f"Insufficient capital for positions: ${available_cash:.2f} cash")
+            return []
         
         enriched = []
+        remaining_cash = available_cash
+        
         for c in candidates:
+            if remaining_cash < 100:
+                logger.info(f"Stopping enrichment: insufficient remaining cash ${remaining_cash:.2f}")
+                break
+            
             try:
                 price = self.alpaca.get_last_price(c.symbol)
                 if price <= 0:
                     continue
                 
-                shares = int(max_position_value / price)
+                position_budget = min(max_position_value, remaining_cash * 0.95)
+                shares = int(position_budget / price)
                 if shares < 1:
                     continue
+                
+                position_cost = shares * price
+                if position_cost > remaining_cash:
+                    shares = int(remaining_cash * 0.95 / price)
+                    if shares < 1:
+                        continue
+                    position_cost = shares * price
                 
                 stop_loss = round(price * (1 - self.stop_loss_pct), 2)
                 take_profit = round(price * (1 + self.take_profit_pct), 2)
@@ -211,10 +237,11 @@ class UnifiedAutoTrader:
                 c.stop_loss_price = stop_loss
                 c.take_profit_price = take_profit
                 c.shares = shares
-                c.position_value = shares * price
+                c.position_value = position_cost
                 c.risk_reward = self.take_profit_pct / self.stop_loss_pct
                 
                 enriched.append(c)
+                remaining_cash -= position_cost
                 
             except Exception as e:
                 logger.warning(f"Failed to enrich {c.symbol}: {e}")
@@ -337,8 +364,9 @@ class UnifiedAutoTrader:
         candidates = [c for c in candidates if c.symbol not in current_symbols]
         logger.info(f"[UnifiedAutoTrader] {len(candidates)} candidates after filtering existing positions")
         
-        candidates = self.enrich_candidates(candidates, equity)
-        logger.info(f"[UnifiedAutoTrader] {len(candidates)} candidates enriched with pricing")
+        available_cash = account.get("cash", 0)
+        candidates = self.enrich_candidates(candidates, equity, available_cash)
+        logger.info(f"[UnifiedAutoTrader] {len(candidates)} candidates enriched with pricing (cash: ${available_cash:,.2f})")
         
         candidates = sorted(candidates, key=lambda x: x.combined_score, reverse=True)
         candidates = candidates[:max_trades]

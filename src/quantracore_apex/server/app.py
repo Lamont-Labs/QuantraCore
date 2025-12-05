@@ -8452,6 +8452,7 @@ def create_app() -> FastAPI:
         require_high_conviction: bool = False,
         stop_loss_pct: float = 0.08,
         take_profit_pct: float = 0.50,
+        quick_scan: bool = True,
     ):
         """
         UNIFIED AUTONOMOUS TRADING: Scan → Analyze → Trade in one call.
@@ -8462,7 +8463,7 @@ def create_app() -> FastAPI:
         PAPER TRADING ONLY - No real money at risk.
         
         Features:
-        - Scans entire moonshot universe (100+ stocks)
+        - Scans moonshot universe (20 stocks quick_scan=True, 100+ stocks quick_scan=False)
         - Merges EOD (daily patterns) and intraday (1-min microstructure) signals
         - High conviction = flagged by BOTH models
         - Bracket orders include automatic stop-loss and take-profit
@@ -8475,12 +8476,14 @@ def create_app() -> FastAPI:
             require_high_conviction: Only trade if BOTH models agree (default: False)
             stop_loss_pct: Stop-loss percentage, e.g., 0.08 = 8% (default: 0.08)
             take_profit_pct: Take-profit percentage, e.g., 0.50 = 50% (default: 0.50)
+            quick_scan: Use smaller universe (20 stocks) for faster scans (default: True)
         
         Returns:
             Complete execution report with candidates and order results
         """
         try:
-            from src.quantracore_apex.trading.unified_auto_trader import UnifiedAutoTrader
+            from src.quantracore_apex.trading.unified_auto_trader import UnifiedAutoTrader, QUICK_SCAN_UNIVERSE
+            from src.quantracore_apex.server.ml_scanner import MOONSHOT_UNIVERSE
             
             trader = UnifiedAutoTrader(
                 max_new_positions=min(max_trades, 5),
@@ -8489,7 +8492,10 @@ def create_app() -> FastAPI:
                 require_high_conviction=require_high_conviction,
             )
             
+            universe = QUICK_SCAN_UNIVERSE if quick_scan else MOONSHOT_UNIVERSE
+            
             result = trader.scan_analyze_trade(
+                symbols=universe,
                 max_trades=min(max_trades, 5),
                 include_eod=include_eod,
                 include_intraday=include_intraday,
