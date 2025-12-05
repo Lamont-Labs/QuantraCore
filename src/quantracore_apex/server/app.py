@@ -8598,6 +8598,175 @@ def create_app() -> FastAPI:
             }
     
     # =========================================================================
+    # MULTI-STRATEGY ORCHESTRATOR ENDPOINTS
+    # Run multiple strategies simultaneously (Swing, Scalp, MonsterRunner, etc)
+    # =========================================================================
+    
+    @app.get("/strategies/status")
+    async def get_strategies_status():
+        """
+        Get status of all registered trading strategies.
+        
+        Shows which strategies are enabled, their configurations, and recent activity.
+        """
+        try:
+            from src.quantracore_apex.trading.strategy_orchestrator import get_orchestrator
+            
+            orchestrator = get_orchestrator()
+            status = orchestrator.get_status()
+            
+            return {
+                "success": True,
+                "orchestrator": status,
+                "available_strategies": [
+                    {
+                        "type": "swing",
+                        "name": "Swing Trading (EOD)",
+                        "description": "Multi-day holds targeting 50%+ gains",
+                        "hold_time": "2-5 days",
+                    },
+                    {
+                        "type": "scalp",
+                        "name": "Scalping (Intraday)",
+                        "description": "Quick trades targeting 2-5% gains",
+                        "hold_time": "Minutes to hours",
+                    },
+                    {
+                        "type": "monster_runner",
+                        "name": "MonsterRunner",
+                        "description": "Extreme move detection targeting 100%+ gains",
+                        "hold_time": "1-7 days",
+                    },
+                    {
+                        "type": "momentum",
+                        "name": "Momentum",
+                        "description": "Trend-following targeting 10-20% gains",
+                        "hold_time": "4-48 hours",
+                    },
+                ],
+                "mode": "PAPER TRADING ONLY",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting strategies status: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/strategies/run")
+    async def run_all_strategies(
+        symbols: List[str] = None,
+        dry_run: bool = True,
+        strategies: List[str] = None,
+    ):
+        """
+        Run a cycle across all enabled strategies.
+        
+        This endpoint:
+        1. Collects intents from all enabled strategies
+        2. Arbitrates conflicts (priority, budget, symbol exclusivity)
+        3. Executes approved intents through the broker
+        
+        Args:
+            symbols: List of symbols to analyze (default: quick scan universe)
+            dry_run: If True, analyze but don't execute (default: True)
+            strategies: Specific strategies to run (default: all enabled)
+        
+        PAPER TRADING ONLY - No real money at risk.
+        """
+        try:
+            from src.quantracore_apex.trading.strategy_orchestrator import (
+                get_orchestrator, StrategyType
+            )
+            from src.quantracore_apex.trading.strategies import (
+                SwingStrategy, MonsterRunnerStrategy, ScalpStrategy, MomentumStrategy
+            )
+            from src.quantracore_apex.trading.unified_auto_trader import QUICK_SCAN_UNIVERSE
+            
+            orchestrator = get_orchestrator()
+            
+            if not orchestrator.strategies:
+                orchestrator.register_strategy(SwingStrategy())
+                orchestrator.register_strategy(MonsterRunnerStrategy())
+                orchestrator.register_strategy(ScalpStrategy())
+                orchestrator.register_strategy(MomentumStrategy())
+            
+            if strategies:
+                valid_types = {s.lower() for s in strategies}
+                for st_type, strategy in orchestrator.strategies.items():
+                    strategy.enabled = st_type.value.lower() in valid_types
+            
+            scan_symbols = symbols if symbols else QUICK_SCAN_UNIVERSE
+            
+            account = orchestrator.broker.get_account() if orchestrator.broker else {}
+            equity = account.get("equity", 100000)
+            cash = account.get("cash", 10000)
+            positions = account.get("current_symbols", [])
+            
+            result = orchestrator.run_cycle(
+                symbols=scan_symbols,
+                equity=equity,
+                available_cash=cash,
+                current_positions=positions,
+                dry_run=dry_run,
+            )
+            
+            result["legal_notice"] = {
+                "mode": "PAPER TRADING ONLY",
+                "real_money_risk": False,
+                "disclaimer": "SIMULATION ONLY - This is paper trading with no real money at risk.",
+            }
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error running strategies: {e}")
+            import traceback
+            return {
+                "success": False,
+                "error": str(e),
+                "traceback": traceback.format_exc(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.post("/strategies/{strategy_type}/enable")
+    async def enable_strategy(strategy_type: str, enabled: bool = True):
+        """Enable or disable a specific strategy."""
+        try:
+            from src.quantracore_apex.trading.strategy_orchestrator import (
+                get_orchestrator, StrategyType
+            )
+            
+            type_map = {
+                "swing": StrategyType.SWING,
+                "scalp": StrategyType.SCALP,
+                "monster_runner": StrategyType.MONSTER_RUNNER,
+                "momentum": StrategyType.MOMENTUM,
+                "hft": StrategyType.HFT,
+                "breakout": StrategyType.BREAKOUT,
+            }
+            
+            st_type = type_map.get(strategy_type.lower())
+            if not st_type:
+                return {"success": False, "error": f"Unknown strategy: {strategy_type}"}
+            
+            orchestrator = get_orchestrator()
+            orchestrator.enable_strategy(st_type, enabled)
+            
+            return {
+                "success": True,
+                "strategy": strategy_type,
+                "enabled": enabled,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    # =========================================================================
     # TRADE HOLD MANAGER ENDPOINTS
     # Continuation probability-based hold decisions
     # =========================================================================
