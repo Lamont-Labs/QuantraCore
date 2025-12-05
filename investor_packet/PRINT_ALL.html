@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QuantraCore Apex - Investor Packet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #1a1a1a;
+            background: white;
+        }
+        .page {
+            width: 8.5in;
+            min-height: 11in;
+            padding: 0.75in;
+            margin: 0 auto;
+            page-break-after: always;
+            background: white;
+        }
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #0a0a0a;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 8px;
+        }
+        h2 {
+            font-size: 14pt;
+            font-weight: 600;
+            margin: 20px 0 10px 0;
+            color: #1e40af;
+        }
+        h3 {
+            font-size: 12pt;
+            font-weight: 600;
+            margin: 15px 0 8px 0;
+            color: #1e3a5f;
+        }
+        .subtitle {
+            font-size: 12pt;
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 10pt;
+        }
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 6px 10px;
+            text-align: left;
+        }
+        th {
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: #f9fafb;
+        }
+        .highlight {
+            background: #dbeafe;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #2563eb;
+        }
+        .quote {
+            font-style: italic;
+            padding: 10px 15px;
+            background: #f8fafc;
+            border-left: 3px solid #64748b;
+            margin: 10px 0;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .two-column {
+            display: flex;
+            gap: 30px;
+        }
+        .two-column > div {
+            flex: 1;
+        }
+        .metric-box {
+            text-align: center;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            margin: 5px;
+        }
+        .metric-value {
+            font-size: 24pt;
+            font-weight: 700;
+            color: #1e40af;
+        }
+        .metric-label {
+            font-size: 9pt;
+            color: #4b5563;
+            text-transform: uppercase;
+        }
+        .metrics-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .green { color: #15803d; }
+        .red { color: #dc2626; }
+        ul {
+            margin: 10px 0 10px 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 10pt;
+            color: #6b7280;
+        }
+        .header-right {
+            float: right;
+            text-align: right;
+            font-size: 10pt;
+            color: #6b7280;
+        }
+        @media print {
+            .page {
+                margin: 0;
+                padding: 0.5in;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- PAGE 1: ONE-PAGER -->
+<div class="page">
+    <div class="header-right">December 2025</div>
+    <h1>QUANTRACORE APEX</h1>
+    <div class="subtitle">Autonomous AI Trading System | v9.0-A</div>
+
+    <div class="highlight">
+        <strong>THE OPPORTUNITY:</strong> Proprietary trading technology built for strategic acquisition by a fund, prop desk, or fintech platform.
+    </div>
+
+    <h2>WHAT IT DOES</h2>
+    <p>Detects stocks ready for 50%+ moves within 5 trading days using machine learning on end-of-day data. Fully autonomous — signals, execution, risk management, and logging.</p>
+
+    <h2>CURRENT STATUS</h2>
+    <div class="metrics-row">
+        <div class="metric-box">
+            <div class="metric-value">$104,046</div>
+            <div class="metric-label">Current Equity</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-value green">+4.05%</div>
+            <div class="metric-label">Return</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-value">70%</div>
+            <div class="metric-label">Win Rate</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-value">10</div>
+            <div class="metric-label">Positions</div>
+        </div>
+    </div>
+
+    <div class="two-column">
+        <div>
+            <h2>WHAT'S PROVEN</h2>
+            <ul>
+                <li>Infrastructure works (263 endpoints, 104K lines)</li>
+                <li>Autonomous operation end-to-end</li>
+                <li>Forward validation (no backtest fiction)</li>
+                <li>Institutional audit trails</li>
+            </ul>
+        </div>
+        <div>
+            <h2>WHAT'S UNPROVEN</h2>
+            <ul>
+                <li>Long-term edge (days, not years)</li>
+                <li>Performance across market conditions</li>
+                <li>Scalability with real capital</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>RISK MANAGEMENT</h2>
+    <table>
+        <tr><th>Rule</th><th>Setting</th></tr>
+        <tr><td>Hard Stop</td><td>-15% from entry</td></tr>
+        <tr><td>Trailing Stop</td><td>Activates +10%, trails 8%</td></tr>
+        <tr><td>Time Stop</td><td>Exit day 5 if &lt;5% gain</td></tr>
+    </table>
+
+    <h2>SEEKING</h2>
+    <ul>
+        <li><strong>Strategic acquisition</strong> (preferred)</li>
+        <li><strong>Partnership</strong> to validate at scale</li>
+        <li><em>NOT</em> raising capital to build a company</li>
+    </ul>
+
+    <div class="footer">
+        <strong>Jesse Lamont</strong> | Founder, Lamont Labs | QuantraCore Apex v9.0-A<br>
+        <em>"We're building the track record in public. The infrastructure is ready."</em>
+    </div>
+</div>
+
+<!-- PAGE 2: PORTFOLIO STATUS -->
+<div class="page">
+    <div class="header-right">Generated: December 5, 2025</div>
+    <h1>PORTFOLIO STATUS</h1>
+    <div class="subtitle">Live Paper Trading | Alpaca</div>
+
+    <h2>ACCOUNT SUMMARY</h2>
+    <table>
+        <tr><th>Metric</th><th>Value</th></tr>
+        <tr><td>Starting Capital</td><td>$100,000.00</td></tr>
+        <tr><td>Current Equity</td><td>$104,046.21</td></tr>
+        <tr><td>Cash Available</td><td>$950.38</td></tr>
+        <tr><td>Total P&L</td><td class="green">+$4,046.21</td></tr>
+        <tr><td>Total Return</td><td class="green">+4.05%</td></tr>
+    </table>
+
+    <h2>ACTIVE POSITIONS</h2>
+    <table>
+        <tr><th>Symbol</th><th>Shares</th><th>Entry</th><th>Current</th><th>P&L</th><th>%</th></tr>
+        <tr><td>JFBR</td><td>3,842</td><td>$1.87</td><td>$2.55</td><td class="green">+$2,613</td><td class="green">+36.4%</td></tr>
+        <tr><td>LAZR</td><td>1,211</td><td>$0.82</td><td>$1.04</td><td class="green">+$266</td><td class="green">+26.8%</td></tr>
+        <tr><td>DRCT</td><td>116,787</td><td>$0.09</td><td>$0.10</td><td class="green">+$1,051</td><td class="green">+9.7%</td></tr>
+        <tr><td>LXEH</td><td>36,496</td><td>$0.31</td><td>$0.33</td><td class="green">+$642</td><td class="green">+5.6%</td></tr>
+        <tr><td>WKHS</td><td>7,406</td><td>$0.82</td><td>$0.85</td><td class="green">+$232</td><td class="green">+3.8%</td></tr>
+        <tr><td>ORGN</td><td>2,247</td><td>$0.47</td><td>$0.48</td><td class="green">+$19</td><td class="green">+1.8%</td></tr>
+        <tr><td>JZXN</td><td>85,873</td><td>$0.18</td><td>$0.18</td><td class="green">+$120</td><td class="green">+0.8%</td></tr>
+        <tr><td>IVP</td><td>89,836</td><td>$0.11</td><td>$0.11</td><td class="red">-$81</td><td class="red">-0.8%</td></tr>
+        <tr><td>BBGI</td><td>4,241</td><td>$4.01</td><td>$3.94</td><td class="red">-$297</td><td class="red">-1.7%</td></tr>
+        <tr><td>PMAX</td><td>6,789</td><td>$2.86</td><td>$2.70</td><td class="red">-$1,086</td><td class="red">-5.6%</td></tr>
+    </table>
+
+    <h2>PERFORMANCE METRICS</h2>
+    <div class="metrics-row">
+        <div class="metric-box">
+            <div class="metric-value">7/10</div>
+            <div class="metric-label">Winners</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-value">70%</div>
+            <div class="metric-label">Win Rate</div>
+        </div>
+        <div class="metric-box">
+            <div class="metric-value green">+$3,479</div>
+            <div class="metric-label">Unrealized P&L</div>
+        </div>
+    </div>
+
+    <h2>STOP-LOSS STATUS</h2>
+    <table>
+        <tr><th>Symbol</th><th>Current</th><th>Stop Type</th><th>Status</th></tr>
+        <tr><td>JFBR</td><td>+36.4%</td><td>Trailing (8%)</td><td><strong>ACTIVE</strong></td></tr>
+        <tr><td>LAZR</td><td>+26.8%</td><td>Trailing (8%)</td><td><strong>ACTIVE</strong></td></tr>
+        <tr><td>Others</td><td>Various</td><td>Hard (-15%)</td><td>Monitoring</td></tr>
+        <tr><td>PMAX</td><td>-5.6%</td><td>Hard (-15%)</td><td><em>Watch (10% to stop)</em></td></tr>
+    </table>
+
+    <div class="footer">
+        All positions entered via autonomous signal detection. Forward validation active.
+    </div>
+</div>
+
+<!-- PAGE 3: TALKING POINTS -->
+<div class="page">
+    <h1>TALKING POINTS</h1>
+    <div class="subtitle">Quick Reference for Investor Conversations</div>
+
+    <h2>THE 60-SECOND PITCH</h2>
+    <div class="highlight">
+        <ol>
+            <li><strong>What:</strong> AI system that detects stocks ready for 50%+ moves in 5 days</li>
+            <li><strong>How:</strong> Machine learning on end-of-day data, fully autonomous</li>
+            <li><strong>Status:</strong> Live paper trading, 10 positions, 70% win rate, +4% return</li>
+            <li><strong>Proof:</strong> Forward validation — predictions logged before outcomes</li>
+            <li><strong>Goal:</strong> Strategic acquisition by fund or institution</li>
+        </ol>
+    </div>
+
+    <h2>KEY PHRASES TO USE</h2>
+    
+    <h3>On the System</h3>
+    <div class="quote">"It runs autonomously — detects signals, sizes positions, manages stops, logs everything."</div>
+    
+    <h3>On the Track Record</h3>
+    <div class="quote">"We have about a week of live paper trading. That's a demo, not proof. What IS proven is the infrastructure works."</div>
+    
+    <h3>On What You Want</h3>
+    <div class="quote">"I'm not raising capital to grow a company. I built this to be acquired."</div>
+
+    <h2>COMMON QUESTIONS</h2>
+    
+    <p><strong>"What's your track record?"</strong></p>
+    <div class="quote">"About a week of paper trading. 10 positions, 70% win rate, +4% return. Too early to claim anything statistically."</div>
+    
+    <p><strong>"Why should I believe this works?"</strong></p>
+    <div class="quote">"You shouldn't yet. That's why we have forward validation. In 6-12 months, the data will prove it or disprove it."</div>
+    
+    <p><strong>"What are you asking for?"</strong></p>
+    <div class="quote">"Acquisition or partnership. Not investment to run a company."</div>
+
+    <h2>YOUR QUESTIONS FOR THEM</h2>
+    <ol>
+        <li>Do you typically see projects at this stage?</li>
+        <li>What would you need to see to consider this seriously?</li>
+        <li>Who in your network might be a better fit?</li>
+    </ol>
+
+    <h2>DON'T SAY</h2>
+    <ul>
+        <li>"Proven returns" — too early to claim</li>
+        <li>"Guaranteed" — never say this word</li>
+        <li>Made-up projections or valuations</li>
+    </ul>
+
+    <div class="footer">
+        <strong>Meeting:</strong> Arnoldas J. | December 8, 2025 | 4:30am PT
+    </div>
+</div>
+
+<!-- PAGE 4: SYSTEM OVERVIEW -->
+<div class="page">
+    <h1>SYSTEM OVERVIEW</h1>
+    <div class="subtitle">Technical Architecture</div>
+
+    <h2>ARCHITECTURE</h2>
+    <pre style="background: #f3f4f6; padding: 15px; font-size: 9pt; border-radius: 6px;">
+┌─────────────────────────────────────────────────────────────┐
+│                    DATA LAYER                               │
+│  Polygon (EOD) │ Finnhub (Sentiment) │ FRED (Macro)        │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  PROTOCOL ENGINE                            │
+│  80 Tier Protocols │ 25 Learning Protocols │ 20 Omega Rules │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│               AUTONOMOUS EXECUTION                          │
+│  AutoTrader │ Position Sizing │ Stop-Loss │ Audit Logging   │
+└─────────────────────────────────────────────────────────────┘
+    </pre>
+
+    <div class="two-column">
+        <div>
+            <h2>CODEBASE METRICS</h2>
+            <table>
+                <tr><td>Python Files</td><td>423</td></tr>
+                <tr><td>Lines of Code</td><td>104,903</td></tr>
+                <tr><td>API Endpoints</td><td>263</td></tr>
+                <tr><td>ML Models</td><td>21</td></tr>
+                <tr><td>Test Modules</td><td>38</td></tr>
+            </table>
+        </div>
+        <div>
+            <h2>TECH STACK</h2>
+            <table>
+                <tr><td>Backend</td><td>Python, FastAPI</td></tr>
+                <tr><td>ML</td><td>scikit-learn</td></tr>
+                <tr><td>Database</td><td>PostgreSQL</td></tr>
+                <tr><td>Frontend</td><td>React, TypeScript</td></tr>
+                <tr><td>Execution</td><td>Alpaca API</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <h2>DATA SOURCES</h2>
+    <table>
+        <tr><th>Provider</th><th>Data Type</th><th>Plan</th></tr>
+        <tr><td>Polygon.io</td><td>EOD prices</td><td>Free (5/min)</td></tr>
+        <tr><td>Alpaca</td><td>Execution</td><td>Free (200/min)</td></tr>
+        <tr><td>Finnhub</td><td>Sentiment</td><td>Free</td></tr>
+        <tr><td>FRED</td><td>Macro</td><td>Free</td></tr>
+        <tr><td>Alpha Vantage</td><td>News</td><td>Free</td></tr>
+    </table>
+
+    <h2>DUE DILIGENCE AVAILABLE</h2>
+    <table>
+        <tr><th>Item</th><th>Status</th></tr>
+        <tr><td>Source Code</td><td>Full access (with NDA)</td></tr>
+        <tr><td>Trade Journal</td><td>API accessible</td></tr>
+        <tr><td>Forward Validation</td><td>Live tracking</td></tr>
+        <tr><td>Compliance Checks</td><td>12/12 passing</td></tr>
+        <tr><td>Audit Logs</td><td>Timestamped entries</td></tr>
+    </table>
+
+    <div class="footer">
+        Local ML training only. External APIs for market data and execution.
+    </div>
+</div>
+
+</body>
+</html>
