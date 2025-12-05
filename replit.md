@@ -120,9 +120,27 @@ Built complete unified trading system combining EOD and intraday models:
 | Finnhub | 403 Forbidden | Sentiment features unavailable |
 | Alpaca Free | 200 calls/min | Quick scan mode required |
 
-**Workaround:** Use `quick_scan=true` (default) to limit universe to 26 stocks
+**Workaround:** Use `quick_scan=true` to limit universe to 26 stocks (default is now expanded scanning)
 
-### Quick Scan Universe (Updated 2025-12-05)
+### Expanded Universe Scanner (NEW - 2025-12-05)
+Dramatically expanded stock scanning from 26 to 7,952+ symbols:
+
+| Stage | Symbols | Description |
+|-------|---------|-------------|
+| Master List | 10,366 | All available US equities |
+| Scanned | 7,952 | Valid tickers (2-5 chars, no warrants) |
+| Liquid Universe | 822 | $0.50-$50 price, >$500k daily volume |
+| Hot Prefilter | ~150-300 | Stocks with momentum/volume surges |
+| ML Analysis | ~150-300 | All 4 strategies run on hot stocks |
+
+**How it works:**
+1. `build_liquid_universe()` - Filters 7,952 symbols to 822 liquid stocks (cached 24h)
+2. `prefilter_for_momentum()` - Uses Alpaca bulk bars API to find hot stocks
+3. `get_scan_universe()` - Returns prefiltered list for ML analysis
+
+**Key File:** `src/quantracore_apex/trading/universe_scanner.py`
+
+### Quick Scan Universe (Fallback)
 Curated 26 high-volatility stocks across 5 hot sectors for moonshot detection:
 
 | Sector | Stocks | Why They Run |

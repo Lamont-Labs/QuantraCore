@@ -92,7 +92,7 @@ class ScheduleConfig:
     stop_loss_pct: float = 0.08
     take_profit_pct: float = 0.50
     require_high_conviction: bool = False
-    quick_scan: bool = True
+    quick_scan: bool = False
     dry_run: bool = False
 
 
@@ -191,6 +191,7 @@ class ScheduledAutomation:
             from src.quantracore_apex.trading.strategies.momentum_strategy import MomentumStrategy
             from src.quantracore_apex.trading.strategies.monster_runner_strategy import MonsterRunnerStrategy
             from src.quantracore_apex.broker.adapters.alpaca_adapter import AlpacaPaperAdapter
+            from src.quantracore_apex.trading.universe_scanner import get_universe_scanner
             
             broker = AlpacaPaperAdapter()
             orchestrator = StrategyOrchestrator(broker_adapter=broker)
@@ -211,7 +212,19 @@ class ScheduledAutomation:
             
             logger.info(f"[ScheduledAutomation] Account: ${equity:,.0f} equity, ${cash:,.0f} cash, {len(current_symbols)} positions")
             
-            universe = list(QUICK_SCAN_UNIVERSE) if self.config.quick_scan else list(MOONSHOT_UNIVERSE)
+            if self.config.quick_scan:
+                universe = list(QUICK_SCAN_UNIVERSE)
+                scan_metadata = {'mode': 'quick_scan', 'symbols_count': len(universe)}
+            else:
+                scanner = get_universe_scanner()
+                universe, scan_metadata = scanner.get_scan_universe(
+                    quick_scan=False,
+                    prefilter=True,
+                    min_change_pct=1.5,
+                    min_volume_surge=1.3,
+                    max_results=300
+                )
+                logger.info(f"[ScheduledAutomation] Universe scan: {scan_metadata}")
             
             cycle_result = orchestrator.run_cycle(
                 symbols=universe,
