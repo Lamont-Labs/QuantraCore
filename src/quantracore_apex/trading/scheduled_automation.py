@@ -1,7 +1,12 @@
 """
-Scheduled Autonomous Trading System.
+Scheduled Autonomous Trading System - MULTI-STRATEGY.
 
-Runs the unified autotrader on a schedule during extended market hours.
+Runs ALL trading strategies on a schedule during extended market hours:
+- Swing Trading (48-120 hours) - 40% budget, EOD-based
+- Scalp Trading (0.5-8 hours) - 20% budget, Intraday model
+- Momentum (4-48 hours) - 15% budget, Combined EOD + Intraday
+- MonsterRunner (24-168 hours) - 25% budget, Extreme moves
+
 Uses Alpaca market data exclusively - no Alpha Vantage API calls.
 
 Extended Hours (Eastern Time):
@@ -18,12 +23,17 @@ import logging
 import threading
 import time
 import json
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 import pytz
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +46,7 @@ class ScanType(Enum):
 
 @dataclass
 class ScanResult:
-    """Result of a scheduled scan."""
+    """Result of a scheduled multi-strategy scan."""
     scan_id: str
     scan_type: ScanType
     timestamp: datetime
@@ -47,6 +57,10 @@ class ScanResult:
     errors: List[str] = field(default_factory=list)
     trade_details: List[Dict[str, Any]] = field(default_factory=list)
     duration_seconds: float = 0.0
+    strategy_reports: Dict[str, Any] = field(default_factory=dict)
+    intents_generated: int = 0
+    intents_approved: int = 0
+    intents_rejected: int = 0
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -60,6 +74,10 @@ class ScanResult:
             "errors": self.errors,
             "trade_details": self.trade_details,
             "duration_seconds": self.duration_seconds,
+            "strategy_reports": self.strategy_reports,
+            "intents_generated": self.intents_generated,
+            "intents_approved": self.intents_approved,
+            "intents_rejected": self.intents_rejected,
         }
 
 
@@ -146,70 +164,88 @@ class ScheduledAutomation:
     
     def run_scan(self, scan_type: ScanType = ScanType.MANUAL) -> ScanResult:
         """
-        Execute a trading scan using the unified autotrader.
+        Execute a MULTI-STRATEGY trading scan.
         
-        Each scan:
-        1. Analyzes existing positions for adjustments (close losers, take profits)
-        2. Scans for new opportunities
-        3. Executes new trades if high-confidence signals found
+        Runs ALL enabled strategies in parallel:
+        - Swing: 2-5 day positions (EOD model)
+        - Scalp: Minutes to hours (Intraday model) - DAILY RUNNERS
+        - Momentum: 4-48 hours (Combined models) - DAILY RUNNERS
+        - MonsterRunner: 1-7 days extreme moves
         
+        Each strategy generates intents → Risk Arbiter approves → Broker executes.
         Uses Alpaca market data exclusively.
         """
         start_time = time.time()
         scan_id = f"{scan_type.value}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
         
-        logger.info(f"[ScheduledAutomation] Starting {scan_type.value} scan (id: {scan_id})")
+        logger.info(f"[ScheduledAutomation] Starting MULTI-STRATEGY {scan_type.value} scan (id: {scan_id})")
         
         try:
-            from src.quantracore_apex.trading.unified_auto_trader import UnifiedAutoTrader, QUICK_SCAN_UNIVERSE
+            from src.quantracore_apex.trading.unified_auto_trader import QUICK_SCAN_UNIVERSE
             from src.quantracore_apex.server.ml_scanner import MOONSHOT_UNIVERSE
-            
-            trader = UnifiedAutoTrader(
-                max_new_positions=self.config.max_trades_per_scan,
-                stop_loss_pct=self.config.stop_loss_pct,
-                take_profit_pct=self.config.take_profit_pct,
-                require_high_conviction=self.config.require_high_conviction,
+            from src.quantracore_apex.trading.strategy_orchestrator import (
+                StrategyOrchestrator, StrategyType, STRATEGY_CONFIGS
             )
+            from src.quantracore_apex.trading.strategies.swing_strategy import SwingStrategy
+            from src.quantracore_apex.trading.strategies.scalp_strategy import ScalpStrategy
+            from src.quantracore_apex.trading.strategies.momentum_strategy import MomentumStrategy
+            from src.quantracore_apex.trading.strategies.monster_runner_strategy import MonsterRunnerStrategy
+            from src.quantracore_apex.broker.adapters.alpaca_adapter import AlpacaPaperAdapter
             
-            position_mgmt = {"positions_analyzed": 0, "adjustments_made": 0}
-            try:
-                position_mgmt = trader.manage_positions(dry_run=self.config.dry_run)
-                if position_mgmt.get("adjustments_made", 0) > 0:
-                    logger.info(
-                        f"[ScheduledAutomation] Position management: "
-                        f"{position_mgmt['adjustments_made']} adjustments on "
-                        f"{position_mgmt['positions_analyzed']} positions"
-                    )
-            except Exception as e:
-                logger.warning(f"[ScheduledAutomation] Position management skipped: {e}")
+            broker = AlpacaPaperAdapter()
+            orchestrator = StrategyOrchestrator(broker_adapter=broker)
             
-            universe = QUICK_SCAN_UNIVERSE if self.config.quick_scan else MOONSHOT_UNIVERSE
+            orchestrator.register_strategy(SwingStrategy())
+            orchestrator.register_strategy(ScalpStrategy())
+            orchestrator.register_strategy(MomentumStrategy())
+            orchestrator.register_strategy(MonsterRunnerStrategy())
             
-            result = trader.scan_analyze_trade(
+            logger.info("[ScheduledAutomation] Registered 4 strategies: Swing, Scalp, Momentum, MonsterRunner")
+            
+            account = broker.get_account_info()
+            equity = float(account.get("equity", 100000))
+            cash = float(account.get("cash", 0))
+            
+            raw_positions = broker.get_positions()
+            current_symbols = [p.symbol for p in raw_positions if hasattr(p, 'symbol')]
+            
+            logger.info(f"[ScheduledAutomation] Account: ${equity:,.0f} equity, ${cash:,.0f} cash, {len(current_symbols)} positions")
+            
+            universe = list(QUICK_SCAN_UNIVERSE) if self.config.quick_scan else list(MOONSHOT_UNIVERSE)
+            
+            cycle_result = orchestrator.run_cycle(
                 symbols=universe,
-                max_trades=self.config.max_trades_per_scan,
-                include_eod=True,
-                include_intraday=True,
+                equity=equity,
+                available_cash=cash,
+                current_positions=current_symbols,
                 dry_run=self.config.dry_run,
             )
             
             duration = time.time() - start_time
             
-            trade_details = result.get("trade_details", [])
-            if position_mgmt.get("actions"):
-                trade_details.extend(position_mgmt["actions"])
+            trade_details = cycle_result.get("approved_details", [])
+            strategy_reports = cycle_result.get("strategy_reports", {})
+            
+            total_intents = cycle_result.get("total_intents", 0)
+            approved = cycle_result.get("approved_intents", 0)
+            rejected = cycle_result.get("rejected_intents", 0)
+            executed = cycle_result.get("executed_orders", 0)
             
             scan_result = ScanResult(
                 scan_id=scan_id,
                 scan_type=scan_type,
                 timestamp=datetime.utcnow(),
-                symbols_scanned=result.get("symbols_scanned", len(universe)),
-                candidates_found=result.get("candidates_found", 0),
-                trades_executed=result.get("trades_executed", 0) + position_mgmt.get("adjustments_made", 0),
-                trades_skipped=result.get("trades_skipped", 0),
-                errors=result.get("errors", []),
+                symbols_scanned=len(universe),
+                candidates_found=total_intents,
+                trades_executed=executed,
+                trades_skipped=rejected,
+                errors=[],
                 trade_details=trade_details,
                 duration_seconds=duration,
+                strategy_reports=strategy_reports,
+                intents_generated=total_intents,
+                intents_approved=approved,
+                intents_rejected=rejected,
             )
             
             with self._lock:
@@ -220,10 +256,15 @@ class ScheduledAutomation:
             
             self._log_scan_result(scan_result)
             
+            strategy_summary = ", ".join([
+                f"{k}: {v.get('intents_generated', 0)}" 
+                for k, v in strategy_reports.items()
+            ])
+            
             logger.info(
-                f"[ScheduledAutomation] {scan_type.value} scan complete: "
-                f"{scan_result.candidates_found} candidates, "
-                f"{scan_result.trades_executed} trades/adjustments in {duration:.1f}s"
+                f"[ScheduledAutomation] MULTI-STRATEGY {scan_type.value} scan complete: "
+                f"{total_intents} intents ({approved} approved, {rejected} rejected), "
+                f"{executed} executed in {duration:.1f}s | Strategies: {strategy_summary}"
             )
             
             return scan_result
