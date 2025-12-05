@@ -338,6 +338,15 @@ def create_app() -> FastAPI:
             logger.info("AutoLearner started - scheduled for 2:00 AM daily")
         except Exception as e:
             logger.warning(f"AutoLearner startup failed (non-fatal): {e}")
+        
+        # Start TradeOutcomeTracker background loop
+        try:
+            from src.quantracore_apex.trading.trade_outcome_tracker import get_trade_outcome_tracker
+            tracker = get_trade_outcome_tracker()
+            tracker.start_monitoring()
+            logger.info("TradeOutcomeTracker started - monitoring closed positions")
+        except Exception as e:
+            logger.warning(f"TradeOutcomeTracker startup failed (non-fatal): {e}")
     
     @app.get("/")
     async def root():
@@ -8670,6 +8679,338 @@ def create_app() -> FastAPI:
                 "error": str(e),
                 "timestamp": datetime.utcnow().isoformat()
             }
+    
+    # =========================================================================
+    # SCHEDULED AUTOMATION ENDPOINTS
+    # Automatic scanning at scheduled times (3x daily)
+    # =========================================================================
+    
+    @app.get("/scheduler/status")
+    async def get_scheduler_status():
+        """
+        Get status of the scheduled automation system.
+        
+        Shows next scheduled scans, recent scan history, and configuration.
+        """
+        try:
+            from src.quantracore_apex.trading.scheduled_automation import get_scheduled_automation
+            
+            scheduler = get_scheduled_automation()
+            status = scheduler.get_status()
+            
+            return {
+                "success": True,
+                "scheduler": status,
+                "mode": "PAPER TRADING ONLY",
+                "description": "Automated scanning at scheduled times using Alpaca market data",
+            }
+        except Exception as e:
+            logger.error(f"Error getting scheduler status: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.post("/scheduler/start")
+    async def start_scheduler(background_tasks: BackgroundTasks):
+        """
+        Start the scheduled automation system.
+        
+        Enables automatic scans at:
+        - 9:35 AM ET (Morning scan, 5 min after open)
+        - 12:00 PM ET (Midday scan)
+        - 3:30 PM ET (Close scan, 30 min before close)
+        """
+        try:
+            from src.quantracore_apex.trading.scheduled_automation import start_scheduled_automation
+            
+            scheduler = start_scheduled_automation()
+            
+            return {
+                "success": True,
+                "message": "Scheduled automation started",
+                "status": scheduler.get_status(),
+                "mode": "PAPER TRADING ONLY",
+            }
+        except Exception as e:
+            logger.error(f"Error starting scheduler: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.post("/scheduler/stop")
+    async def stop_scheduler():
+        """Stop the scheduled automation system."""
+        try:
+            from src.quantracore_apex.trading.scheduled_automation import stop_scheduled_automation
+            
+            stop_scheduled_automation()
+            
+            return {
+                "success": True,
+                "message": "Scheduled automation stopped",
+            }
+        except Exception as e:
+            logger.error(f"Error stopping scheduler: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.post("/scheduler/scan/now")
+    async def trigger_manual_scan(
+        background_tasks: BackgroundTasks,
+        dry_run: bool = False,
+    ):
+        """
+        Trigger an immediate manual scan.
+        
+        Runs the unified autotrader scan right now, regardless of schedule.
+        """
+        try:
+            from src.quantracore_apex.trading.scheduled_automation import get_scheduled_automation, ScanType
+            
+            scheduler = get_scheduled_automation()
+            
+            if dry_run:
+                scheduler.config.dry_run = True
+            
+            def run_scan():
+                result = scheduler.run_scan(ScanType.MANUAL)
+                return result
+            
+            background_tasks.add_task(run_scan)
+            
+            return {
+                "success": True,
+                "message": "Manual scan started in background",
+                "dry_run": dry_run,
+                "mode": "PAPER TRADING ONLY",
+            }
+        except Exception as e:
+            logger.error(f"Error triggering manual scan: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.get("/scheduler/history")
+    async def get_scan_history(limit: int = 20):
+        """Get recent scan history."""
+        try:
+            from src.quantracore_apex.trading.scheduled_automation import get_scheduled_automation
+            
+            scheduler = get_scheduled_automation()
+            history = scheduler.get_scan_history(limit)
+            
+            return {
+                "success": True,
+                "count": len(history),
+                "scans": history,
+            }
+        except Exception as e:
+            logger.error(f"Error getting scan history: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.post("/scheduler/config")
+    async def update_scheduler_config(
+        morning_enabled: Optional[bool] = None,
+        morning_time: Optional[str] = None,
+        midday_enabled: Optional[bool] = None,
+        midday_time: Optional[str] = None,
+        close_enabled: Optional[bool] = None,
+        close_time: Optional[str] = None,
+        max_trades_per_scan: Optional[int] = None,
+        stop_loss_pct: Optional[float] = None,
+        take_profit_pct: Optional[float] = None,
+        require_high_conviction: Optional[bool] = None,
+        quick_scan: Optional[bool] = None,
+        dry_run: Optional[bool] = None,
+    ):
+        """
+        Update scheduler configuration.
+        
+        All parameters are optional - only provided values will be updated.
+        """
+        try:
+            from src.quantracore_apex.trading.scheduled_automation import get_scheduled_automation
+            
+            scheduler = get_scheduled_automation()
+            
+            updates = {}
+            for key, value in [
+                ("morning_enabled", morning_enabled),
+                ("morning_time", morning_time),
+                ("midday_enabled", midday_enabled),
+                ("midday_time", midday_time),
+                ("close_enabled", close_enabled),
+                ("close_time", close_time),
+                ("max_trades_per_scan", max_trades_per_scan),
+                ("stop_loss_pct", stop_loss_pct),
+                ("take_profit_pct", take_profit_pct),
+                ("require_high_conviction", require_high_conviction),
+                ("quick_scan", quick_scan),
+                ("dry_run", dry_run),
+            ]:
+                if value is not None:
+                    updates[key] = value
+            
+            status = scheduler.update_config(updates)
+            
+            return {
+                "success": True,
+                "message": f"Updated {len(updates)} configuration values",
+                "updates": updates,
+                "status": status,
+            }
+        except Exception as e:
+            logger.error(f"Error updating scheduler config: {e}")
+            return {"success": False, "error": str(e)}
+    
+    # =========================================================================
+    # TRADE OUTCOME TRACKING ENDPOINTS
+    # Monitor closed positions and record for learning
+    # =========================================================================
+    
+    @app.get("/outcomes/stats")
+    async def get_trade_outcome_stats(days: int = 30):
+        """
+        Get trading outcome statistics.
+        
+        Shows win rate, P&L, and performance by strategy.
+        """
+        try:
+            from src.quantracore_apex.trading.trade_outcome_tracker import get_trade_outcome_tracker
+            
+            tracker = get_trade_outcome_tracker()
+            stats = tracker.get_stats(days=days)
+            
+            return {
+                "success": True,
+                "stats": stats,
+                "mode": "PAPER TRADING ONLY",
+            }
+        except Exception as e:
+            logger.error(f"Error getting outcome stats: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.post("/outcomes/check")
+    async def check_closed_positions(background_tasks: BackgroundTasks):
+        """
+        Check for recently closed positions and record outcomes.
+        
+        Queries Alpaca for filled sell orders and records the trade results.
+        """
+        try:
+            from src.quantracore_apex.trading.trade_outcome_tracker import get_trade_outcome_tracker
+            
+            tracker = get_trade_outcome_tracker()
+            
+            def check():
+                return tracker.check_closed_positions()
+            
+            background_tasks.add_task(check)
+            
+            return {
+                "success": True,
+                "message": "Checking closed positions in background",
+            }
+        except Exception as e:
+            logger.error(f"Error checking positions: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.get("/outcomes/history")
+    async def get_outcome_history(limit: int = 50):
+        """Get recent trade outcomes."""
+        try:
+            from src.quantracore_apex.trading.trade_outcome_tracker import get_trade_outcome_tracker
+            
+            tracker = get_trade_outcome_tracker()
+            data = tracker.get_learning_data()[-limit:]
+            
+            return {
+                "success": True,
+                "count": len(data),
+                "outcomes": data,
+            }
+        except Exception as e:
+            logger.error(f"Error getting outcomes: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.post("/outcomes/export")
+    async def export_outcomes_for_training():
+        """Export trade outcomes for model retraining."""
+        try:
+            from src.quantracore_apex.trading.trade_outcome_tracker import get_trade_outcome_tracker
+            
+            tracker = get_trade_outcome_tracker()
+            filepath = tracker.export_for_training()
+            
+            return {
+                "success": True,
+                "message": "Outcomes exported for training",
+                "filepath": filepath,
+            }
+        except Exception as e:
+            logger.error(f"Error exporting outcomes: {e}")
+            return {"success": False, "error": str(e)}
+    
+    # =========================================================================
+    # LEARNING LOOP ENDPOINTS
+    # Analyze performance and provide improvement recommendations
+    # =========================================================================
+    
+    @app.get("/learning/analyze")
+    async def analyze_trading_performance(days: int = 7):
+        """
+        Analyze trading performance and get recommendations.
+        
+        Returns:
+        - Overall performance status
+        - Per-strategy analysis
+        - Risk management effectiveness
+        - Actionable recommendations
+        - Model retraining triggers
+        """
+        try:
+            from src.quantracore_apex.trading.learning_loop import get_learning_loop
+            
+            loop = get_learning_loop()
+            analysis = loop.analyze_performance(days=days)
+            
+            return {
+                "success": True,
+                "analysis": analysis,
+                "mode": "PAPER TRADING ONLY",
+            }
+        except Exception as e:
+            logger.error(f"Error analyzing performance: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.get("/learning/reports")
+    async def get_learning_reports(limit: int = 10):
+        """Get recent learning analysis reports."""
+        try:
+            from src.quantracore_apex.trading.learning_loop import get_learning_loop
+            
+            loop = get_learning_loop()
+            reports = loop.get_recent_reports(limit)
+            
+            return {
+                "success": True,
+                "count": len(reports),
+                "reports": reports,
+            }
+        except Exception as e:
+            logger.error(f"Error getting reports: {e}")
+            return {"success": False, "error": str(e)}
+    
+    @app.post("/learning/start")
+    async def start_learning_loop():
+        """Start the background learning loop (weekly analysis)."""
+        try:
+            from src.quantracore_apex.trading.learning_loop import get_learning_loop
+            
+            loop = get_learning_loop()
+            loop.start()
+            
+            return {
+                "success": True,
+                "message": "Learning loop started",
+                "status": loop.get_status(),
+            }
+        except Exception as e:
+            logger.error(f"Error starting learning loop: {e}")
+            return {"success": False, "error": str(e)}
     
     # =========================================================================
     # MULTI-STRATEGY ORCHESTRATOR ENDPOINTS

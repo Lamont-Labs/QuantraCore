@@ -500,7 +500,30 @@ class AlpacaPaperAdapter(BrokerAdapter):
         """Get last trade price for a symbol."""
         try:
             response = self._make_request("GET", f"/v2/stocks/{symbol}/quotes/latest")
-            # Use ask price as proxy for last price
             return float(response.get("quote", {}).get("ap", 0))
         except Exception:
             return 0.0
+    
+    def get_orders(self, status: str = "all", limit: int = 200) -> List[Dict]:
+        """
+        Get orders from Alpaca.
+        
+        Args:
+            status: Order status filter - "open", "closed", or "all"
+            limit: Maximum number of orders to return
+            
+        Returns:
+            List of order dictionaries with symbol, side, status, filled_at, filled_avg_price, etc.
+        """
+        try:
+            params = f"?status={status}&limit={limit}"
+            response = self._make_request("GET", f"/v2/orders{params}")
+            
+            if not isinstance(response, list):
+                return []
+            
+            return response
+            
+        except Exception as e:
+            logger.error(f"Failed to get orders: {e}")
+            return []

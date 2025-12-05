@@ -16,6 +16,38 @@ QuantraCore Apex v9.0-A is an autonomous AI trading system designed to detect st
 
 ## Recent Updates (2025-12-05)
 
+### Scheduled Autonomous Trading System (NEW)
+Fully automated trading with learning capabilities:
+
+| Component | Description |
+|-----------|-------------|
+| Scheduled Scanner | 3x daily scans (9:35 AM, 12:00 PM, 3:30 PM ET) |
+| Auto-Entry | High-confidence signals → bracket orders automatically |
+| Trade Tracker | Records all closed position outcomes |
+| Learning Loop | Weekly analysis with improvement recommendations |
+
+**Scheduler API Endpoints:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/scheduler/status` | GET | Current scheduler status and next scans |
+| `/scheduler/start` | POST | Start automated scheduling |
+| `/scheduler/stop` | POST | Stop automated scheduling |
+| `/scheduler/scan/now` | POST | Trigger immediate manual scan |
+| `/scheduler/history` | GET | Recent scan history |
+| `/scheduler/config` | POST | Update scheduler configuration |
+
+**Learning API Endpoints:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/outcomes/stats` | GET | Trade outcome statistics |
+| `/learning/analyze` | GET | Performance analysis with recommendations |
+| `/learning/start` | POST | Start background learning loop |
+
+**Key Files:**
+- `src/quantracore_apex/trading/scheduled_automation.py` - Scheduler service
+- `src/quantracore_apex/trading/trade_outcome_tracker.py` - Outcome tracking
+- `src/quantracore_apex/trading/learning_loop.py` - Performance analysis
+
 ### API Rate Limiting Optimizations (INVESTOR-READY)
 Implemented comprehensive caching to prevent log spam and preserve API quotas:
 
