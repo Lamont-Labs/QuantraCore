@@ -1,8 +1,15 @@
 """
 Scheduled Autonomous Trading System.
 
-Runs the unified autotrader on a schedule (3x daily during market hours).
+Runs the unified autotrader on a schedule during extended market hours.
 Uses Alpaca market data exclusively - no Alpha Vantage API calls.
+
+Extended Hours (Eastern Time):
+- Pre-market: 4:00 AM - 9:30 AM
+- Regular: 9:30 AM - 4:00 PM
+- After-hours: 4:00 PM - 8:00 PM
+
+Default: Scans every 30 minutes = 32 scans/day
 
 PAPER TRADING ONLY - No real money at risk.
 """
@@ -23,9 +30,7 @@ logger = logging.getLogger(__name__)
 
 class ScanType(Enum):
     """Types of scheduled scans."""
-    MORNING = "morning"
-    MIDDAY = "midday" 
-    CLOSE = "close"
+    INTERVAL = "interval"
     MANUAL = "manual"
 
 
@@ -61,12 +66,9 @@ class ScanResult:
 @dataclass
 class ScheduleConfig:
     """Configuration for scheduled scans."""
-    morning_enabled: bool = True
-    morning_time: str = "09:35"
-    midday_enabled: bool = True
-    midday_time: str = "12:00"
-    close_enabled: bool = True
-    close_time: str = "15:30"
+    interval_minutes: int = 30
+    extended_hours_start: str = "04:00"
+    extended_hours_end: str = "20:00"
     timezone: str = "America/New_York"
     max_trades_per_scan: int = 2
     stop_loss_pct: float = 0.08
@@ -80,13 +82,15 @@ class ScheduledAutomation:
     """
     Scheduled Autonomous Trading System.
     
-    Runs unified autotrader scans at configured times during market hours.
+    Runs unified autotrader scans at regular intervals during extended market hours.
     All trading is PAPER ONLY via Alpaca.
     
-    Schedule (Eastern Time):
-    - Morning scan: 9:35 AM (5 minutes after open)
-    - Midday scan: 12:00 PM
-    - Close scan: 3:30 PM (30 minutes before close)
+    Extended Hours (Eastern Time):
+    - Pre-market: 4:00 AM - 9:30 AM
+    - Regular market: 9:30 AM - 4:00 PM
+    - After-hours: 4:00 PM - 8:00 PM
+    
+    Default: Every 30 minutes = 32 scans/day
     """
     
     SCAN_LOG_DIR = Path("logs/scheduled_scans/")
@@ -97,15 +101,12 @@ class ScheduledAutomation:
         self._thread: Optional[threading.Thread] = None
         self._lock = threading.Lock()
         self._scan_history: List[ScanResult] = []
-        self._last_scans: Dict[ScanType, Optional[datetime]] = {
-            ScanType.MORNING: None,
-            ScanType.MIDDAY: None,
-            ScanType.CLOSE: None,
-        }
+        self._last_scan_time: Optional[datetime] = None
         self._tz = pytz.timezone(self.config.timezone)
         
         self.SCAN_LOG_DIR.mkdir(parents=True, exist_ok=True)
-        logger.info("[ScheduledAutomation] Initialized with config: %s", self.config)
+        logger.info("[ScheduledAutomation] Initialized - scanning every %d minutes during extended hours", 
+                   self.config.interval_minutes)
     
     def _get_current_time(self) -> datetime:
         """Get current time in configured timezone."""
@@ -116,53 +117,32 @@ class ScheduledAutomation:
         parts = time_str.split(":")
         return int(parts[0]), int(parts[1])
     
-    def _should_run_scan(self, scan_type: ScanType) -> bool:
-        """Check if a scan should run now."""
+    def _is_extended_hours(self) -> bool:
+        """Check if we're within extended market hours (4 AM - 8 PM ET on weekdays)."""
         now = self._get_current_time()
-        
-        if scan_type == ScanType.MORNING:
-            if not self.config.morning_enabled:
-                return False
-            hour, minute = self._parse_time(self.config.morning_time)
-        elif scan_type == ScanType.MIDDAY:
-            if not self.config.midday_enabled:
-                return False
-            hour, minute = self._parse_time(self.config.midday_time)
-        elif scan_type == ScanType.CLOSE:
-            if not self.config.close_enabled:
-                return False
-            hour, minute = self._parse_time(self.config.close_time)
-        else:
-            return False
-        
-        scheduled_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-        window_start = scheduled_time - timedelta(minutes=2)
-        window_end = scheduled_time + timedelta(minutes=5)
-        
-        if not (window_start <= now <= window_end):
-            return False
-        
-        last_run = self._last_scans.get(scan_type)
-        if last_run is not None:
-            if (now - last_run).total_seconds() < 3600:
-                return False
         
         if now.weekday() >= 5:
             return False
         
-        return True
+        start_hour, start_min = self._parse_time(self.config.extended_hours_start)
+        end_hour, end_min = self._parse_time(self.config.extended_hours_end)
+        
+        market_start = now.replace(hour=start_hour, minute=start_min, second=0)
+        market_end = now.replace(hour=end_hour, minute=end_min, second=0)
+        
+        return market_start <= now <= market_end
     
-    def _is_market_open(self) -> bool:
-        """Check if market is currently open."""
+    def _should_run_interval_scan(self) -> bool:
+        """Check if enough time has passed since last scan."""
         now = self._get_current_time()
         
-        if now.weekday() >= 5:
-            return False
+        if self._last_scan_time is None:
+            return True
         
-        market_open = now.replace(hour=9, minute=30, second=0)
-        market_close = now.replace(hour=16, minute=0, second=0)
+        elapsed = (now - self._last_scan_time).total_seconds()
+        interval_seconds = self.config.interval_minutes * 60
         
-        return market_open <= now <= market_close
+        return elapsed >= interval_seconds
     
     def run_scan(self, scan_type: ScanType = ScanType.MANUAL) -> ScanResult:
         """
@@ -213,8 +193,7 @@ class ScheduledAutomation:
             
             with self._lock:
                 self._scan_history.append(scan_result)
-                if scan_type != ScanType.MANUAL:
-                    self._last_scans[scan_type] = self._get_current_time()
+                self._last_scan_time = self._get_current_time()
                 if len(self._scan_history) > 100:
                     self._scan_history = self._scan_history[-100:]
             
@@ -254,18 +233,20 @@ class ScheduledAutomation:
     
     def _scheduler_loop(self):
         """Main scheduler loop - runs in background thread."""
-        logger.info("[ScheduledAutomation] Scheduler started")
+        logger.info("[ScheduledAutomation] Scheduler started - %d min intervals during extended hours (%s - %s ET)",
+                   self.config.interval_minutes,
+                   self.config.extended_hours_start,
+                   self.config.extended_hours_end)
         
         while self._running:
             try:
-                if not self._is_market_open():
+                if not self._is_extended_hours():
                     time.sleep(60)
                     continue
                 
-                for scan_type in [ScanType.MORNING, ScanType.MIDDAY, ScanType.CLOSE]:
-                    if self._should_run_scan(scan_type):
-                        logger.info(f"[ScheduledAutomation] Triggering {scan_type.value} scan")
-                        self.run_scan(scan_type)
+                if self._should_run_interval_scan():
+                    logger.info("[ScheduledAutomation] Triggering interval scan")
+                    self.run_scan(ScanType.INTERVAL)
                 
                 time.sleep(30)
                 
@@ -299,34 +280,51 @@ class ScheduledAutomation:
                 self._thread = None
             logger.info("[ScheduledAutomation] Stopped")
     
+    def _calculate_next_scan(self) -> Optional[str]:
+        """Calculate when the next scan will occur."""
+        now = self._get_current_time()
+        
+        if self._is_extended_hours():
+            if self._last_scan_time is None:
+                return now.isoformat()
+            else:
+                next_scan = self._last_scan_time + timedelta(minutes=self.config.interval_minutes)
+                return next_scan.isoformat()
+        
+        start_hour, start_min = self._parse_time(self.config.extended_hours_start)
+        next_open = now.replace(hour=start_hour, minute=start_min, second=0)
+        
+        if now.hour >= 20:
+            next_open += timedelta(days=1)
+        
+        while next_open.weekday() >= 5:
+            next_open += timedelta(days=1)
+        
+        return next_open.isoformat()
+    
+    def _calculate_scans_today(self) -> int:
+        """Calculate expected number of scans for today."""
+        start_hour, start_min = self._parse_time(self.config.extended_hours_start)
+        end_hour, end_min = self._parse_time(self.config.extended_hours_end)
+        
+        total_minutes = (end_hour * 60 + end_min) - (start_hour * 60 + start_min)
+        return total_minutes // self.config.interval_minutes
+    
     def get_status(self) -> Dict[str, Any]:
         """Get scheduler status and configuration."""
         now = self._get_current_time()
         
-        next_scans = {}
-        for scan_type, enabled, time_str in [
-            (ScanType.MORNING, self.config.morning_enabled, self.config.morning_time),
-            (ScanType.MIDDAY, self.config.midday_enabled, self.config.midday_time),
-            (ScanType.CLOSE, self.config.close_enabled, self.config.close_time),
-        ]:
-            if enabled:
-                hour, minute = self._parse_time(time_str)
-                scheduled = now.replace(hour=hour, minute=minute, second=0)
-                if scheduled < now:
-                    scheduled += timedelta(days=1)
-                while scheduled.weekday() >= 5:
-                    scheduled += timedelta(days=1)
-                next_scans[scan_type.value] = scheduled.isoformat()
+        scans_today = len([s for s in self._scan_history 
+                          if s.timestamp.date() == datetime.utcnow().date()])
         
         return {
             "running": self._running,
             "timezone": self.config.timezone,
             "current_time": now.isoformat(),
-            "market_open": self._is_market_open(),
+            "extended_hours_active": self._is_extended_hours(),
             "config": {
-                "morning": {"enabled": self.config.morning_enabled, "time": self.config.morning_time},
-                "midday": {"enabled": self.config.midday_enabled, "time": self.config.midday_time},
-                "close": {"enabled": self.config.close_enabled, "time": self.config.close_time},
+                "interval_minutes": self.config.interval_minutes,
+                "extended_hours": f"{self.config.extended_hours_start} - {self.config.extended_hours_end} ET",
                 "max_trades_per_scan": self.config.max_trades_per_scan,
                 "stop_loss_pct": self.config.stop_loss_pct,
                 "take_profit_pct": self.config.take_profit_pct,
@@ -334,11 +332,10 @@ class ScheduledAutomation:
                 "quick_scan": self.config.quick_scan,
                 "dry_run": self.config.dry_run,
             },
-            "next_scans": next_scans,
-            "last_scans": {
-                k.value: v.isoformat() if v else None 
-                for k, v in self._last_scans.items()
-            },
+            "next_scan": self._calculate_next_scan(),
+            "last_scan": self._last_scan_time.isoformat() if self._last_scan_time else None,
+            "scans_today": scans_today,
+            "expected_scans_today": self._calculate_scans_today(),
             "recent_scans": [s.to_dict() for s in self._scan_history[-5:]],
             "total_scans": len(self._scan_history),
         }

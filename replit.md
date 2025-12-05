@@ -21,7 +21,9 @@ Fully automated trading with learning capabilities:
 
 | Component | Description |
 |-----------|-------------|
-| Scheduled Scanner | 3x daily scans (9:35 AM, 12:00 PM, 3:30 PM ET) |
+| Scheduled Scanner | Every 30 minutes during extended hours (4 AM - 8 PM ET) |
+| Extended Hours | Pre-market (4-9:30 AM), Regular (9:30 AM-4 PM), After-hours (4-8 PM) |
+| Scans Per Day | 32 scans (every 30 min for 16 hours) |
 | Auto-Entry | High-confidence signals → bracket orders automatically |
 | Trade Tracker | Records all closed position outcomes |
 | Learning Loop | Weekly analysis with improvement recommendations |
