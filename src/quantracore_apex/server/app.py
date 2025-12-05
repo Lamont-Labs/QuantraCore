@@ -8701,10 +8701,19 @@ def create_app() -> FastAPI:
             
             scan_symbols = symbols if symbols else QUICK_SCAN_UNIVERSE
             
-            account = orchestrator.broker.get_account() if orchestrator.broker else {}
-            equity = account.get("equity", 100000)
-            cash = account.get("cash", 10000)
-            positions = account.get("current_symbols", [])
+            account = {}
+            if orchestrator.broker:
+                try:
+                    account = orchestrator.broker.get_account_info()
+                except:
+                    pass
+            equity = float(account.get("equity", 100000) or 100000)
+            cash = float(account.get("cash", 10000) or 10000)
+            current_positions = account.get("positions", [])
+            if isinstance(current_positions, list):
+                positions = [p.get("symbol") for p in current_positions if isinstance(p, dict)]
+            else:
+                positions = []
             
             result = orchestrator.run_cycle(
                 symbols=scan_symbols,
