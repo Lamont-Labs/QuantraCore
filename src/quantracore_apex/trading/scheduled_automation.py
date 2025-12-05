@@ -148,6 +148,11 @@ class ScheduledAutomation:
         """
         Execute a trading scan using the unified autotrader.
         
+        Each scan:
+        1. Analyzes existing positions for adjustments (close losers, take profits)
+        2. Scans for new opportunities
+        3. Executes new trades if high-confidence signals found
+        
         Uses Alpaca market data exclusively.
         """
         start_time = time.time()
@@ -166,6 +171,18 @@ class ScheduledAutomation:
                 require_high_conviction=self.config.require_high_conviction,
             )
             
+            position_mgmt = {"positions_analyzed": 0, "adjustments_made": 0}
+            try:
+                position_mgmt = trader.manage_positions(dry_run=self.config.dry_run)
+                if position_mgmt.get("adjustments_made", 0) > 0:
+                    logger.info(
+                        f"[ScheduledAutomation] Position management: "
+                        f"{position_mgmt['adjustments_made']} adjustments on "
+                        f"{position_mgmt['positions_analyzed']} positions"
+                    )
+            except Exception as e:
+                logger.warning(f"[ScheduledAutomation] Position management skipped: {e}")
+            
             universe = QUICK_SCAN_UNIVERSE if self.config.quick_scan else MOONSHOT_UNIVERSE
             
             result = trader.scan_analyze_trade(
@@ -178,16 +195,20 @@ class ScheduledAutomation:
             
             duration = time.time() - start_time
             
+            trade_details = result.get("trade_details", [])
+            if position_mgmt.get("actions"):
+                trade_details.extend(position_mgmt["actions"])
+            
             scan_result = ScanResult(
                 scan_id=scan_id,
                 scan_type=scan_type,
                 timestamp=datetime.utcnow(),
                 symbols_scanned=result.get("symbols_scanned", len(universe)),
                 candidates_found=result.get("candidates_found", 0),
-                trades_executed=result.get("trades_executed", 0),
+                trades_executed=result.get("trades_executed", 0) + position_mgmt.get("adjustments_made", 0),
                 trades_skipped=result.get("trades_skipped", 0),
                 errors=result.get("errors", []),
-                trade_details=result.get("trade_details", []),
+                trade_details=trade_details,
                 duration_seconds=duration,
             )
             
@@ -202,7 +223,7 @@ class ScheduledAutomation:
             logger.info(
                 f"[ScheduledAutomation] {scan_type.value} scan complete: "
                 f"{scan_result.candidates_found} candidates, "
-                f"{scan_result.trades_executed} trades in {duration:.1f}s"
+                f"{scan_result.trades_executed} trades/adjustments in {duration:.1f}s"
             )
             
             return scan_result

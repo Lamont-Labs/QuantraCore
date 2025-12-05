@@ -50,6 +50,26 @@ Fully automated trading with learning capabilities:
 - `src/quantracore_apex/trading/trade_outcome_tracker.py` - Outcome tracking
 - `src/quantracore_apex/trading/learning_loop.py` - Performance analysis
 
+### Position Management System (NEW)
+Intelligent position analysis and management using ML models:
+
+| Feature | Description |
+|---------|-------------|
+| Position Analysis | Re-scores all positions using EOD+intraday models |
+| Close Criteria | Exit if P&L < -8% or model score < 0.3 |
+| Partial Profit | Take 50% profit if P&L > +25% |
+| Momentum Check | Combines model confidence with current P&L |
+
+**Position Management Endpoint:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/autotrader/positions/manage` | POST | Analyze and manage positions (supports dry_run) |
+
+**Decision Logic:**
+1. Close position if: `pnl < -8%` OR `(pnl < 0 AND model_score < 0.3)`
+2. Take partial profit if: `pnl > +25%` AND `model_score > 0.4`
+3. Hold position otherwise
+
 ### API Rate Limiting Optimizations (INVESTOR-READY)
 Implemented comprehensive caching to prevent log spam and preserve API quotas:
 

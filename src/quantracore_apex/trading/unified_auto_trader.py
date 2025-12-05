@@ -19,7 +19,8 @@ import json
 from pathlib import Path
 
 from ..broker.adapters.alpaca_adapter import AlpacaPaperAdapter
-from ..broker.enums import OrderSide, OrderStatus, TimeInForce
+from ..broker.enums import OrderSide, OrderStatus, TimeInForce, OrderType
+from ..broker.models import OrderTicket
 from ..server.ml_scanner import (
     combined_moonshot_scan,
     scan_for_runners,
@@ -67,6 +68,23 @@ class BracketOrderResult:
     error: Optional[str] = None
     timestamp: str = ""
     legs: List[str] = field(default_factory=list)
+
+
+@dataclass
+class PositionAnalysis:
+    """Analysis of an existing position for adjustment decisions."""
+    symbol: str
+    qty: int
+    avg_entry_price: float
+    current_price: float
+    unrealized_pnl: float
+    unrealized_pnl_pct: float
+    market_value: float
+    action: str  # "hold", "close", "partial_close", "trail_stop"
+    reason: str
+    model_score: float = 0.0
+    momentum_score: float = 0.0
+    days_held: int = 0
 
 
 class UnifiedAutoTrader:
@@ -460,6 +478,202 @@ class UnifiedAutoTrader:
             "compliance_note": "PAPER TRADING ONLY - All orders executed on Alpaca paper account",
         }
     
+    def analyze_positions(self) -> List[PositionAnalysis]:
+        """
+        Analyze all current positions for potential adjustments.
+        
+        Checks:
+        - Deteriorating positions (losing momentum, model score dropped)
+        - Big winners ready for profit taking
+        - Positions held too long without significant gains
+        
+        Returns list of position analyses with recommended actions.
+        """
+        if not self.alpaca.is_configured:
+            return []
+        
+        try:
+            positions = self.alpaca.get_positions()
+        except Exception as e:
+            logger.error(f"Failed to get positions for analysis: {e}")
+            return []
+        
+        if not positions:
+            return []
+        
+        analyses = []
+        
+        symbols = [p.symbol for p in positions]
+        model_scores = {}
+        try:
+            result = combined_moonshot_scan(symbols=symbols, include_eod=True, include_intraday=True)
+            for c in result.get('combined_candidates', []):
+                model_scores[c['symbol']] = c['combined_score']
+        except Exception as e:
+            logger.warning(f"Model re-scan failed: {e}")
+        
+        for pos in positions:
+            pnl_pct = pos.unrealized_plpc
+            model_score = model_scores.get(pos.symbol, 0.5)
+            
+            action = "hold"
+            reason = "Position looks healthy"
+            
+            if pnl_pct <= -12:
+                action = "close"
+                reason = f"Deep loss ({pnl_pct:.1f}%) - exit to preserve capital"
+            elif pnl_pct <= -8 and model_score < 0.4:
+                action = "close"
+                reason = f"Losing position ({pnl_pct:.1f}%) with weak model score ({model_score:.2f})"
+            elif pnl_pct <= -5 and model_score < 0.3:
+                action = "close"
+                reason = f"Deteriorating - loss {pnl_pct:.1f}%, model score dropped to {model_score:.2f}"
+            elif pnl_pct >= 40:
+                action = "partial_close"
+                reason = f"Take partial profits at +{pnl_pct:.1f}% gain"
+            elif pnl_pct >= 25 and model_score < 0.4:
+                action = "close"
+                reason = f"Lock in +{pnl_pct:.1f}% gain - model score weak ({model_score:.2f})"
+            elif pnl_pct >= 15 and model_score < 0.3:
+                action = "close"
+                reason = f"Protect +{pnl_pct:.1f}% gain - momentum fading"
+            
+            analyses.append(PositionAnalysis(
+                symbol=pos.symbol,
+                qty=int(pos.qty),
+                avg_entry_price=pos.avg_entry_price,
+                current_price=pos.current_price,
+                unrealized_pnl=pos.unrealized_pl,
+                unrealized_pnl_pct=pnl_pct,
+                market_value=pos.market_value,
+                action=action,
+                reason=reason,
+                model_score=model_score,
+            ))
+        
+        return analyses
+    
+    def manage_positions(self, dry_run: bool = False) -> Dict[str, Any]:
+        """
+        Execute position management based on analysis.
+        
+        Closes deteriorating positions and takes profits on big winners.
+        
+        Returns summary of actions taken.
+        """
+        analyses = self.analyze_positions()
+        
+        if not analyses:
+            return {
+                "positions_analyzed": 0,
+                "adjustments_made": 0,
+                "actions": [],
+            }
+        
+        actions_taken = []
+        
+        for analysis in analyses:
+            if analysis.action == "hold":
+                continue
+            
+            if analysis.action == "close":
+                if dry_run:
+                    actions_taken.append({
+                        "symbol": analysis.symbol,
+                        "action": "close",
+                        "reason": analysis.reason,
+                        "pnl_pct": analysis.unrealized_pnl_pct,
+                        "dry_run": True,
+                        "status": "would_execute",
+                    })
+                else:
+                    try:
+                        order = OrderTicket(
+                            symbol=analysis.symbol,
+                            qty=analysis.qty,
+                            side=OrderSide.SELL,
+                            order_type=OrderType.MARKET,
+                            time_in_force=TimeInForce.DAY,
+                        )
+                        result = self.alpaca.place_order(order)
+                        actions_taken.append({
+                            "symbol": analysis.symbol,
+                            "action": "close",
+                            "reason": analysis.reason,
+                            "pnl_pct": analysis.unrealized_pnl_pct,
+                            "order_id": result.order_id,
+                            "status": result.status.value,
+                        })
+                        logger.info(f"[PositionMgmt] Closed {analysis.symbol}: {analysis.reason}")
+                    except Exception as e:
+                        actions_taken.append({
+                            "symbol": analysis.symbol,
+                            "action": "close",
+                            "reason": analysis.reason,
+                            "error": str(e),
+                            "status": "failed",
+                        })
+            
+            elif analysis.action == "partial_close":
+                close_qty = max(1, int(analysis.qty * 0.5))
+                
+                if dry_run:
+                    actions_taken.append({
+                        "symbol": analysis.symbol,
+                        "action": "partial_close",
+                        "qty_to_close": close_qty,
+                        "reason": analysis.reason,
+                        "pnl_pct": analysis.unrealized_pnl_pct,
+                        "dry_run": True,
+                        "status": "would_execute",
+                    })
+                else:
+                    try:
+                        order = OrderTicket(
+                            symbol=analysis.symbol,
+                            qty=close_qty,
+                            side=OrderSide.SELL,
+                            order_type=OrderType.MARKET,
+                            time_in_force=TimeInForce.DAY,
+                        )
+                        result = self.alpaca.place_order(order)
+                        actions_taken.append({
+                            "symbol": analysis.symbol,
+                            "action": "partial_close",
+                            "qty_closed": close_qty,
+                            "reason": analysis.reason,
+                            "pnl_pct": analysis.unrealized_pnl_pct,
+                            "order_id": result.order_id,
+                            "status": result.status.value,
+                        })
+                        logger.info(f"[PositionMgmt] Partial close {analysis.symbol} ({close_qty} shares): {analysis.reason}")
+                    except Exception as e:
+                        actions_taken.append({
+                            "symbol": analysis.symbol,
+                            "action": "partial_close",
+                            "error": str(e),
+                            "status": "failed",
+                        })
+        
+        return {
+            "positions_analyzed": len(analyses),
+            "adjustments_made": len(actions_taken),
+            "holds": sum(1 for a in analyses if a.action == "hold"),
+            "closes": sum(1 for a in actions_taken if a.get("action") == "close"),
+            "partial_closes": sum(1 for a in actions_taken if a.get("action") == "partial_close"),
+            "actions": actions_taken,
+            "all_positions": [
+                {
+                    "symbol": a.symbol,
+                    "pnl_pct": round(a.unrealized_pnl_pct, 2),
+                    "model_score": round(a.model_score, 3),
+                    "action": a.action,
+                    "reason": a.reason,
+                }
+                for a in analyses
+            ],
+        }
+
     def _log_trade(self, result: BracketOrderResult, candidate: UnifiedCandidate):
         """Log trade for audit."""
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")

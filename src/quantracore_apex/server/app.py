@@ -8680,6 +8680,42 @@ def create_app() -> FastAPI:
                 "timestamp": datetime.utcnow().isoformat()
             }
     
+    @app.post("/autotrader/positions/manage")
+    async def manage_positions(dry_run: bool = True):
+        """
+        Analyze and manage existing positions using ML models.
+        
+        This endpoint:
+        1. Fetches all current positions from Alpaca
+        2. Re-scores each position using the ML models
+        3. Decides: hold, close (if losing momentum), or partial close (if at profit)
+        
+        Parameters:
+        - dry_run: If True, shows what would happen without executing trades
+        
+        Returns analysis and any executed trades.
+        """
+        try:
+            from src.quantracore_apex.trading.unified_auto_trader import get_unified_auto_trader
+            
+            trader = get_unified_auto_trader()
+            result = trader.manage_positions(dry_run=dry_run)
+            
+            result["mode"] = "PAPER TRADING ONLY"
+            result["timestamp"] = datetime.utcnow().isoformat()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in position management: {e}")
+            import traceback
+            return {
+                "success": False,
+                "error": str(e),
+                "traceback": traceback.format_exc(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
     # =========================================================================
     # SCHEDULED AUTOMATION ENDPOINTS
     # Automatic scanning at scheduled times (3x daily)
