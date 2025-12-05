@@ -8439,6 +8439,159 @@ def create_app() -> FastAPI:
             }
     
     # =========================================================================
+    # UNIFIED AUTONOMOUS TRADING ENDPOINTS
+    # Merged EOD + Intraday models with bracket orders
+    # =========================================================================
+    
+    @app.post("/autotrader/unified")
+    async def unified_scan_analyze_trade(
+        max_trades: int = 3,
+        dry_run: bool = False,
+        include_eod: bool = True,
+        include_intraday: bool = True,
+        require_high_conviction: bool = False,
+        stop_loss_pct: float = 0.08,
+        take_profit_pct: float = 0.50,
+    ):
+        """
+        UNIFIED AUTONOMOUS TRADING: Scan → Analyze → Trade in one call.
+        
+        This endpoint combines EOD and intraday models for maximum signal quality,
+        then executes BRACKET ORDERS (entry + stop-loss + take-profit in one atomic order).
+        
+        PAPER TRADING ONLY - No real money at risk.
+        
+        Features:
+        - Scans entire moonshot universe (100+ stocks)
+        - Merges EOD (daily patterns) and intraday (1-min microstructure) signals
+        - High conviction = flagged by BOTH models
+        - Bracket orders include automatic stop-loss and take-profit
+        
+        Args:
+            max_trades: Maximum new positions to open (default: 3)
+            dry_run: If True, scan and analyze but don't execute (default: False)
+            include_eod: Include EOD model in analysis (default: True)
+            include_intraday: Include intraday model (default: True)
+            require_high_conviction: Only trade if BOTH models agree (default: False)
+            stop_loss_pct: Stop-loss percentage, e.g., 0.08 = 8% (default: 0.08)
+            take_profit_pct: Take-profit percentage, e.g., 0.50 = 50% (default: 0.50)
+        
+        Returns:
+            Complete execution report with candidates and order results
+        """
+        try:
+            from src.quantracore_apex.trading.unified_auto_trader import UnifiedAutoTrader
+            
+            trader = UnifiedAutoTrader(
+                max_new_positions=min(max_trades, 5),
+                stop_loss_pct=stop_loss_pct,
+                take_profit_pct=take_profit_pct,
+                require_high_conviction=require_high_conviction,
+            )
+            
+            result = trader.scan_analyze_trade(
+                max_trades=min(max_trades, 5),
+                include_eod=include_eod,
+                include_intraday=include_intraday,
+                dry_run=dry_run,
+            )
+            
+            result["legal_notice"] = {
+                "mode": "PAPER TRADING ONLY",
+                "real_money_risk": False,
+                "broker": "Alpaca Paper Trading with Bracket Orders",
+                "order_type": "Bracket (Entry + Stop-Loss + Take-Profit)",
+                "disclaimer": "SIMULATION ONLY - This is paper trading with no real money at risk. All outputs are for research and educational purposes. This is NOT investment advice. Past performance does not guarantee future results.",
+            }
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in unified autotrader: {e}")
+            import traceback
+            return {
+                "success": False,
+                "error": str(e),
+                "traceback": traceback.format_exc(),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    @app.get("/autotrader/unified/status")
+    async def get_unified_autotrader_status():
+        """
+        Get unified AutoTrader configuration and capabilities.
+        
+        Returns system configuration, model status, and recent trade history.
+        """
+        try:
+            from src.quantracore_apex.trading.unified_auto_trader import get_unified_auto_trader
+            from pathlib import Path
+            import os
+            
+            trader = get_unified_auto_trader()
+            account = trader.get_account_status()
+            
+            log_dir = Path("investor_logs/unified_trades/")
+            recent_trades = []
+            if log_dir.exists():
+                trade_files = sorted(log_dir.glob("*.json"), key=os.path.getmtime, reverse=True)[:10]
+                for f in trade_files:
+                    try:
+                        import json
+                        with open(f) as tf:
+                            trade_data = json.load(tf)
+                            recent_trades.append({
+                                "file": f.name,
+                                "symbol": trade_data.get("symbol"),
+                                "status": trade_data.get("status"),
+                                "timestamp": trade_data.get("timestamp"),
+                            })
+                    except:
+                        continue
+            
+            return {
+                "status": "ready" if account.get("configured") else "not_configured",
+                "account": {
+                    "equity": account.get("equity"),
+                    "cash": account.get("cash"),
+                    "positions_count": account.get("positions_count"),
+                    "current_symbols": account.get("current_symbols", []),
+                },
+                "configuration": {
+                    "max_new_positions": trader.max_new_positions,
+                    "max_position_pct": f"{trader.max_position_pct * 100:.0f}%",
+                    "stop_loss_pct": f"{trader.stop_loss_pct * 100:.0f}%",
+                    "take_profit_pct": f"{trader.take_profit_pct * 100:.0f}%",
+                    "min_combined_score": trader.min_combined_score,
+                    "require_high_conviction": trader.require_high_conviction,
+                },
+                "models": {
+                    "eod_model": "massive_ensemble_v3.pkl.gz",
+                    "intraday_model": "intraday_moonshot_v1.pkl.gz",
+                    "ensemble_type": "weighted_average",
+                    "eod_weight": 0.6,
+                    "intraday_weight": 0.4,
+                },
+                "order_type": {
+                    "type": "bracket",
+                    "description": "Entry + Stop-Loss + Take-Profit in one atomic order",
+                    "legs": ["entry", "stop_loss", "take_profit"],
+                    "auto_cancel": "When one exit leg fills, the other is automatically canceled",
+                },
+                "recent_trades": recent_trades,
+                "legal_notice": "PAPER TRADING ONLY - Research and educational purposes",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting unified autotrader status: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+    
+    # =========================================================================
     # TRADE HOLD MANAGER ENDPOINTS
     # Continuation probability-based hold decisions
     # =========================================================================
