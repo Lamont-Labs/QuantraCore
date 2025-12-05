@@ -15,6 +15,32 @@ QuantraCore Apex v9.0-A is an autonomous AI trading system designed to detect st
 
 ## Recent Updates (2025-12-05)
 
+### Unified Autonomous Trading System
+Built complete unified trading system combining EOD and intraday models:
+- **Merged Scoring:** 60% EOD model + 40% intraday model weighted combination
+- **Bracket Orders:** Atomic entry + stop-loss (8%) + take-profit (50%) via Alpaca
+- **Capital Validation:** Checks available cash before each order, prevents over-allocation
+- **Position Duplication Check:** Skips symbols already held in portfolio
+- **Quick Scan Mode:** 20 high-volatility stocks (default) to avoid API rate limits
+
+### API Endpoints Added
+- `POST /autotrader/unified` - Full scan→analyze→trade workflow
+- `GET /autotrader/unified/status` - Check unified system status
+
+### External API Limitations (Known Issues)
+| Provider | Limit | Impact |
+|----------|-------|--------|
+| Alpha Vantage | 25 calls/day | Intraday data limited |
+| Finnhub | 403 Forbidden | Sentiment features unavailable |
+| Alpaca Free | 200 calls/min | Quick scan mode required |
+
+**Workaround:** Use `quick_scan=true` (default) to limit universe to 20 stocks
+
+### Quick Scan Universe
+High-volatility stocks for rapid scanning: AMC, GME, BBBY, MARA, RIOT, PLUG, FCEL, SOFI, LCID, RIVN, CLOV, WISH, PLTR, NIO, XPEV, LAZR, VLDR, GOEV, WKHS, FFIE
+
+## Earlier Updates (2025-12-05)
+
 ### 1-Minute Intraday Training Pipeline
 Built complete infrastructure for training on 1-minute bar data:
 - **Data Source:** Kaggle S&P 500 dataset (2008-2021, 2M+ bars for SPY)
