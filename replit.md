@@ -120,10 +120,20 @@ Built complete unified trading system combining EOD and intraday models:
 | Finnhub | 403 Forbidden | Sentiment features unavailable |
 | Alpaca Free | 200 calls/min | Quick scan mode required |
 
-**Workaround:** Use `quick_scan=true` (default) to limit universe to 20 stocks
+**Workaround:** Use `quick_scan=true` (default) to limit universe to 26 stocks
 
-### Quick Scan Universe
-High-volatility stocks for rapid scanning: AMC, GME, BBBY, MARA, RIOT, PLUG, FCEL, SOFI, LCID, RIVN, CLOV, WISH, PLTR, NIO, XPEV, LAZR, VLDR, GOEV, WKHS, FFIE
+### Quick Scan Universe (Updated 2025-12-05)
+Curated 26 high-volatility stocks across 5 hot sectors for moonshot detection:
+
+| Sector | Stocks | Why They Run |
+|--------|--------|--------------|
+| **Quantum/AI** | QUBT, RGTI, QBTS, IONQ, BBAI, SOUN | Hottest sector 2025 - 1000%+ runners |
+| **Crypto Miners** | MARA, RIOT, BITF, CLSK, HIVE | Move 50%+ with Bitcoin rallies |
+| **High Short Interest** | BYND, LCID, HIMS, NVTS, SYM | 20-40% SI - Squeeze candidates |
+| **EV/Clean Energy** | PLUG, FCEL, QS, BLNK, CHPT | Catalyst-driven moves |
+| **Momentum Small-Caps** | SOFI, FUBO, OPEN, SMCI, COIN | Breakout potential |
+
+**Removed Dead Tickers:** BBBY (bankrupt), VLDR (delisted), WISH, GOEV, WKHS, FFIE (near bankruptcy)
 
 ## Earlier Updates (2025-12-05)
 

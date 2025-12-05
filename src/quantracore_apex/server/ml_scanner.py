@@ -444,25 +444,50 @@ def calculate_position_size(
 
 
 QUICK_UNIVERSE = [
-    'PLTR', 'SOFI', 'MARA', 'COIN', 'SMCI', 'SOUN', 'BBAI',
-    'TSLA', 'NVDA', 'GME', 'AMC', 'IONQ', 'TLRY', 'NIO', 'RIVN',
+    # Quantum/AI - Hottest sector 2025
+    'QUBT', 'RGTI', 'QBTS', 'IONQ', 'BBAI', 'SOUN',
+    # Crypto miners
+    'MARA', 'RIOT', 'BITF', 'CLSK', 'COIN',
+    # High-momentum small-caps
+    'SMCI', 'SOFI', 'PLTR', 'FUBO', 'HIMS',
 ]
 
 RUNNER_UNIVERSE = [
-    'PLTR', 'SOFI', 'MARA', 'RIOT', 'COIN', 'GME', 'AMC', 'SMCI',
-    'IONQ', 'RIVN', 'NIO', 'LCID', 'PLUG', 'HOOD', 'UPST', 'AFRM',
-    'RBLX', 'DKNG', 'PATH', 'CRWD', 'NET', 'SNOW', 'ROKU',
-    'BABA', 'JD', 'PDD', 'XPEV', 'LI', 'MRNA', 'BNTX', 'NVAX',
-    'CVNA', 'CHWY', 'PTON', 'FUBO', 'TLRY', 'SNDL', 'SOUN', 'BBAI',
-    'TSLA', 'NVDA', 'META', 'GOOGL', 'AMZN', 'AAPL', 'MSFT',
+    # Quantum/AI plays
+    'QUBT', 'RGTI', 'QBTS', 'IONQ', 'BBAI', 'SOUN', 'POET',
+    # Crypto miners - move with BTC
+    'MARA', 'RIOT', 'BITF', 'CLSK', 'HIVE', 'COIN',
+    # High short interest squeeze candidates (20%+ SI)
+    'BYND', 'LCID', 'HIMS', 'NVTS', 'SYM', 'MVIS', 'OCGN',
+    # EV/Clean energy volatility plays
+    'PLUG', 'FCEL', 'QS', 'BLNK', 'CHPT', 'NIO', 'RIVN', 'XPEV',
+    # Tech momentum
+    'SMCI', 'SOFI', 'PLTR', 'FUBO', 'OPEN', 'UPST', 'HOOD', 'AFRM',
+    # Biotech with catalysts
+    'SAVA', 'VXRT', 'INO', 'MRNA', 'BNTX',
+    # Cannabis
+    'TLRY', 'SNDL', 'CGC',
+    # Retail favorites with squeeze potential
+    'GME', 'AMC', 'CLOV',
 ]
 
 MOONSHOT_UNIVERSE = [
-    'FFIE', 'OPEN', 'RGTI', 'BITF', 'BBAI', 'QUBT', 'MULN', 'TMC',
-    'QS', 'WKHS', 'TLRY', 'FUBO', 'SPCE', 'PLUG', 'HIVE', 'FCEL',
-    'SMCI', 'SAVA', 'BLNK', 'CLSK', 'MARA', 'RIOT', 'IONQ', 'SOUN',
-    'GME', 'AMC', 'CLOV', 'OCGN', 'VXRT', 'INO', 'SNDL', 'CGC',
-    'NIO', 'LCID', 'RIVN', 'XPEV', 'CHPT', 'COIN', 'HOOD', 'UPST',
+    # TIER 1: Quantum/AI - Highest volatility, 1000%+ runners in 2024-2025
+    'QUBT', 'RGTI', 'QBTS', 'IONQ', 'BBAI', 'SOUN', 'POET', 'SERV',
+    # TIER 2: Crypto miners - Move 50%+ with Bitcoin rallies
+    'MARA', 'RIOT', 'BITF', 'CLSK', 'HIVE', 'COIN',
+    # TIER 3: High short interest (20-40% SI) - Squeeze candidates
+    'BYND', 'LCID', 'HIMS', 'NVTS', 'SYM', 'MVIS', 'OCGN', 'FCEL',
+    # TIER 4: EV/Battery/Clean energy - Catalyst-driven moves
+    'PLUG', 'QS', 'BLNK', 'CHPT', 'NIO', 'RIVN', 'XPEV',
+    # TIER 5: Tech momentum with breakout potential
+    'SMCI', 'SOFI', 'PLTR', 'FUBO', 'OPEN', 'UPST', 'HOOD', 'AFRM',
+    # TIER 6: Biotech with binary catalysts
+    'SAVA', 'VXRT', 'INO', 'MRNA', 'BNTX',
+    # TIER 7: Cannabis sector
+    'TLRY', 'SNDL', 'CGC',
+    # TIER 8: Retail favorites - Proven squeeze history
+    'GME', 'AMC', 'CLOV',
 ]
 
 

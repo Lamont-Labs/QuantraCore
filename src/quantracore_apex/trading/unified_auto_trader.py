@@ -30,10 +30,16 @@ from ..server.ml_scanner import (
 logger = logging.getLogger(__name__)
 
 QUICK_SCAN_UNIVERSE = [
-    "AMC", "GME", "BBBY", "MARA", "RIOT",
-    "PLUG", "FCEL", "SOFI", "LCID", "RIVN",
-    "CLOV", "WISH", "PLTR", "NIO", "XPEV",
-    "LAZR", "VLDR", "GOEV", "WKHS", "FFIE",
+    # Quantum/AI - Hot sector, extreme volatility
+    "QUBT", "RGTI", "QBTS", "IONQ", "BBAI", "SOUN",
+    # Crypto miners - Move with Bitcoin
+    "MARA", "RIOT", "BITF", "CLSK", "HIVE",
+    # High short interest squeeze candidates
+    "BYND", "LCID", "HIMS", "NVTS", "SYM",
+    # EV/Clean energy with volatility
+    "PLUG", "FCEL", "QS", "BLNK", "CHPT",
+    # Momentum small-caps
+    "SOFI", "FUBO", "OPEN", "SMCI", "COIN",
 ]
 
 
