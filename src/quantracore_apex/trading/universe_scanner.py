@@ -4,8 +4,7 @@ Universe Scanner - Expands stock scanning from 26 to 2,000+ symbols.
 Uses Alpaca's multi-symbol bars endpoint to efficiently prefilter
 the entire market and find stocks with momentum/volume surges.
 
-This replaces the hardcoded 26-stock QUICK_SCAN_UNIVERSE with a
-dynamic scanning approach that covers thousands of stocks.
+Now includes strategy-specific filtering for optimal stock selection.
 """
 
 import os
@@ -39,6 +38,12 @@ class UniverseScanner:
     1. Build liquid universe (daily): Filter 10,000+ symbols to ~2,000 tradeable stocks
     2. Intraday prefilter: Use Alpaca bulk bars to find ~100-300 hot stocks
     3. Run ML models on hot stocks only
+    
+    Strategy-specific filtering:
+    - Swing: Higher volume, cleaner price action
+    - Scalp: Highest volume, tightest spreads
+    - Momentum: Strong recent moves, volume confirmation
+    - MonsterRunner: High volatility, extreme potential
     """
     
     def __init__(self):
@@ -249,6 +254,9 @@ class UniverseScanner:
                         week_range = week_high - week_low
                         position_in_range = (current_price - week_low) / week_range if week_range > 0 else 0.5
                         
+                        atr = sum(b.high - b.low for b in bars) / len(bars)
+                        volatility_pct = (atr / current_price) * 100 if current_price > 0 else 0
+                        
                         momentum_score = (
                             day_change_pct * 0.4 +
                             (volume_surge - 1) * 10 * 0.3 +
@@ -264,7 +272,10 @@ class UniverseScanner:
                                 'position_in_range': round(position_in_range, 2),
                                 'momentum_score': round(momentum_score, 2),
                                 'volume': latest.volume,
-                                'dollar_volume': current_price * latest.volume
+                                'dollar_volume': current_price * latest.volume,
+                                'volatility_pct': round(volatility_pct, 2),
+                                'week_high': week_high,
+                                'week_low': week_low
                             })
                     except Exception as e:
                         continue
@@ -286,6 +297,102 @@ class UniverseScanner:
     def get_hotlist_symbols(self) -> List[str]:
         """Get just the symbols from the current hotlist."""
         return [s['symbol'] for s in self._hotlist]
+    
+    def get_strategy_universe(
+        self,
+        strategy_type: str,
+        max_symbols: int = 100
+    ) -> List[str]:
+        """
+        Get strategy-specific stock universe.
+        
+        Each strategy has different characteristics:
+        - swing: Higher volume, moderate volatility (48-120h holds)
+        - scalp: Highest volume/liquidity for quick in/out (0.5-8h)
+        - momentum: Strong recent moves, volume confirmation (4-48h)
+        - monster_runner: High volatility, extreme move potential (24-168h)
+        
+        Args:
+            strategy_type: One of 'swing', 'scalp', 'momentum', 'monster_runner'
+            max_symbols: Maximum symbols to return
+            
+        Returns:
+            List of symbols optimized for the strategy
+        """
+        if not self._hotlist:
+            self.prefilter_for_momentum()
+        
+        hotlist = self._hotlist.copy()
+        
+        if not hotlist:
+            return self._get_fallback_universe()[:max_symbols]
+        
+        if strategy_type == 'swing':
+            filtered = [
+                s for s in hotlist
+                if s.get('dollar_volume', 0) >= 1_000_000
+                and s.get('position_in_range', 0) >= 0.5
+                and 3 <= s.get('volatility_pct', 0) <= 15
+            ]
+            filtered.sort(key=lambda x: x.get('momentum_score', 0), reverse=True)
+            
+        elif strategy_type == 'scalp':
+            filtered = [
+                s for s in hotlist
+                if s.get('dollar_volume', 0) >= 2_000_000
+                and s.get('volume_surge', 0) >= 1.5
+            ]
+            filtered.sort(key=lambda x: x.get('dollar_volume', 0), reverse=True)
+            
+        elif strategy_type == 'momentum':
+            filtered = [
+                s for s in hotlist
+                if s.get('day_change_pct', 0) >= 3.0
+                and s.get('volume_surge', 0) >= 1.3
+                and s.get('position_in_range', 0) >= 0.6
+            ]
+            filtered.sort(key=lambda x: (
+                x.get('day_change_pct', 0) * 0.5 + 
+                x.get('volume_surge', 0) * 5 * 0.5
+            ), reverse=True)
+            
+        elif strategy_type == 'monster_runner':
+            filtered = [
+                s for s in hotlist
+                if s.get('volatility_pct', 0) >= 5
+                and s.get('day_change_pct', 0) >= 4.0
+                and s.get('price', 0) <= 20
+            ]
+            filtered.sort(key=lambda x: x.get('volatility_pct', 0), reverse=True)
+            
+        else:
+            filtered = hotlist
+        
+        if len(filtered) < 10:
+            logger.info(f"[UniverseScanner] {strategy_type} filter too strict ({len(filtered)}), using relaxed filter")
+            filtered = hotlist[:max_symbols]
+        
+        symbols = [s['symbol'] for s in filtered[:max_symbols]]
+        logger.info(f"[UniverseScanner] {strategy_type} universe: {len(symbols)} symbols")
+        
+        return symbols
+    
+    def get_all_strategy_universes(self) -> Dict[str, List[str]]:
+        """
+        Get universes for all strategies in one call.
+        
+        Returns:
+            Dict mapping strategy_type to list of symbols
+        """
+        if not self._hotlist:
+            self.prefilter_for_momentum()
+        
+        return {
+            'swing': self.get_strategy_universe('swing', max_symbols=75),
+            'scalp': self.get_strategy_universe('scalp', max_symbols=50),
+            'momentum': self.get_strategy_universe('momentum', max_symbols=75),
+            'monster_runner': self.get_strategy_universe('monster_runner', max_symbols=50)
+        }
     
     def get_scan_universe(
         self,
@@ -337,12 +444,18 @@ class UniverseScanner:
             
             if hot_stocks:
                 symbols = [s['symbol'] for s in hot_stocks]
+                
+                strategy_universes = self.get_all_strategy_universes()
+                
                 return symbols, {
                     'mode': 'prefiltered',
                     'liquid_universe_size': len(liquid),
                     'symbols_count': len(symbols),
                     'prefiltered': True,
-                    'top_movers': hot_stocks[:10]
+                    'top_movers': hot_stocks[:10],
+                    'strategy_universes': {
+                        k: len(v) for k, v in strategy_universes.items()
+                    }
                 }
         
         symbols = liquid[:max_results]

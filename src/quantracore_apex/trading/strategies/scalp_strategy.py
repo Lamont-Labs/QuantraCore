@@ -53,7 +53,15 @@ class ScalpStrategy(BaseStrategy):
             return intents
         
         try:
-            for symbol in symbols[:20]:
+            from src.quantracore_apex.trading.universe_scanner import get_universe_scanner
+            
+            scanner = get_universe_scanner()
+            scalp_universe = scanner.get_strategy_universe('scalp', max_symbols=50)
+            scan_symbols = scalp_universe if scalp_universe else symbols[:50]
+            
+            logger.info(f"[ScalpStrategy] Scanning {len(scan_symbols)} high-liquidity symbols")
+            
+            for symbol in scan_symbols:
                 try:
                     prediction = self.predictor.predict_single(symbol)
                     if prediction is None:

@@ -54,9 +54,16 @@ class MomentumStrategy(BaseStrategy):
         
         try:
             from src.quantracore_apex.server.ml_scanner import scan_for_runners
+            from src.quantracore_apex.trading.universe_scanner import get_universe_scanner
+            
+            scanner = get_universe_scanner()
+            momentum_universe = scanner.get_strategy_universe('momentum', max_symbols=75)
+            scan_symbols = momentum_universe if momentum_universe else symbols[:75]
+            
+            logger.info(f"[MomentumStrategy] Scanning {len(scan_symbols)} momentum symbols")
             
             all_candidates = scan_for_runners(
-                symbols=symbols[:30],
+                symbols=scan_symbols,
                 model_type='apex_production',
             )
             
@@ -64,9 +71,9 @@ class MomentumStrategy(BaseStrategy):
                 [c for c in all_candidates if c.get("confidence", 0) >= self.config.min_score_threshold * 0.6],
                 key=lambda x: x.get("confidence", 0),
                 reverse=True
-            )[:10]
+            )[:15]
             
-            for candidate in eod_candidates[:8]:
+            for candidate in eod_candidates[:12]:
                 symbol = candidate.get("symbol", "")
                 eod_conf = candidate.get("confidence", 0)
                 price = candidate.get("current_price", 0)

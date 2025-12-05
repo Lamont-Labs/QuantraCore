@@ -39,9 +39,16 @@ class SwingStrategy(BaseStrategy):
         
         try:
             from src.quantracore_apex.server.ml_scanner import scan_for_runners
+            from src.quantracore_apex.trading.universe_scanner import get_universe_scanner
+            
+            scanner = get_universe_scanner()
+            swing_universe = scanner.get_strategy_universe('swing', max_symbols=75)
+            scan_symbols = swing_universe if swing_universe else symbols[:75]
+            
+            logger.info(f"[SwingStrategy] Scanning {len(scan_symbols)} symbols")
             
             all_candidates = scan_for_runners(
-                symbols=symbols[:30],
+                symbols=scan_symbols,
                 model_type='apex_production',
             )
             

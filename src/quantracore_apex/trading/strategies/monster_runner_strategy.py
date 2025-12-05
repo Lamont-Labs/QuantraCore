@@ -39,9 +39,16 @@ class MonsterRunnerStrategy(BaseStrategy):
         
         try:
             from src.quantracore_apex.server.ml_scanner import scan_for_runners
+            from src.quantracore_apex.trading.universe_scanner import get_universe_scanner
+            
+            scanner = get_universe_scanner()
+            monster_universe = scanner.get_strategy_universe('monster_runner', max_symbols=50)
+            scan_symbols = monster_universe if monster_universe else symbols[:50]
+            
+            logger.info(f"[MonsterRunnerStrategy] Scanning {len(scan_symbols)} high-volatility symbols")
             
             all_candidates = scan_for_runners(
-                symbols=symbols[:30],
+                symbols=scan_symbols,
                 model_type='mega_runners',
             )
             
