@@ -1,16 +1,43 @@
 # QuantraCore Apex — Replit Project Documentation
 
-**Last Updated:** 2025-12-04
+**Last Updated:** 2025-12-05
 
 ## Overview
 
 QuantraCore Apex v9.0-A is an autonomous AI trading system designed to detect stocks ready for massive runs (50%+ gains) within 5 trading days using EOD data, targeting 70%+ precision. The system operates through Alpaca paper trading with automatic stop-loss management and forward validation tracking to prove real-world performance.
 
 **Current Status:**
-- 11 active paper trading positions
+- 10 active paper trading positions
 - Primary model: massive_ensemble_v3.pkl.gz
+- NEW: Intraday model trained on 2M+ 1-minute bars (intraday_moonshot_v1.pkl.gz)
 - Stop-loss system active (-15% hard, +10%/8% trailing, 5-day time limit)
 - Forward validation tracking all predictions
+
+## Recent Updates (2025-12-05)
+
+### 1-Minute Intraday Training Pipeline
+Built complete infrastructure for training on 1-minute bar data:
+- **Data Source:** Kaggle S&P 500 dataset (2008-2021, 2M+ bars for SPY)
+- **Feature Extractor:** 120 features optimized for intraday patterns
+- **Training Samples:** 50,000 windows from SPY data
+- **Model Performance:**
+  - Precision: 59.4%
+  - Precision @ 70% threshold: 76.9%
+  - Precision @ 80% threshold: 100%
+
+### Key Files Added
+- `src/quantracore_apex/data/intraday_pipeline.py` - Data loading/merging
+- `src/quantracore_apex/data/intraday_features.py` - 120 intraday features
+- `src/quantracore_apex/training/intraday_trainer.py` - Training pipeline
+- `src/quantracore_apex/ml/intraday_predictor.py` - Live prediction
+- `models/intraday_moonshot_v1.pkl.gz` - Trained model
+
+### Top Predictive Features (Intraday Model)
+1. avg_bar_range (15.0%) - Volatility
+2. open_range_size (3.8%) - Morning breakout patterns
+3. avg_gap_size (3.6%) - Gap patterns
+4. multi_regime_score (3.5%) - Market regime alignment
+5. afternoon_trend (2.4%) - End-of-day momentum
 
 ## User Preferences
 - **Communication:** Simple language with detailed explanations
