@@ -15,6 +15,22 @@ QuantraCore Apex v9.0-A is an autonomous AI trading system designed to detect st
 
 ## Recent Updates (2025-12-05)
 
+### Multi-Strategy Orchestrator (NEW)
+Built complete concurrent strategy execution system:
+- **4 Concurrent Strategies:** Swing (2-5 days), Scalp (minutes-hours), MonsterRunner (1-7 days), Momentum (4-48 hours)
+- **Strategy Orchestrator:** Manages lifecycle, coordinates signal generation across all strategies
+- **Risk Arbiter:** Priority-based conflict resolution, per-strategy budgets, symbol exclusivity
+- **Budget Allocation:** Swing 40%, Scalp 15%, MonsterRunner 30%, Momentum 15%
+- **Position Limits:** Max 15 total positions across all strategies
+- **Long-Only Enforcement:** All strategies restricted to buy positions only
+
+#### Multi-Strategy API Endpoints
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/strategies/status` | GET | Status of all registered strategies and arbiter |
+| `/strategies/run` | POST | Run all enabled strategies (supports dry_run) |
+| `/strategies/{type}/enable` | POST | Enable/disable individual strategy |
+
 ### Unified Autonomous Trading System
 Built complete unified trading system combining EOD and intraday models:
 - **Merged Scoring:** 60% EOD model + 40% intraday model weighted combination
@@ -23,7 +39,7 @@ Built complete unified trading system combining EOD and intraday models:
 - **Position Duplication Check:** Skips symbols already held in portfolio
 - **Quick Scan Mode:** 20 high-volatility stocks (default) to avoid API rate limits
 
-### API Endpoints Added
+### Unified Trading API Endpoints
 - `POST /autotrader/unified` - Full scan→analyze→trade workflow
 - `GET /autotrader/unified/status` - Check unified system status
 
