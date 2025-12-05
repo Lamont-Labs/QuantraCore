@@ -39,12 +39,14 @@
 
 | Metric | Count |
 |--------|-------|
-| Python Source Files | 423 |
-| Lines of Code | 104,903 |
-| API Endpoints | 263 |
-| ML Model Files | 21 |
-| Test Modules | 38 |
+| Python Source Files | 439 |
+| Lines of Code | 111,884 |
+| API Endpoints | 293 |
+| ML Model Files | 42 |
+| Test Modules | 67 |
 | TypeScript/React Files | 38 |
+| Strategies | 4 (Swing, Scalp, Momentum, MonsterRunner) |
+| Universe Coverage | 7,952+ symbols → 197 hot stocks |
 
 ---
 
@@ -117,7 +119,11 @@
 | Purpose | Location |
 |---------|----------|
 | API Server | `src/quantracore_apex/server/app.py` |
+| Strategy Orchestrator | `src/quantracore_apex/trading/strategy_orchestrator.py` |
+| Universe Scanner | `src/quantracore_apex/trading/universe_scanner.py` |
+| Scheduled Automation | `src/quantracore_apex/trading/scheduled_automation.py` |
 | Stop-Loss Manager | `src/quantracore_apex/broker/stop_loss_manager.py` |
 | Trade Journal | `src/quantracore_apex/investor/trade_journal.py` |
 | Forward Validator | `src/quantracore_apex/validation/forward_validator.py` |
-| ML Models | `models/massive_ensemble_v3.pkl.gz` |
+| EOD Model | `models/massive_ensemble_v3.pkl.gz` |
+| Intraday Model | `models/intraday_moonshot_v1.pkl.gz` |

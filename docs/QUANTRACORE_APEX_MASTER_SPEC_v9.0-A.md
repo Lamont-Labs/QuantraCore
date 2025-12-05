@@ -3,22 +3,25 @@
 **System Name:** QuantraCore Apex  
 **Owner:** Lamont Labs - Jesse J. Lamont  
 **Version:** 9.0-A (Production-Ready Paper Trading)  
-**Last Updated:** 2025-12-04  
+**Last Updated:** 2025-12-05  
 **Status:** Active - Moonshot Detection System (Desktop-Only)  
-**Repository:** https://github.com/Lamont-Labs/QuantraCore
+**Repository:** https://github.com/Lamont-Labs/QuantraCore-Apex
 
-## Current System Metrics (Verified 2025-12-04)
+## Current System Metrics (Verified 2025-12-05)
 
 | Metric | Value |
 |--------|-------|
-| Python Source Files | 423 |
-| Python Lines of Code | 104,903 |
+| Python Source Files | 439 |
+| Python Lines of Code | 111,884 |
 | TypeScript/React Files | 38 |
-| API Endpoints | 263 |
-| ML Model Files | 21 |
-| Test Modules | 38 |
-| Active Paper Positions | 11 |
+| API Endpoints | 293 |
+| ML Model Files | 42 |
+| Test Modules | 67 |
+| Active Paper Positions | 8 |
 | Primary Model | massive_ensemble_v3.pkl.gz |
+| Intraday Model | intraday_moonshot_v1.pkl.gz |
+| Strategy Orchestrator | 4 strategies (Swing, Scalp, Momentum, MonsterRunner) |
+| Universe Scanning | 7,952+ symbols → 197 hot stocks |
 
 ---
 

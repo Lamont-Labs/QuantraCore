@@ -12,14 +12,14 @@
 [![Desktop](https://img.shields.io/badge/platform-desktop%20only-orange)]()
 [![License](https://img.shields.io/badge/license-proprietary-red)]()
 [![Status](https://img.shields.io/badge/status-production--ready-success)]()
-[![Code](https://img.shields.io/badge/lines-105K-informational)]()
-[![Endpoints](https://img.shields.io/badge/API-263%20endpoints-blueviolet)]()
+[![Code](https://img.shields.io/badge/lines-112K-informational)]()
+[![Endpoints](https://img.shields.io/badge/API-293%20endpoints-blueviolet)]()
 
 **Owner:** Lamont Labs - Jesse J. Lamont  
 **Version:** v9.0-A (Production-Ready Paper Trading)  
 **Architecture:** Desktop-Only | Mode: PAPER (Alpaca Connected)  
 **Stage:** Beta / Production-Ready  
-**Last Updated:** 2025-12-04  
+**Last Updated:** 2025-12-05  
 
 ---
 
@@ -35,13 +35,13 @@
 
 | Metric | Value |
 |--------|-------|
-| **Codebase** | 104,903 lines Python, 423 source files |
+| **Codebase** | 111,884 lines Python, 439 source files |
 | **Frontend** | 38 TypeScript/React files |
-| **API Endpoints** | 263 REST endpoints |
-| **ML Models** | 21 trained models (primary: massive_ensemble_v3) |
+| **API Endpoints** | 293 REST endpoints |
+| **ML Models** | 42 trained models (primary: massive_ensemble_v3, intraday: intraday_moonshot_v1) |
 | **Protocols** | 145 (T01-T80, LP01-LP25, MR01-MR20, Ω01-Ω20) |
 | **Target** | 50%+ gains in 5 days, 70%+ precision |
-| **Current Status** | 11 active paper trading positions |
+| **Current Status** | 8 active paper trading positions, 4-strategy orchestrator |
 | **Commercial Paths** | IP Acquisition, Licensing, SaaS |
 
 ---
@@ -52,14 +52,14 @@
 |-----------|--------|---------|
 | **ApexEngine** | Operational | Deterministic core with 80 Tier protocols |
 | **ApexDesk UI** | Operational | React 18.2 + Vite 7.2 + Tailwind CSS 3.4 |
-| **FastAPI Backend** | Operational | **263 REST endpoints** on port 8000 |
-| **Universal Scanner** | Operational | 7 market cap buckets, 4 scan modes |
-| **Alpaca Paper Trading** | **Connected** | 11 active positions |
+| **FastAPI Backend** | Operational | **293 REST endpoints** on port 8000 |
+| **Universal Scanner** | Operational | 7,952+ symbols → 197 hot stocks |
+| **Alpaca Paper Trading** | **Connected** | 8 active positions |
 | **Moonshot Detection** | Operational | massive_ensemble_v3 model (50%+ gain detection) |
 | **Stop-Loss System** | Operational | -15% hard, +10%/8% trailing, 5-day time stop |
 | **Forward Validation** | Operational | Real-time prediction tracking |
 | **Data Layer** | Operational | Polygon, Alpaca, FRED, Finnhub, Alpha Vantage |
-| **ApexCore Models** | Operational | 21 trained models |
+| **ApexCore Models** | Operational | 42 trained models |
 | **Broker Layer** | Operational | Paper trading with risk engine |
 | **Velocity Mode** | Operational | Standard (30s), High (5s), Turbo (2s) |
 
@@ -78,12 +78,12 @@
 
 | Metric | Value |
 |--------|-------|
-| **Python Source Files** | 423 files |
-| **Python Lines** | 104,903 lines |
+| **Python Source Files** | 439 files |
+| **Python Lines** | 111,884 lines |
 | **TypeScript/React** | 38 files |
-| **API Endpoints** | 263 REST endpoints |
-| **ML Models** | 21 trained models |
-| **Test Modules** | 38 test files |
+| **API Endpoints** | 293 REST endpoints |
+| **ML Models** | 42 trained models |
+| **Test Modules** | 67 test files |
 
 ---
 
@@ -130,7 +130,7 @@ QuantraCore Apex is an **autonomous moonshot detection and trading system** that
 
 ## Testing
 
-The system includes 38 test modules covering:
+The system includes 67 test modules covering:
 
 - **Core Engine**: ApexEngine instantiation, execution, result validation
 - **Broker Layer**: Order routing, risk engine, adapters
@@ -215,7 +215,7 @@ http://localhost:5000
 
 ---
 
-## API Endpoints (263 Total)
+## API Endpoints (293 Total)
 
 ### Core Analysis
 | Endpoint | Method | Description |

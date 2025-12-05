@@ -1,7 +1,7 @@
 # QuantraCore Apex v9.0-A — Master Specification
 
 **Version:** 9.0-A (Production-Ready Paper Trading)  
-**Last Updated:** 2025-12-04  
+**Last Updated:** 2025-12-05  
 **Classification:** Technical Build Specification  
 **Purpose:** Complete technical reference for development teams  
 **Status:** Beta / Production-Ready (Paper Mode)
@@ -88,16 +88,17 @@ QuantraCore Apex v9.0-A is an **institutional-grade, deterministic AI trading in
 
 | Metric | Value |
 |--------|-------|
-| **Python Source Files** | 423 files |
-| **Python Lines of Code** | 104,903 lines |
+| **Python Source Files** | 439 files |
+| **Python Lines of Code** | 111,884 lines |
 | **Frontend Files** | 38 TypeScript/React files |
-| **API Endpoints** | 263 REST endpoints |
-| **ML Model Files** | 21 trained models |
-| **Test Files** | 38 test modules |
+| **API Endpoints** | 293 REST endpoints |
+| **ML Model Files** | 42 trained models |
+| **Test Files** | 67 test modules |
 | **Development Stage** | Beta / Production-Ready (Paper Mode) |
 | **Execution Mode** | PAPER (Alpaca connected) |
-| **Active Positions** | 11 paper trading positions |
+| **Active Positions** | 8 paper trading positions |
 | **Primary Model** | massive_ensemble_v3.pkl.gz (Moonshot Detection) |
+| **Intraday Model** | intraday_moonshot_v1.pkl.gz (1-minute bars) |
 
 ### 1.5 Capability Summary
 
@@ -3529,7 +3530,16 @@ The institutional trading dashboard now features 15 real-time monitoring panels:
 | 9.0-A | 2025-12-02 | Added 7 data ingestion API endpoints for multi-source market data |
 | 9.0-A | 2025-12-04 | Added Section 32: Automatic Stop-Loss Management System with 4 API endpoints |
 | 9.0-A | 2025-12-04 | Added Section 33: Forward Validation System for prediction accuracy tracking |
-| 9.0-A | 2025-12-04 | Documentation audit: Updated all metrics to verified 2025-12-04 values (423 files, 104,903 LOC, 263 endpoints, 21 models) |
+| 9.0-A | 2025-12-04 | Documentation audit: Updated all metrics to verified 2025-12-04 values |
+| 9.0-A | 2025-12-05 | Added Multi-Strategy Orchestrator: 4 concurrent strategies (Swing, Scalp, Momentum, MonsterRunner) |
+| 9.0-A | 2025-12-05 | Added Scheduled Automation: Every 30 min during extended hours (4 AM - 8 PM ET) |
+| 9.0-A | 2025-12-05 | Added Expanded Universe Scanner: 7,952+ symbols filtered to ~197 hot stocks |
+| 9.0-A | 2025-12-05 | Added Strategy-Specific Universe Filtering: Tailored stock lists per strategy |
+| 9.0-A | 2025-12-05 | Added Intraday Model: intraday_moonshot_v1.pkl.gz for 1-minute bar analysis |
+| 9.0-A | 2025-12-05 | Added Position Management System: Re-scoring with close/partial-profit decisions |
+| 9.0-A | 2025-12-05 | Added Trade Outcome Tracker: Records all closed position outcomes |
+| 9.0-A | 2025-12-05 | Added Learning Loop: Weekly performance analysis with improvement recommendations |
+| 9.0-A | 2025-12-05 | Updated metrics: 439 files, 111,884 LOC, 293 endpoints, 42 models, 67 tests |
 
 ---
 

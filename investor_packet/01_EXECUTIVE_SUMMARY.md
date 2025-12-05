@@ -18,10 +18,10 @@ QuantraCore Apex is an autonomous AI trading system designed to detect stocks re
 |--------|-------|
 | Account Type | Paper Trading (Alpaca) |
 | Starting Capital | $100,000 |
-| Current Equity | $104,046 |
-| Total Return | +4.05% |
-| Active Positions | 10 |
-| Win Rate | 70% (7/10) |
+| Current Equity | ~$107,000 |
+| Total Return | +2.9% |
+| Active Positions | 8 |
+| Strategy Orchestrator | 4 concurrent strategies |
 | Validation Period | December 2025 (ongoing) |
 
 ---
@@ -40,11 +40,13 @@ QuantraCore Apex is an autonomous AI trading system designed to detect stocks re
 
 ## Technology Stack
 
-- Python/FastAPI backend with 263 API endpoints
-- Machine learning ensemble models (GradientBoosting)
+- Python/FastAPI backend with 293 API endpoints
+- Machine learning ensemble models (42 trained models)
 - PostgreSQL for model persistence
-- React/TypeScript dashboard
-- 104,000+ lines of code
+- React/TypeScript dashboard (15 real-time panels)
+- 111,884 lines of Python code
+- Multi-strategy orchestrator (4 concurrent strategies)
+- Scheduled automation (every 30 min, 4 AM - 8 PM ET)
 
 ---
 

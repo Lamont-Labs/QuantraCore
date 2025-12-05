@@ -86,13 +86,13 @@
 | Component | Status | Notes |
 |-----------|--------|-------|
 | Deterministic Engine | Implemented | 145 protocols operational |
-| ApexLab v2 | Implemented | Labeling and dataset generation |
-| ApexCore v2 | Implemented | Big/Mini models with manifests |
-| PredictiveAdvisor | Implemented | Fail-closed ranker |
-| ApexDesk UI | Implemented | React/Vite dashboard |
-| Scanner | Implemented | 8 scan modes |
-| Broker Layer | Spec-only | Disabled by default |
-| QuantraVision | Separate codebase | v4.x operational |
+| Strategy Orchestrator | Implemented | 4 strategies (Swing, Scalp, Momentum, MonsterRunner) |
+| Universe Scanner | Implemented | 7,952+ symbols → 197 hot stocks |
+| Scheduled Automation | Implemented | Every 30 min, 4 AM - 8 PM ET |
+| ApexCore Models | Implemented | 42 trained models |
+| ApexDesk UI | Implemented | 15 real-time panels |
+| Paper Trading | Active | 8 positions, ~$107k equity |
+| Stop-Loss Manager | Implemented | -15% hard, trailing at +10% |
 
 ---
 
@@ -111,11 +111,13 @@
 
 | Metric | Value |
 |--------|-------|
-| Automated Tests | 970 (100% pass) |
-| Compliance Score | 99.25% |
-| API Endpoints | 36 |
-| Protocols | 115 |
-| Model Variants | Big (AUC 0.782) + Mini (AUC 0.754) |
+| Python Codebase | 439 files, 111,884 lines |
+| API Endpoints | 293 REST endpoints |
+| ML Models | 42 trained models |
+| Protocols | 145 (T01-T80, LP01-LP25, MR01-MR20, Ω01-Ω20) |
+| Strategies | 4 concurrent (Swing, Scalp, Momentum, MonsterRunner) |
+| Universe | 7,952+ symbols → 197 hot stocks |
+| Test Coverage | 67 test modules |
 
 ---
 

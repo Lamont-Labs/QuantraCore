@@ -2,7 +2,7 @@
 
 **Document Classification:** Investor Due Diligence  
 **Version:** 9.0-A  
-**Date:** November 2025  
+**Date:** December 2025  
 **Status:** Production  
 
 ---
@@ -68,13 +68,15 @@ This creates a dual-market opportunity: institutional desktop (QuantraCore) and 
 
 | Metric | Value | Verification |
 |--------|-------|--------------|
-| **Automated Tests** | 989+ tests, 100% pass | `pytest` suite |
-| **Compliance Score** | 99.25% (EXCEPTIONAL) | `/compliance/score` API |
+| **Python Codebase** | 439 files, 111,884 lines | Codebase count |
+| **API Endpoints** | 293 REST endpoints | OpenAPI spec |
+| **ML Models** | 42 trained models | `models/` directory |
+| **Test Modules** | 67 test files | `tests/` directory |
 | **Protocol Inventory** | 145 protocols | Codebase count |
-| **API Endpoints** | 41 REST endpoints | OpenAPI spec |
-| **Determinism Iterations** | 150 (3x FINRA requirement) | Compliance metrics |
-| **Model Manifests** | SHA256-verified Big/Mini | `models/apexcore_v2/` |
-| **Estimated Move Module** | Statistical range analysis with safety gates | New v9.0-A feature |
+| **Paper Trading** | 8 active positions | Alpaca paper |
+| **Strategy Orchestrator** | 4 concurrent strategies | Real-time execution |
+| **Universe Scanner** | 7,952+ symbols → 197 hot stocks | Prefiltered daily |
+| **Scheduled Automation** | Every 30 min, 4 AM - 8 PM ET | Extended hours |
 
 ---
 

@@ -8,6 +8,10 @@ QuantraCore Apex v9.0-A is an autonomous AI trading system designed to detect st
 
 **Current Status:**
 - 8 active paper trading positions (~$107k equity, +2.9% P&L)
+- Multi-strategy orchestrator: 4 concurrent strategies (Swing, Scalp, Momentum, MonsterRunner)
+- Scheduled automation: Every 30 min during extended hours (4 AM - 8 PM ET)
+- Strategy-specific universe filtering: Each strategy gets tailored stock lists
+- Expanded universe: 7,952+ symbols → 197 hot stocks per scan
 - Primary model: massive_ensemble_v3.pkl.gz
 - Intraday model: intraday_moonshot_v1.pkl.gz (2M+ 1-minute bars)
 - Stop-loss system active (-15% hard, +10%/8% trailing, 5-day time limit)
@@ -140,6 +144,18 @@ Dramatically expanded stock scanning from 26 to 7,952+ symbols:
 
 **Key File:** `src/quantracore_apex/trading/universe_scanner.py`
 
+### Strategy-Specific Universe Filtering (NEW - 2025-12-05)
+Each strategy now receives a tailored stock list optimized for its characteristics:
+
+| Strategy | Symbols | Filter Criteria |
+|----------|---------|-----------------|
+| Swing | ~47 | >$1M volume, 50%+ of weekly range, 3-15% volatility |
+| Scalp | ~29 | >$2M volume, 1.5x+ volume surge (high liquidity) |
+| Momentum | ~18 | 3%+ day change, 1.3x+ volume surge, 60%+ of range |
+| MonsterRunner | ~14 | 5%+ volatility, 4%+ day change, <$20 price (explosive) |
+
+**Key Method:** `get_strategy_universe(strategy_type, max_symbols)` in universe_scanner.py
+
 ### Quick Scan Universe (Fallback)
 Curated 26 high-volatility stocks across 5 hot sectors for moonshot detection:
 
@@ -187,15 +203,15 @@ Built complete infrastructure for training on 1-minute bar data:
 
 ## System Architecture
 
-### Codebase Metrics (Verified 2025-12-04)
+### Codebase Metrics (Verified 2025-12-05)
 | Metric | Value |
 |--------|-------|
-| Python Source Files | 423 |
-| Python Lines of Code | 104,903 |
+| Python Source Files | 439 |
+| Python Lines of Code | 111,884 |
 | TypeScript/React Files | 38 |
-| API Endpoints | 263 |
-| ML Model Files | 21 |
-| Test Modules | 38 |
+| API Endpoints | 293 |
+| ML Model Files | 42 |
+| Test Modules | 67 |
 
 ### Technical Stack
 - **Backend:** Python 3.11, FastAPI, Uvicorn (port 8000, 4 workers)
